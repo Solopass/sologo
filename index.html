@@ -98,6 +98,19 @@
             border-color: rgba(129, 140, 248, 0.4);
             color: #ffffff;
         }
+        :root {
+            color-scheme: dark;
+            scrollbar-width: thin;
+            scrollbar-color: #232338 #0d0d16;
+        }
+        input[type="range"],
+        input[type="checkbox"] {
+            accent-color: #6366f1;
+        }
+        :focus-visible {
+            outline: 2px solid #818cf8;
+            outline-offset: 2px;
+        }
         /* Custom sleek scrollbar for controls panel */
         ::-webkit-scrollbar {
             width: 6px;
@@ -115,7 +128,7 @@
         }
     </style>
 </head>
-<body class="h-screen overflow-hidden flex flex-col selection:bg-indigo-500 selection:text-white">
+<body class="h-[100dvh] overflow-hidden flex flex-col selection:bg-indigo-500 selection:text-white">
 
     <!-- Header -->
     <header class="shrink-0 border-b border-white/10 bg-[#0d0d16]/95 backdrop-blur-md px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3 z-20">
@@ -159,12 +172,12 @@
 
             <!-- Unified Export Dropdown -->
             <div class="relative">
-                <button id="exportMenuBtn" type="button" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow-[0_0_20px_rgba(99,102,241,0.4)] transition flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                <button id="exportMenuBtn" type="button" popovertarget="exportMenuPopover" aria-haspopup="menu" aria-expanded="false" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow-[0_0_20px_rgba(99,102,241,0.4)] transition flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                     <span>Export</span>
                     <span class="text-[10px] opacity-80">▾</span>
                 </button>
-                <div id="exportMenuPopover" class="hidden absolute right-0 mt-2 w-60 bg-[#121222] border border-white/15 rounded-2xl shadow-2xl p-2 space-y-1 z-50">
+                <div id="exportMenuPopover" popover="auto" role="menu" class="m-0 w-60 bg-[#121222]/95 backdrop-blur-xl border border-white/15 rounded-2xl shadow-2xl p-2 space-y-1">
                     <button id="downloadSvgBtn" class="w-full text-left px-3 py-2 rounded-xl hover:bg-indigo-500/20 text-xs text-white font-medium flex items-center justify-between transition">
                         <span>Download .SVG</span><span class="text-[10px] text-indigo-300 font-mono">Vector</span>
                     </button>
@@ -272,41 +285,43 @@
                 </div>
             </div>
 
-            <!-- Bottom Bar inside Stage: Quick Presets & AI Themes -->
-            <div class="w-full flex items-center justify-start sm:justify-center gap-1.5 overflow-x-auto pb-1 z-10">
-                <button onclick="applyPreset('reference')" class="shrink-0 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] text-gray-200 transition">Exact Reference</button>
-                <button onclick="applyPreset('phi')" class="shrink-0 px-2.5 py-1 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-400/30 text-[11px] text-indigo-200 transition" title="Golden Ratio (1.618)">φ Golden Ratio</button>
-                <button onclick="applyPreset('fibonacci')" class="shrink-0 px-2.5 py-1 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-400/30 text-[11px] text-indigo-200 transition" title="Fibonacci Proportions (21, 34, 55, 89, 144)">Fib Sequence</button>
-                <button onclick="applyPreset('pi')" class="shrink-0 px-2.5 py-1 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-400/30 text-[11px] text-indigo-200 transition" title="Pi Harmonics (3.14159)">π Harmonic</button>
-                <button onclick="applyPreset('primes')" class="shrink-0 px-2.5 py-1 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-400/30 text-[11px] text-indigo-200 transition" title="Prime Number Geometry">Prime Symmetry</button>
-                <button onclick="applyPreset('lockup')" class="shrink-0 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] text-gray-200 transition">Emblem + Wordmark</button>
-                <button onclick="applyPreset('gradient')" class="shrink-0 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] text-gray-200 transition">Cyber Fade</button>
-                <span class="shrink-0 w-px h-4 bg-white/15 mx-0.5"></span>
-                <button id="openAiPresetsBtn" class="shrink-0 px-2.5 py-1 rounded-lg bg-gradient-to-r from-indigo-500/20 to-sky-500/20 hover:from-indigo-500/30 hover:to-sky-500/30 border border-sky-400/30 text-[11px] font-medium text-sky-200 transition flex items-center gap-1.5" title="Browse 10 Local AI Generated Logo Themes with Encoded Messages">
-                    <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
-                    <span>AI Themes (10)</span>
-                </button>
+            <!-- Bottom Bar inside Stage: Sleek Floating Preset Dock -->
+            <div class="w-full max-w-2xl flex justify-center z-10">
+                <div class="max-w-full flex items-center justify-start sm:justify-center gap-1.5 overflow-x-auto bg-[#10101c]/85 backdrop-blur-xl border border-white/10 rounded-2xl px-2.5 py-1.5 shadow-xl">
+                    <button onclick="applyPreset('reference')" class="shrink-0 px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] text-gray-200 transition">Exact Reference</button>
+                    <button onclick="applyPreset('phi')" class="shrink-0 px-2.5 py-1 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-400/30 text-[11px] text-indigo-200 transition" title="Golden Ratio (1.618)">φ Golden Ratio</button>
+                    <button onclick="applyPreset('fibonacci')" class="shrink-0 px-2.5 py-1 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-400/30 text-[11px] text-indigo-200 transition" title="Fibonacci Proportions (21, 34, 55, 89, 144)">Fib Sequence</button>
+                    <button onclick="applyPreset('pi')" class="shrink-0 px-2.5 py-1 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-400/30 text-[11px] text-indigo-200 transition" title="Pi Harmonics (3.14159)">π Harmonic</button>
+                    <button onclick="applyPreset('primes')" class="shrink-0 px-2.5 py-1 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-400/30 text-[11px] text-indigo-200 transition" title="Prime Number Geometry">Prime Symmetry</button>
+                    <button onclick="applyPreset('lockup')" class="shrink-0 px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] text-gray-200 transition">Emblem + Wordmark</button>
+                    <button onclick="applyPreset('gradient')" class="shrink-0 px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] text-gray-200 transition">Cyber Fade</button>
+                    <span class="shrink-0 w-px h-4 bg-white/15 mx-0.5"></span>
+                    <button id="openAiPresetsBtn" class="shrink-0 px-2.5 py-1 rounded-xl bg-gradient-to-r from-indigo-500/25 to-sky-500/25 hover:from-indigo-500/35 hover:to-sky-500/35 border border-sky-400/30 text-[11px] font-medium text-sky-200 transition flex items-center gap-1.5" title="Browse 10 Local AI Generated Logo Themes with Encoded Messages">
+                        <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
+                        <span>AI Themes (10)</span>
+                    </button>
+                </div>
             </div>
         </section>
 
         <!-- Independently Scrollable Controls Sidebar with 3-Tab Inspector -->
         <aside class="flex-1 lg:flex-none w-full lg:w-[430px] bg-[#11111c] lg:border-l border-white/10 flex flex-col min-h-0">
             <!-- Pinned Tab Switcher -->
-            <div class="shrink-0 px-4 pt-3 pb-2.5 border-b border-white/10 bg-[#0d0d16]/80 backdrop-blur-md grid grid-cols-3 gap-1.5">
-                <button id="tabBtnStudio" type="button" data-sidebar-tab="studio" class="sidebar-tab-btn px-2 py-1.5 rounded-xl bg-indigo-600/30 border border-indigo-400/50 text-xs font-semibold text-white transition flex items-center justify-center gap-1">
+            <div role="tablist" aria-label="Inspector Tabs" class="shrink-0 px-4 pt-3 pb-2.5 border-b border-white/10 bg-[#0d0d16]/80 backdrop-blur-md grid grid-cols-3 gap-1.5">
+                <button id="tabBtnStudio" type="button" role="tab" aria-selected="true" aria-controls="tabPanelStudio" data-sidebar-tab="studio" class="sidebar-tab-btn px-2 py-1.5 rounded-xl bg-indigo-600/30 border border-indigo-400/50 text-xs font-semibold text-white transition flex items-center justify-center gap-1">
                     <span>🎨 Studio</span><span class="text-[9px] font-mono opacity-60">1</span>
                 </button>
-                <button id="tabBtnAnimate" type="button" data-sidebar-tab="animate" class="sidebar-tab-btn px-2 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-medium text-gray-300 hover:text-white transition flex items-center justify-center gap-1">
+                <button id="tabBtnAnimate" type="button" role="tab" aria-selected="false" aria-controls="tabPanelAnimate" data-sidebar-tab="animate" class="sidebar-tab-btn px-2 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-medium text-gray-300 hover:text-white transition flex items-center justify-center gap-1">
                     <span>✨ Animate</span><span class="text-[9px] font-mono opacity-60">2</span>
                 </button>
-                <button id="tabBtnCipher" type="button" data-sidebar-tab="cipher" class="sidebar-tab-btn px-2 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-medium text-gray-300 hover:text-white transition flex items-center justify-center gap-1">
+                <button id="tabBtnCipher" type="button" role="tab" aria-selected="false" aria-controls="tabPanelCipher" data-sidebar-tab="cipher" class="sidebar-tab-btn px-2 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-medium text-gray-300 hover:text-white transition flex items-center justify-center gap-1">
                     <span>🔐 Cipher</span><span class="text-[9px] font-mono opacity-60">3</span>
                 </button>
             </div>
 
-            <div class="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
+            <div class="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5">
             <!-- TAB 3: CIPHER & SYNC -->
-            <div id="tabPanelCipher" class="hidden space-y-4">
+            <div id="tabPanelCipher" role="tabpanel" aria-labelledby="tabBtnCipher" class="hidden space-y-4">
             <!-- Section 0: Mathematical & Message Cipher Codec -->
             <div class="bg-indigo-950/25 border border-indigo-500/30 rounded-2xl p-4 space-y-3">
                 <div class="flex items-center justify-between">
@@ -369,7 +384,7 @@
             </div> <!-- /tabPanelCipher -->
 
             <!-- TAB 2: ANIMATE & AI -->
-            <div id="tabPanelAnimate" class="hidden space-y-4">
+            <div id="tabPanelAnimate" role="tabpanel" aria-labelledby="tabBtnAnimate" class="hidden space-y-4">
             <!-- Section 0.5: .SPMOTION Keyframe Timeline & AI Motion Choreographer -->
             <div class="bg-sky-950/25 border border-sky-500/30 rounded-2xl p-4 space-y-3">
                 <div class="flex items-center justify-between">
@@ -450,6 +465,7 @@
                         <button type="button" data-lock-group="ring" class="lock-group-btn px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] text-gray-300 transition" title="Lock Center Ring">Ring</button>
                         <button type="button" data-lock-group="wings" class="lock-group-btn px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] text-gray-300 transition" title="Lock Side Wings">Wings</button>
                         <button type="button" data-lock-group="glow" class="lock-group-btn px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] text-gray-300 transition" title="Lock Glow & Wordmark">Glow</button>
+                        <button type="button" id="toggleAllLocksBtn" class="ml-auto px-2 py-0.5 rounded-md bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/30 text-[10px] font-semibold text-amber-200 transition" title="Lock or unlock all groups & sliders for Randomize / Smooth Morph">🔒 Lock All</button>
                     </div>
                     <div id="seedVarStrip" class="hidden flex items-center gap-1.5 overflow-x-auto pt-0.5"></div>
                 </div>
@@ -476,30 +492,28 @@
                 </div>
 
                 <!-- Export Animated SVG, .WEBM Video & .SPMOTION File -->
-                <div class="grid grid-cols-4 gap-1.5 pt-1">
-                    <button id="exportAnimatedSvgBtn" class="col-span-2 px-2.5 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 text-[11px] font-medium text-sky-200 transition">
-                        Animated .SVG
+                <div class="grid grid-cols-2 gap-2 pt-2 border-t border-sky-500/20">
+                    <button id="exportAnimatedSvgBtn" class="px-3 py-2 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 text-[11px] font-semibold text-sky-200 transition flex items-center justify-center gap-1.5">
+                        <span>✨</span><span>Animated .SVG</span>
                     </button>
-                    <button id="exportWebmBtn" class="px-2 py-1.5 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-400/30 text-[11px] font-medium text-indigo-200 transition" title="Render timeline to .WEBM video">
-                        .WEBM
+                    <button id="exportWebmBtn" class="px-3 py-2 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-400/30 text-[11px] font-semibold text-indigo-200 transition flex items-center justify-center gap-1.5" title="Render timeline to .WEBM video">
+                        <span>🎬</span><span>.WEBM Video</span>
                     </button>
-                    <div class="flex gap-1">
-                        <button id="exportSpmotionBtn" class="flex-1 px-1.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] font-medium text-gray-300 transition" title="Export .spmotion JSON">
-                            JSON
-                        </button>
-                        <label class="flex-1 px-1.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] font-medium text-gray-300 transition cursor-pointer text-center" title="Load .spmotion file">
-                            Load
-                            <input type="file" id="importSpmotionInput" accept=".spmotion,.json" class="hidden">
-                        </label>
-                    </div>
+                    <button id="exportSpmotionBtn" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-medium text-gray-300 transition text-center" title="Export .spmotion JSON">
+                        Export .SPMOTION
+                    </button>
+                    <label class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-medium text-gray-300 transition cursor-pointer text-center" title="Load .spmotion file">
+                        Load .SPMOTION
+                        <input type="file" id="importSpmotionInput" accept=".spmotion,.json" class="hidden">
+                    </label>
                 </div>
             </div>
             </div> <!-- /tabPanelAnimate -->
 
             <!-- TAB 1: STUDIO -->
-            <div id="tabPanelStudio" class="space-y-6">
+            <div id="tabPanelStudio" role="tabpanel" aria-labelledby="tabBtnStudio" class="space-y-4 pb-4">
             <!-- Section 1: Color, Gradient & Glow -->
-            <div class="space-y-4">
+            <div class="bg-white/[0.025] border border-white/10 rounded-2xl p-4 space-y-4">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-1.5">
                         <h2 class="text-xs font-semibold uppercase tracking-wider text-indigo-400">1. Color & Neon Glow</h2>
@@ -549,10 +563,8 @@
                 </div>
             </div>
 
-            <hr class="border-white/10">
-
             <!-- Section 2: Center Ring Controls -->
-            <div class="space-y-4">
+            <div class="bg-white/[0.025] border border-white/10 rounded-2xl p-4 space-y-4">
                 <div class="flex items-center justify-between">
                     <h2 class="text-xs font-semibold uppercase tracking-wider text-indigo-400">2. Center Ring</h2>
                     <button type="button" data-lock-group="ring" class="lock-group-btn px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[9px] text-gray-400 transition" title="Lock Center Ring during Randomize & AI">🔓</button>
@@ -603,10 +615,8 @@
                 </div>
             </div>
 
-            <hr class="border-white/10">
-
             <!-- Section 3: Wing Geometry & Angles -->
-            <div class="space-y-4">
+            <div class="bg-white/[0.025] border border-white/10 rounded-2xl p-4 space-y-4">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-1.5">
                         <h2 class="text-xs font-semibold uppercase tracking-wider text-indigo-400">3. Side Wings</h2>
@@ -726,10 +736,8 @@
                 </div>
             </div>
 
-            <hr class="border-white/10">
-
             <!-- Section 4: Brand Wordmark -->
-            <div class="space-y-4 pb-4">
+            <div class="bg-white/[0.025] border border-white/10 rounded-2xl p-4 space-y-4">
                 <div class="flex items-center justify-between">
                     <h2 class="text-xs font-semibold uppercase tracking-wider text-indigo-400">4. Brand Wordmark</h2>
                     <label class="relative inline-flex items-center cursor-pointer">
@@ -1087,6 +1095,8 @@
             wingCurveVal: document.getElementById('wingCurveVal'),
             wingBalance: document.getElementById('wingBalance'),
             wingBalanceVal: document.getElementById('wingBalanceVal'),
+            wingLag: document.getElementById('wingLag'),
+            wingLagVal: document.getElementById('wingLagVal'),
             showText: document.getElementById('showText'),
             textControls: document.getElementById('textControls'),
             brandText: document.getElementById('brandText'),
@@ -1354,6 +1364,7 @@
             els.wingAngleVal.textContent = `${state.wingAngle}°`;
             els.wingCurveVal.textContent = `${state.wingCurve}px`;
             els.wingBalanceVal.textContent = `${state.wingBalance > 0 ? '+' : ''}${state.wingBalance}%`;
+            if (els.wingLagVal) els.wingLagVal.textContent = `${state.wingLag || 0}%`;
             els.fontSizeVal.textContent = `${state.fontSize}px`;
             els.letterSpacingVal.textContent = `${state.letterSpacing}px`;
             els.zoomVal.textContent = `${Math.round(state.zoom * 100)}%`;
@@ -1805,22 +1816,69 @@
             ['wingAngle', 'wingAngle'],
             ['wingCurve', 'wingCurve'],
             ['wingBalance', 'wingBalance'],
+            ['wingLag', 'wingLag'],
             ['fontSize', 'fontSize'],
             ['letterSpacing', 'letterSpacing'],
             ['previewZoom', 'zoom']
         ];
+
+        const lockedSliders = (() => {
+            try {
+                const raw = JSON.parse(localStorage.getItem('solopass_locked_sliders') || '{}');
+                return (raw && typeof raw === 'object') ? raw : {};
+            } catch {
+                return {};
+            }
+        })();
+
+        function updateSliderLockUI() {
+            document.querySelectorAll('.slider-lock-btn').forEach(btn => {
+                const key = btn.dataset.sliderLock;
+                const isLocked = !!lockedSliders[key];
+                btn.textContent = isLocked ? '🔒' : '🔓';
+                btn.setAttribute('aria-pressed', String(isLocked));
+                btn.title = isLocked ? `Unlock ${key}` : `Lock ${key} during Randomize & AI`;
+                btn.classList.toggle('bg-amber-500/25', isLocked);
+                btn.classList.toggle('border-amber-400/50', isLocked);
+                btn.classList.toggle('text-amber-200', isLocked);
+                btn.classList.toggle('bg-white/5', !isLocked);
+                btn.classList.toggle('border-white/10', !isLocked);
+                btn.classList.toggle('text-gray-500', !isLocked);
+            });
+        }
 
         rangeBindings.forEach(([elId, stateKey]) => {
             const slider = els[elId];
             if (!slider) return;
             slider.title = 'Double-click to reset to default';
 
-            // Inject compact - / + fine-step micro controls beside numeric readout
+            // Inject compact lock + - / + fine-step micro controls beside numeric readout
             const headerRow = slider.previousElementSibling;
             const valSpan = headerRow?.querySelector('span:last-child');
             if (headerRow && valSpan && !headerRow.querySelector('.step-btn')) {
                 const stepWrap = document.createElement('span');
                 stepWrap.className = 'inline-flex items-center gap-1';
+
+                if (stateKey !== 'zoom') {
+                    const lockBtn = document.createElement('button');
+                    lockBtn.type = 'button';
+                    lockBtn.dataset.sliderLock = stateKey;
+                    lockBtn.className = 'slider-lock-btn px-1 py-0.5 rounded bg-white/5 border border-white/10 text-[9px] leading-none text-gray-500 hover:text-amber-200 transition';
+                    lockBtn.textContent = lockedSliders[stateKey] ? '🔒' : '🔓';
+                    lockBtn.setAttribute('aria-pressed', String(!!lockedSliders[stateKey]));
+                    lockBtn.title = lockedSliders[stateKey] ? `Unlock ${stateKey}` : `Lock ${stateKey} during Randomize & AI`;
+                    lockBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        lockedSliders[stateKey] = !lockedSliders[stateKey];
+                        localStorage.setItem('solopass_locked_sliders', JSON.stringify(lockedSliders));
+                        updateSliderLockUI();
+                        if (typeof updateAllLocksBtnUI === 'function') updateAllLocksBtnUI();
+                        showToast(`${stateKey} ${lockedSliders[stateKey] ? 'locked 🔒' : 'unlocked 🔓'}`);
+                    });
+                    stepWrap.appendChild(lockBtn);
+                }
+
                 const minusBtn = document.createElement('button');
                 minusBtn.type = 'button';
                 minusBtn.className = 'step-btn';
@@ -2116,6 +2174,7 @@
             els.wingAngle.value = state.wingAngle;
             els.wingCurve.value = state.wingCurve;
             els.wingBalance.value = state.wingBalance;
+            if (els.wingLag) els.wingLag.value = state.wingLag || 0;
             els.showText.checked = state.showText;
             els.brandText.value = state.brandText;
             els.fontSize.value = state.fontSize;
@@ -2407,7 +2466,7 @@
         const LOCK_GROUP_KEYS = {
             colors: ['strokeColor', 'secondaryColor', 'useGradient', 'bgColor', 'gradAngle'],
             ring: ['circleRadius', 'ringStrokeWidth', 'ringFillOpacity', 'ringGapDeg', 'ringRotate'],
-            wings: ['wingStrokeWidth', 'wingGap', 'topWingLen', 'botWingLen', 'wingSpacing', 'wingOffsetY', 'botInnerInset', 'wingAngle', 'wingCurve', 'wingBalance', 'tripleWing', 'lineCap'],
+            wings: ['wingStrokeWidth', 'wingGap', 'topWingLen', 'botWingLen', 'wingSpacing', 'wingOffsetY', 'botInnerInset', 'wingAngle', 'wingCurve', 'wingBalance', 'wingLag', 'tripleWing', 'lineCap'],
             glow: ['glowBlur', 'glowOpacity', 'showText', 'brandText', 'letterSpacing', 'fontSize']
         };
         const lockedGroups = (() => {
@@ -2427,18 +2486,37 @@
                     if (anchorState[key] !== undefined) out[key] = anchorState[key];
                 }
             }
+            for (const [key, isLocked] of Object.entries(lockedSliders)) {
+                if (isLocked && anchorState[key] !== undefined) {
+                    out[key] = anchorState[key];
+                }
+            }
             return out;
         }
 
         function getLockedSummaryLabel() {
             const active = Object.entries(lockedGroups).filter(([, v]) => v).map(([k]) => k);
+            const sliderCount = Object.values(lockedSliders).filter(Boolean).length;
+            if (sliderCount > 0) active.push(`${sliderCount} slider${sliderCount > 1 ? 's' : ''}`);
             return active.length ? ` (kept: ${active.join(', ')})` : '';
+        }
+
+        function updateAllLocksBtnUI() {
+            const toggleAllBtn = document.getElementById('toggleAllLocksBtn');
+            if (!toggleAllBtn) return;
+            const allGroupsLocked = Object.values(lockedGroups).every(Boolean);
+            const anyLocked = Object.values(lockedGroups).some(Boolean) || Object.values(lockedSliders).some(Boolean);
+            toggleAllBtn.textContent = allGroupsLocked ? '🔓 Unlock All' : '🔒 Lock All';
+            toggleAllBtn.setAttribute('aria-pressed', String(allGroupsLocked));
+            toggleAllBtn.classList.toggle('bg-amber-500/30', anyLocked);
+            toggleAllBtn.classList.toggle('border-amber-400/50', anyLocked);
         }
 
         function updateLockUI() {
             document.querySelectorAll('.lock-group-btn').forEach(btn => {
                 const grp = btn.dataset.lockGroup;
                 const locked = !!lockedGroups[grp];
+                btn.setAttribute('aria-pressed', String(locked));
                 const isCompact = btn.textContent.includes('🔓') || btn.textContent.includes('🔒');
                 if (isCompact) {
                     const prefix = grp === 'glow' ? '✨' : '';
@@ -2450,6 +2528,8 @@
                 btn.classList.toggle('bg-white/5', !locked);
                 btn.classList.toggle('border-white/10', !locked);
             });
+            updateSliderLockUI();
+            updateAllLocksBtnUI();
         }
 
         document.querySelectorAll('.lock-group-btn').forEach(btn => {
@@ -2462,6 +2542,21 @@
                 showToast(`${grp.charAt(0).toUpperCase() + grp.slice(1)} ${lockedGroups[grp] ? 'locked 🔒' : 'unlocked 🔓'}`);
             });
         });
+
+        const toggleAllLocksBtn = document.getElementById('toggleAllLocksBtn');
+        if (toggleAllLocksBtn) {
+            toggleAllLocksBtn.addEventListener('click', () => {
+                const nextLocked = !Object.values(lockedGroups).every(Boolean);
+                Object.keys(lockedGroups).forEach(k => { lockedGroups[k] = nextLocked; });
+                if (!nextLocked) {
+                    Object.keys(lockedSliders).forEach(k => { lockedSliders[k] = false; });
+                    localStorage.setItem('solopass_locked_sliders', JSON.stringify(lockedSliders));
+                }
+                localStorage.setItem('solopass_locks', JSON.stringify(lockedGroups));
+                updateLockUI();
+                showToast(nextLocked ? 'All groups locked for Randomize & Smooth Morph 🔒' : 'All locks cleared 🔓');
+            });
+        }
         updateLockUI();
 
         const motionTrailBtn = document.getElementById('motionTrailBtn');
@@ -3424,15 +3519,6 @@ Do not include any explanation or markdown formatting, output raw JSON only.`;
         const aiBatchVariationsBtn = document.getElementById('aiBatchVariationsBtn');
         const seedVarStrip = document.getElementById('seedVarStrip');
         const motionSeedInput = document.getElementById('motionSeedInput');
-
-        const wingLagEl = document.getElementById('wingLag');
-        const wingLagValEl = document.getElementById('wingLagVal');
-        if (wingLagEl) {
-            wingLagEl.addEventListener('input', (e) => {
-                state.wingLag = parseFloat(e.target.value) || 0;
-                if (wingLagValEl) wingLagValEl.textContent = `${state.wingLag}%`;
-            });
-        }
 
         // Continuous Smooth Morph Mode (morphs smoothly from current state to next random seed)
         let isMorphLoopActive = false;
@@ -4397,6 +4483,7 @@ Do not include any explanation or markdown formatting, output raw JSON only.`;
                 const active = name === tabName;
                 if (item.panel) item.panel.classList.toggle('hidden', !active);
                 if (item.btn) {
+                    item.btn.setAttribute('aria-selected', String(active));
                     item.btn.className = active
                         ? 'sidebar-tab-btn px-2 py-1.5 rounded-xl bg-indigo-600/30 border border-indigo-400/50 text-xs font-semibold text-white transition flex items-center justify-center gap-1'
                         : 'sidebar-tab-btn px-2 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-medium text-gray-300 hover:text-white transition flex items-center justify-center gap-1';
@@ -4409,22 +4496,49 @@ Do not include any explanation or markdown formatting, output raw JSON only.`;
         });
         switchSidebarTab(localStorage.getItem('solopass_sidebar_tab') || 'studio');
 
-        // Unified Export Popover
+        // Unified Export Popover (Native Popover API + anchored coordinates)
         const exportMenuBtn = document.getElementById('exportMenuBtn');
         const exportMenuPopover = document.getElementById('exportMenuPopover');
         if (exportMenuBtn && exportMenuPopover) {
-            exportMenuBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                exportMenuPopover.classList.toggle('hidden');
-            });
-            document.addEventListener('click', (e) => {
-                if (!exportMenuPopover.classList.contains('hidden') && !exportMenuPopover.contains(e.target) && e.target !== exportMenuBtn) {
-                    exportMenuPopover.classList.add('hidden');
-                }
-            });
-            exportMenuPopover.querySelectorAll('button').forEach(b => {
-                b.addEventListener('click', () => exportMenuPopover.classList.add('hidden'));
-            });
+            const positionExportPopover = () => {
+                const rect = exportMenuBtn.getBoundingClientRect();
+                exportMenuPopover.style.position = 'fixed';
+                exportMenuPopover.style.top = `${Math.round(rect.bottom + 8)}px`;
+                exportMenuPopover.style.right = `${Math.round(Math.max(8, window.innerWidth - rect.right))}px`;
+                exportMenuPopover.style.left = 'auto';
+            };
+            if ('popover' in HTMLElement.prototype) {
+                exportMenuPopover.addEventListener('beforetoggle', (e) => {
+                    const isOpen = e.newState === 'open';
+                    exportMenuBtn.setAttribute('aria-expanded', String(isOpen));
+                    if (isOpen) positionExportPopover();
+                });
+                exportMenuPopover.querySelectorAll('button').forEach(b => {
+                    b.addEventListener('click', () => {
+                        if (exportMenuPopover.matches(':popover-open')) exportMenuPopover.hidePopover();
+                    });
+                });
+            } else {
+                exportMenuPopover.classList.add('hidden');
+                exportMenuBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    positionExportPopover();
+                    const open = exportMenuPopover.classList.toggle('hidden') === false;
+                    exportMenuBtn.setAttribute('aria-expanded', String(open));
+                });
+                document.addEventListener('click', (e) => {
+                    if (!exportMenuPopover.classList.contains('hidden') && !exportMenuPopover.contains(e.target) && e.target !== exportMenuBtn) {
+                        exportMenuPopover.classList.add('hidden');
+                        exportMenuBtn.setAttribute('aria-expanded', 'false');
+                    }
+                });
+                exportMenuPopover.querySelectorAll('button').forEach(b => {
+                    b.addEventListener('click', () => {
+                        exportMenuPopover.classList.add('hidden');
+                        exportMenuBtn.setAttribute('aria-expanded', 'false');
+                    });
+                });
+            }
         }
 
         // Compare Reference Peek
@@ -4481,6 +4595,8 @@ Do not include any explanation or markdown formatting, output raw JSON only.`;
             const seedVal = document.getElementById('motionSeedInput')?.value || '4829';
             if (seedEl) seedEl.textContent = `Seed #${seedVal}`;
             const activeLocks = Object.entries(lockedGroups).filter(([, v]) => v).map(([k]) => k);
+            const sliderLockCount = Object.values(lockedSliders).filter(Boolean).length;
+            if (sliderLockCount > 0) activeLocks.push(`${sliderLockCount}s`);
             if (locksEl) {
                 locksEl.classList.toggle('hidden', activeLocks.length === 0);
                 locksEl.textContent = `🔒 ${activeLocks.join(',')}`;

@@ -142,6 +142,10 @@
                 <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
                 <span class="hidden md:inline">Guides</span>
             </button>
+            <button id="soloSyncModalBtn" class="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600/30 to-sky-600/30 hover:from-emerald-500/40 hover:to-sky-500/40 border border-emerald-400/40 text-xs font-semibold text-emerald-200 transition flex items-center gap-1.5 shadow-[0_0_12px_rgba(52,211,153,0.2)]" title="Open SOLO-SYNC: High-Speed AI-to-AI Optical & Digital Link">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>AI Sync Link</span>
+            </button>
             <label class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-200 transition flex items-center gap-1.5 cursor-pointer" title="Import an exported SOLOPASS .SVG to restore sliders & decode hidden message">
                 <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                 <span class="hidden sm:inline">Import</span>
@@ -653,8 +657,136 @@
         </div>
     </div>
 
+    <!-- SOLO-SYNC: Optical & Digital AI-to-AI Transceiver Modal -->
+    <div id="soloSyncModal" role="dialog" aria-modal="true" aria-labelledby="syncModalTitle" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-5">
+        <div class="w-full max-w-3xl bg-[#0f0f1a] border border-emerald-500/30 rounded-2xl shadow-[0_0_50px_rgba(16,185,129,0.15)] overflow-hidden flex flex-col max-h-[90vh]">
+            
+            <!-- Modal Header -->
+            <div class="px-5 py-3.5 border-b border-white/10 flex items-center justify-between bg-black/40">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_10px_#34d399]"></div>
+                    <div>
+                        <h3 id="syncModalTitle" class="font-display font-bold text-sm text-white flex items-center gap-2">
+                            SOLO-SYNC <span class="text-xs px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-mono font-normal border border-emerald-400/30">AI Visual & Digital Channel</span>
+                        </h3>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="flex items-center gap-1.5 text-xs text-gray-300 cursor-pointer px-2 py-1 rounded-lg bg-white/5 border border-white/10" title="Toggle Optical Alignment Grid behind emblem">
+                        <input type="checkbox" id="syncGridToggle" checked class="rounded bg-black/40 border-white/20 text-emerald-500 focus:ring-0">
+                        <span class="text-[11px]">Fiducial Grid</span>
+                    </label>
+                    <button id="closeSyncModalBtn" type="button" aria-label="Close Sync Modal" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-xs text-gray-300 transition">✕</button>
+                </div>
+            </div>
+
+            <!-- Modal Body: Transmitter & Receiver Split -->
+            <div class="p-4 sm:p-5 overflow-y-auto space-y-4 flex-1">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <!-- Transmitter (TX) Column -->
+                    <div class="bg-black/40 border border-emerald-500/20 rounded-xl p-4 space-y-3 flex flex-col justify-between">
+                        <div class="space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <h4 class="text-xs font-semibold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                                    Transmitter (TX)
+                                </h4>
+                                <span id="txStatusBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 text-gray-400 border border-white/10">IDLE</span>
+                            </div>
+
+                            <textarea id="txMessageInput" rows="3" placeholder="Type AI message or JSON payload to transmit at optical speed..." class="w-full px-3 py-2 text-xs bg-black/60 border border-white/15 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-emerald-400 resize-none font-mono">HELLO_SOLO_AI_AGENT</textarea>
+
+                            <div class="flex items-center justify-between text-xs text-gray-400">
+                                <span>Speed (Optical FPS)</span>
+                                <div class="flex items-center gap-2">
+                                    <input type="range" id="txFpsSlider" min="5" max="60" step="5" value="25" class="w-24">
+                                    <span id="txFpsVal" class="text-xs font-mono text-emerald-300 w-8 text-right">25fps</span>
+                                </div>
+                            </div>
+
+                            <div class="text-[10px] text-gray-400 font-mono flex items-center justify-between bg-black/50 p-2 rounded-lg border border-white/5">
+                                <span>Frames: <span id="txFramesCount" class="text-white">0</span></span>
+                                <span>Throughput: <span id="txThroughputVal" class="text-emerald-400">0 B/s</span></span>
+                            </div>
+                        </div>
+
+                        <div class="pt-2 flex gap-2">
+                            <button id="startTxBtn" class="flex-1 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-sky-600 hover:from-emerald-500 hover:to-sky-500 text-xs font-bold text-white transition flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+                                <span id="startTxIcon">▶</span>
+                                <span id="startTxLabel">Transmit Optical Stream</span>
+                            </button>
+                            <button id="stopTxBtn" disabled class="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 disabled:opacity-30 border border-white/10 text-xs text-gray-300 transition">
+                                Stop
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Receiver (RX) Column -->
+                    <div class="bg-black/40 border border-sky-500/20 rounded-xl p-4 space-y-3 flex flex-col justify-between">
+                        <div class="space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <h4 class="text-xs font-semibold uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                                    Receiver (RX)
+                                </h4>
+                                <div class="flex items-center gap-1.5">
+                                    <span id="rxLockBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 text-gray-400 border border-white/10">NO LOCK</span>
+                                    <button id="clearRxLogBtn" class="text-[10px] text-gray-500 hover:text-gray-300">Clear</button>
+                                </div>
+                            </div>
+
+                            <!-- Live Camera Ingestion Preview (Collapsible) -->
+                            <div id="rxCameraWrapper" class="hidden relative rounded-xl border border-sky-400/30 overflow-hidden bg-black aspect-video flex items-center justify-center">
+                                <video id="rxCameraVideo" playsinline muted class="w-full h-full object-cover"></video>
+                                <div id="rxReticleOverlay" class="absolute inset-0 pointer-events-none border border-sky-400/50 flex items-center justify-center">
+                                    <div class="w-16 h-16 rounded-full border border-sky-400/40"></div>
+                                </div>
+                            </div>
+
+                            <!-- Decoded Stream Terminal -->
+                            <div class="space-y-1">
+                                <div class="flex items-center justify-between text-[10px] text-gray-400">
+                                    <span>Decoded Ingest Stream:</span>
+                                    <span>Confidence: <span id="rxConfidenceVal" class="text-sky-300 font-mono">0%</span></span>
+                                </div>
+                                <div id="rxTerminalLog" class="w-full h-24 p-2 text-xs bg-black/70 border border-white/10 rounded-xl text-sky-200 font-mono overflow-y-auto leading-relaxed select-all">
+                                    [Standby: Listening for digital broadcast & optical emblem frames...]
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-2 flex gap-2">
+                            <button id="toggleCameraRxBtn" class="flex-1 py-2 rounded-xl bg-sky-600/30 hover:bg-sky-500/40 border border-sky-400/40 text-xs font-semibold text-sky-200 transition flex items-center justify-center gap-1.5">
+                                <span id="cameraRxIcon">📷</span>
+                                <span id="cameraRxLabel">Start Webcam Vision RX</span>
+                            </button>
+                            <button id="copyRxTextBtn" class="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-gray-300 transition" title="Copy Decoded Text">
+                                Copy
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Channel Diagnostics Footer -->
+                <div class="bg-black/60 p-3 rounded-xl border border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-gray-400">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                        <span>Channel: <span class="text-white">Dual (Digital BroadcastChannel + Optical Fiducial Grid)</span></span>
+                    </div>
+                    <div>Modulation: <span class="text-emerald-300">16-bit Geometric Constellation + CRC-8</span></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
     <!-- Hidden canvas for PNG conversion -->
     <canvas id="exportCanvas" class="hidden"></canvas>
+
+    <!-- Load SOLO-SYNC Transceiver Protocol -->
+    <script src="optical-sync.js"></script>
 
     <!-- Toast Notification -->
     <div id="toast" role="status" aria-live="polite" class="fixed bottom-5 left-5 z-50 bg-indigo-600 text-white text-xs font-medium px-4 py-2.5 rounded-xl shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
@@ -719,6 +851,7 @@
             bgColor: '#0d0d16',
             zoom: 1,
             showGuides: false,
+            showOpticalGrid: false,
             encodedMessage: ''
         };
 
@@ -980,9 +1113,13 @@
             const wordmarkMarkup = state.showText ? `
   <text x="${cx}" y="${cy + r + 58}" text-anchor="middle" fill="${strokePaint}" font-family="'Space Grotesk', 'Inter', sans-serif" font-weight="700" font-size="${state.fontSize}" letter-spacing="${state.letterSpacing}" ${filterAttr}>${safeTitle}</text>` : '';
 
+            const opticalGridMarkup = state.showOpticalGrid && typeof SoloSyncGrid !== 'undefined'
+                ? SoloSyncGrid.generateGridMarkup(width, height, state.clockBit || 0, state.seq || 0)
+                : '';
+
             return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="100%" height="100%" role="img" aria-label="${safeTitle} Vector Emblem" data-solopass-seed="${seedCode}">
   <title>${safeTitle} Vector Emblem</title>
-  <!-- SOLOPASS Vector Emblem | Seed: ${seedCode} -->${defs}${guidesMarkup}
+  <!-- SOLOPASS Vector Emblem | Seed: ${seedCode} -->${defs}${opticalGridMarkup}${guidesMarkup}
   <g ${filterAttr} fill="none" stroke="${strokePaint}" stroke-linecap="${state.lineCap}" stroke-linejoin="round">
     <!-- Center Ring -->
     <circle cx="${cx}" cy="${cy}" r="${r}" stroke-width="${state.ringStrokeWidth}" fill="${state.strokeColor}" fill-opacity="${state.ringFillOpacity}"${ringDashAttr} />
@@ -2602,6 +2739,189 @@
             });
         });
 
+        // SOLO-SYNC UI Handlers & Channel Initialization
+        const soloSync = typeof SoloSyncChannel !== 'undefined' ? new SoloSyncChannel() : null;
+        const syncModal = document.getElementById('soloSyncModal');
+        const soloSyncModalBtn = document.getElementById('soloSyncModalBtn');
+        const closeSyncModalBtn = document.getElementById('closeSyncModalBtn');
+        const syncGridToggle = document.getElementById('syncGridToggle');
+        const txFpsSlider = document.getElementById('txFpsSlider');
+        const txFpsVal = document.getElementById('txFpsVal');
+        const startTxBtn = document.getElementById('startTxBtn');
+        const stopTxBtn = document.getElementById('stopTxBtn');
+        const txStatusBadge = document.getElementById('txStatusBadge');
+        const txFramesCount = document.getElementById('txFramesCount');
+        const txThroughputVal = document.getElementById('txThroughputVal');
+        const toggleCameraRxBtn = document.getElementById('toggleCameraRxBtn');
+        const rxCameraWrapper = document.getElementById('rxCameraWrapper');
+        const rxCameraVideo = document.getElementById('rxCameraVideo');
+        const rxLockBadge = document.getElementById('rxLockBadge');
+        const rxConfidenceVal = document.getElementById('rxConfidenceVal');
+        const rxTerminalLog = document.getElementById('rxTerminalLog');
+        const clearRxLogBtn = document.getElementById('clearRxLogBtn');
+        const copyRxTextBtn = document.getElementById('copyRxTextBtn');
+
+        let isCameraRxActive = false;
+        let lastReceivedText = '';
+
+        if (soloSyncModalBtn) {
+            soloSyncModalBtn.addEventListener('click', () => {
+                syncModal.classList.remove('hidden');
+                state.showOpticalGrid = syncGridToggle ? syncGridToggle.checked : true;
+                render();
+            });
+        }
+
+        if (closeSyncModalBtn) {
+            closeSyncModalBtn.addEventListener('click', () => {
+                syncModal.classList.add('hidden');
+                if (soloSync && soloSync.isTransmitting) soloSync.stopTransmission();
+                if (isCameraRxActive) toggleCameraRx();
+            });
+        }
+
+        if (syncGridToggle) {
+            syncGridToggle.addEventListener('change', (e) => {
+                state.showOpticalGrid = e.target.checked;
+                render();
+            });
+        }
+
+        if (txFpsSlider) {
+            txFpsSlider.addEventListener('input', (e) => {
+                if (txFpsVal) txFpsVal.textContent = `${e.target.value}fps`;
+            });
+        }
+
+        if (startTxBtn) {
+            startTxBtn.addEventListener('click', () => {
+                const text = document.getElementById('txMessageInput')?.value || 'HELLO_AI';
+                const fps = parseInt(txFpsSlider?.value || 25, 10);
+                state.showOpticalGrid = true;
+                if (syncGridToggle) syncGridToggle.checked = true;
+
+                if (txStatusBadge) {
+                    txStatusBadge.textContent = 'TRANSMITTING';
+                    txStatusBadge.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 animate-pulse';
+                }
+                if (stopTxBtn) stopTxBtn.disabled = false;
+                startTxBtn.disabled = true;
+
+                const startTime = performance.now();
+                let bytesSent = 0;
+
+                soloSync.onTxProgressCallback = ({ current, total, frame }) => {
+                    if (txFramesCount) txFramesCount.textContent = `${current}/${total}`;
+                    bytesSent = current * 2;
+                    const elapsedSec = (performance.now() - startTime) / 1000;
+                    if (txThroughputVal && elapsedSec > 0) {
+                        txThroughputVal.textContent = `${Math.round(bytesSent / elapsedSec)} B/s`;
+                    }
+                };
+
+                soloSync.transmit(text, {
+                    fps,
+                    onFrameRender: (frame) => {
+                        Object.assign(state, frame.state);
+                        render();
+                    }
+                });
+
+                // Auto-reset when complete
+                const checkInterval = setInterval(() => {
+                    if (!soloSync.isTransmitting) {
+                        clearInterval(checkInterval);
+                        if (txStatusBadge) {
+                            txStatusBadge.textContent = 'DONE';
+                            txStatusBadge.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 text-emerald-300 border border-white/10';
+                        }
+                        if (stopTxBtn) stopTxBtn.disabled = true;
+                        startTxBtn.disabled = false;
+                        showToast('Optical transmission completed!');
+                    }
+                }, 100);
+            });
+        }
+
+        if (stopTxBtn) {
+            stopTxBtn.addEventListener('click', () => {
+                if (soloSync) soloSync.stopTransmission();
+                if (txStatusBadge) {
+                    txStatusBadge.textContent = 'STOPPED';
+                    txStatusBadge.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 text-gray-400 border border-white/10';
+                }
+                stopTxBtn.disabled = true;
+                startTxBtn.disabled = false;
+            });
+        }
+
+        async function toggleCameraRx() {
+            if (!soloSync) return;
+            if (!isCameraRxActive) {
+                try {
+                    rxCameraWrapper.classList.remove('hidden');
+                    await soloSync.startCameraReceiver(rxCameraVideo);
+                    isCameraRxActive = true;
+                    document.getElementById('cameraRxLabel').textContent = 'Stop Camera RX';
+                    toggleCameraRxBtn.classList.add('bg-rose-600/30', 'border-rose-400/40', 'text-rose-200');
+                    showToast('Camera optical receiver online!');
+                } catch (err) {
+                    showToast('Camera error: ' + err.message);
+                }
+            } else {
+                soloSync.stopCameraReceiver();
+                isCameraRxActive = false;
+                rxCameraWrapper.classList.add('hidden');
+                document.getElementById('cameraRxLabel').textContent = 'Start Webcam Vision RX';
+                toggleCameraRxBtn.classList.remove('bg-rose-600/30', 'border-rose-400/40', 'text-rose-200');
+            }
+        }
+
+        if (toggleCameraRxBtn) {
+            toggleCameraRxBtn.addEventListener('click', toggleCameraRx);
+        }
+
+        if (soloSync) {
+            soloSync.onReceiveCallback = ({ text }) => {
+                lastReceivedText = text;
+                if (rxTerminalLog) {
+                    rxTerminalLog.textContent = text;
+                    rxTerminalLog.scrollTop = rxTerminalLog.scrollHeight;
+                }
+            };
+
+            soloSync.onRxTelemetryCallback = ({ locked, confidence }) => {
+                if (rxLockBadge) {
+                    if (locked) {
+                        rxLockBadge.textContent = 'LOCKED';
+                        rxLockBadge.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/30';
+                    } else {
+                        rxLockBadge.textContent = 'SEARCHING';
+                        rxLockBadge.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-400/30';
+                    }
+                }
+                if (rxConfidenceVal) rxConfidenceVal.textContent = `${confidence}%`;
+            };
+        }
+
+        if (clearRxLogBtn) {
+            clearRxLogBtn.addEventListener('click', () => {
+                if (soloSync) soloSync.clearRxBuffer();
+                lastReceivedText = '';
+                if (rxTerminalLog) rxTerminalLog.textContent = '[Log cleared]';
+            });
+        }
+
+        if (copyRxTextBtn) {
+            copyRxTextBtn.addEventListener('click', () => {
+                if (!lastReceivedText) {
+                    showToast('No text in receiver buffer');
+                    return;
+                }
+                copyTextToClipboard(lastReceivedText, 'Copied received message!');
+            });
+        }
+
         // Programmatic AI & External Agent Bridge (window.SOLOPASS_API)
         window.SOLOPASS_API = {
             getState: () => ({ ...state }),
@@ -2650,7 +2970,16 @@
             play: () => { if (!isTimelinePlaying) document.getElementById('playTimelineBtn').click(); },
             pause: () => stopTimelinePlayback(),
             promptAI: (text) => runAiCoPilotPrompt(text),
-            exportSVG: () => generateSVGString(false, false)
+            exportSVG: () => generateSVGString(false, false),
+            // SOLO-SYNC High-Speed AI Optical & Digital Transceiver Bridge
+            sync: {
+                transmit: (text, opts) => soloSync?.transmit(text, opts),
+                stopTransmit: () => soloSync?.stopTransmission(),
+                startCamera: (videoEl, opts) => soloSync?.startCameraReceiver(videoEl, opts),
+                stopCamera: () => soloSync?.stopCameraReceiver(),
+                onReceive: (cb) => { if (soloSync) soloSync.onReceiveCallback = cb; },
+                clearBuffer: () => soloSync?.clearRxBuffer()
+            }
         };
 
         // Initialize stage on load

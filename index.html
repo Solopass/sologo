@@ -363,7 +363,9 @@
                             <span id="aiBtnLabel">AI Run</span>
                         </button>
                     </div>
-                    <div class="flex items-center gap-1 overflow-x-auto pt-0.5">
+                    <div class="flex items-center gap-1.5 overflow-x-auto pt-0.5">
+                        <button type="button" id="aiRandomizeMotionBtn" class="shrink-0 px-2.5 py-0.5 rounded-md bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/30 text-[10px] font-semibold text-emerald-200 transition" title="Instantly generate a multi-keyframe animation from a random seed">🎲 Randomize</button>
+                        <input type="text" id="motionSeedInput" placeholder="Seed" value="4829" class="w-16 shrink-0 px-1.5 py-0.5 rounded-md bg-black/60 border border-white/15 text-[10px] font-mono text-sky-300 text-center focus:outline-none focus:border-sky-400" title="Motion seed (press Enter to replay this seed)">
                         <button type="button" data-ai-chip="Generate 5-frame portal surge with spin and cyan burst" class="ai-chip shrink-0 px-2 py-0.5 rounded-md bg-white/5 hover:bg-sky-500/20 border border-white/10 text-[10px] text-gray-300 transition">5-Frame Portal</button>
                         <button type="button" data-ai-chip="Generate 4-frame breathing pulse with spring bounce" class="ai-chip shrink-0 px-2 py-0.5 rounded-md bg-white/5 hover:bg-sky-500/20 border border-white/10 text-[10px] text-gray-300 transition">4-Frame Pulse</button>
                         <button type="button" data-ai-chip="Generate 6-frame hypersonic wing flare" class="ai-chip shrink-0 px-2 py-0.5 rounded-md bg-white/5 hover:bg-sky-500/20 border border-white/10 text-[10px] text-gray-300 transition">6-Frame Flare</button>
@@ -3062,6 +3064,129 @@ Do not include any explanation or markdown formatting, output raw JSON only.`;
                 runAiCoPilotPrompt(promptText);
             });
         });
+
+        // Deterministic Seeded Random Keyframe Animator (Instant Batch Choreography)
+        function hashSeedStr(str) {
+            let h = 2166136261 >>> 0;
+            for (let i = 0; i < str.length; i++) {
+                h ^= str.charCodeAt(i);
+                h = Math.imul(h, 16777619);
+            }
+            return h >>> 0;
+        }
+        function createSeededRng(seedStr) {
+            let a = hashSeedStr(String(seedStr || '1'));
+            return function() {
+                a |= 0; a = (a + 0x6D2B79F5) | 0;
+                let t = Math.imul(a ^ (a >>> 15), 1 | a);
+                t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+                return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+            };
+        }
+        function generateSeededAnimation(seedStr) {
+            const rng = createSeededRng(seedStr);
+            const rRange = (min, max) => Math.round(min + rng() * (max - min));
+            const pick = (arr) => arr[Math.floor(rng() * arr.length)];
+
+            const palettes = [
+                { name: 'Cyber Cyan', c1: '#38bdf8', c2: '#6366f1' },
+                { name: 'Neon Synth', c1: '#a855f7', c2: '#ec4899' },
+                { name: 'Emerald Matrix', c1: '#34d399', c2: '#06b6d4' },
+                { name: 'Solar Flare', c1: '#fb923c', c2: '#facc15' },
+                { name: 'Crimson Pulse', c1: '#f43f5e', c2: '#8b5cf6' },
+                { name: 'Arctic White', c1: '#ffffff', c2: '#38bdf8' }
+            ];
+            const archetypes = [
+                'Portal Surge', 'Hypersonic Flap', 'Orbital Spin', 'Quantum Breathe',
+                'Wing Whip', 'Triple-Tier Flare', 'Harmonic Drift', 'Warp Core'
+            ];
+            const pal = pick(palettes);
+            const archetype = pick(archetypes);
+            const easing = pick(['easeInOutCubic', 'spring', 'easeOutBack', 'linear']);
+            const playMode = pick(['pingpong', 'loop']);
+            const durationSec = Math.round((2.0 + rng() * 2.5) * 2) / 2;
+            const frameCount = rRange(4, 5);
+
+            const base = {
+                ...captureAnimatableSnapshot().state,
+                strokeColor: pal.c1,
+                secondaryColor: pal.c2,
+                useGradient: true,
+                tripleWing: rng() > 0.35
+            };
+
+            const frames = [{ label: 'Origin', easing, state: { ...base } }];
+            for (let i = 1; i < frameCount - 1; i++) {
+                const phase = i / (frameCount - 1);
+                const s = { ...base };
+                if (archetype === 'Portal Surge' || archetype === 'Warp Core') {
+                    s.ringGapDeg = rRange(35, 130);
+                    s.ringRotate = rRange(-120, 120);
+                    s.ringFillOpacity = Number((0.1 + rng() * 0.25).toFixed(2));
+                    s.glowBlur = rRange(14, 28);
+                    s.topWingLen = Math.min(185, base.topWingLen + rRange(15, 50));
+                } else if (archetype === 'Hypersonic Flap' || archetype === 'Wing Whip') {
+                    s.wingAngle = (i % 2 === 1 ? 1 : -1) * rRange(6, 14);
+                    s.wingCurve = (i % 2 === 1 ? 1 : -1) * rRange(10, 22);
+                    s.wingSpacing = rRange(16, 36);
+                    s.topWingLen = rRange(110, 185);
+                    s.botWingLen = Math.round(s.topWingLen * (0.6 + rng() * 0.25));
+                } else if (archetype === 'Orbital Spin') {
+                    s.ringGapDeg = rRange(45, 110);
+                    s.ringRotate = Math.round(-160 + phase * 320);
+                    s.wingBalance = (i % 2 === 1 ? 1 : -1) * rRange(8, 22);
+                    s.glowBlur = rRange(12, 24);
+                } else {
+                    s.circleRadius = rRange(36, 58);
+                    s.ringGapDeg = rng() > 0.4 ? rRange(20, 100) : 0;
+                    s.ringRotate = rRange(-90, 90);
+                    s.wingGap = rRange(14, 42);
+                    s.topWingLen = rRange(95, 180);
+                    s.botWingLen = Math.round(s.topWingLen * 0.72);
+                    s.wingCurve = rRange(-16, 18);
+                    s.glowBlur = rRange(10, 26);
+                }
+                frames.push({ label: `Pose ${i}`, easing, state: s });
+            }
+            frames.push({ label: 'Settle', easing, state: { ...base } });
+
+            if (isTimelinePlaying) stopTimelinePlayback();
+            motionTimeline.durationSec = durationSec;
+            motionTimeline.easing = easing;
+            motionTimeline.playMode = playMode;
+            motionTimeline.keyframes = frames;
+            document.getElementById('timelineDuration').value = durationSec;
+            document.getElementById('timelineDurationVal').textContent = `${durationSec.toFixed(1)}s`;
+            document.getElementById('timelineEasingSelect').value = easing;
+            document.getElementById('timelinePlayMode').value = playMode;
+
+            Object.assign(state, frames[0].state);
+            syncInputsFromState();
+            render();
+            activeKeyframeIdx = 0;
+            renderKeyframeStrip();
+            pushHistory();
+            document.getElementById('playTimelineBtn').click();
+            showToast(`Seed #${seedStr}: ${archetype} (${pal.name}, ${frames.length} frames)`);
+        }
+
+        const aiRandomizeBtn = document.getElementById('aiRandomizeMotionBtn');
+        const motionSeedInput = document.getElementById('motionSeedInput');
+        if (aiRandomizeBtn) {
+            aiRandomizeBtn.addEventListener('click', () => {
+                const newSeed = String(Math.floor(1000 + Math.random() * 9000));
+                if (motionSeedInput) motionSeedInput.value = newSeed;
+                generateSeededAnimation(newSeed);
+            });
+        }
+        if (motionSeedInput) {
+            motionSeedInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    generateSeededAnimation(motionSeedInput.value.trim() || '4829');
+                }
+            });
+        }
 
         // User Profile & Sender Handle State
         let currentUserName = localStorage.getItem('solopass_username') || 'Solopass';

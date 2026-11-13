@@ -4,9 +4,9 @@ A zero-build, dark-themed parametric SVG logo studio, keyframe motion lab, and e
 
 ## Features
 
-- **Parametric Vector Studio**: Real-time SVG synthesis with controls for core circle, inner ring, top/bottom/triple wings, accent strokes, linear gradients, optional glow filters, orbital nodes, and custom typography.
+- **Parametric Vector Studio**: Real-time SVG synthesis with controls for core circle, inner ring, top/bottom/triple wings, accent strokes, linear gradients, visual treatments (`Classic Neon`, `Plasma Core`, `Holographic`, `Chromatic Glitch`, `Heavy Bloom`, `Minimal Futurist`, `Apex Aggressive`), Energy Flow highlights, and custom typography.
 - **Per-Slider & Section Locks**: Lock individual sliders or entire control groups (`Core`, `Wings`, `Stroke & Color`, `Text`) so Randomize, Smooth Morph, AI mutations, and Seeded Motion preserve locked attributes.
-- **Keyframe Timeline & Smooth Morph**: Multi-keyframe motion lab with easing presets (`linear`, `easeInOut`, `elastic`, `bounce`), Seeded Motion generator, and continuous Smooth Morph mode.
+- **Keyframe Timeline & Motion Modes**: Multi-keyframe motion lab with 9 easing curves (`Smooth Cubic`, `Strong Quint`, `Elastic Spring`, `Out Elastic`, `Out Bounce`, `Overshoot Back`, `In-Out Back`, `Warp Expo`, `Linear`), staggered wing lag, continuous Idle Behaviors (`Pulse`, `Orbit`, `Flow`), one-click Motion Modes (`Idle Pulse`, `Power Up`, `Scan`, `Spin & Expand`, `Glitch Burst`, `Morph Loop`), Seeded Motion, and Smooth Morph.
 - **Multi-Format Exporters**: Export static `.SVG`, `.PNG` (with embedded `tEXt` `solopass_seed` metadata chunk), `512px` App Icon `.PNG`, animated `.GIF` (pure-JS Gif89a encoder), `.WEBM`, Animated `.SVG`, and `.SPMOTION` timeline files.
 - **Geometric Cipher & `SP2-` Seeds**: Deterministic text-to-geometry cipher and compact shareable `SP2-` state seeds.
 - **AI Theme Co-Pilot & Vault**: Generates themed visual variations via a local OpenAI-compatible LLM server with an automatic deterministic heuristic fallback, plus saved presets and local Vault snapshots.
@@ -64,6 +64,11 @@ Then open [http://127.0.0.1:8765/](http://127.0.0.1:8765/) in your browser. It a
   - `b`: 7 boolean flags (`showText`, `showCircle`, `showWings`, `showGuides`, `useGradient`, `glowEnabled`, `tripleWing`)
   - `t`: `[brandText, encodedMessage, fontFamily]`
 - `decodeSeedDetailed()` validates structure, array lengths, finite numbers, and `#RRGGBB` hex colors before mutating any state. Invalid or legacy seeds return `{ ok: false, error }` cleanly without side effects.
+
+## Export Behavior for Visual Effects
+
+- **Static `.SVG` Export**: Keeps output clean and portable — `Chromatic Glitch`, `Minimal Futurist`, `Holographic`, `Plasma Core`, and static `Energy Flow` dash offsets export as pure SVG elements/gradients, while `Heavy Bloom` caps its outer blur stack to avoid oversized filter regions. Kinetic `Motion Trail` echoes are omitted from static SVG exports.
+- **`.GIF`, `.WEBM`, and Animated `.SVG`**: Capture keyframe interpolation, staggered `Wing Lag`, `Energy Flow` traversal, and `Visual Treatment` transitions cleanly for playback and sharing.
 
 ## Optical Sync (`SoloSync`) Limitations
 

@@ -23,6 +23,7 @@ export function base64ToUtf8(b64) {
     return textDecoder.decode(bytes);
 }
 
+const VALID_VISUAL_STYLES = new Set(['classic', 'plasma', 'holographic', 'glitch', 'bloom', 'minimal', 'aggressive']);
 const isValidHex6 = (s) => typeof s === 'string' && /^[0-9A-Fa-f]{6}$/.test(s);
 const clampNum = (val, min, max, fallback) => {
     const n = parseFloat(val);
@@ -62,7 +63,9 @@ export function encodeStateToCode(s) {
         s.lockNonStraight ? 1 : 0,
         s.innerRingRadius || 0,
         s.textOffsetY || 58,
-        s.gradAngle || 0
+        s.gradAngle || 0,
+        s.visualStyle || 'classic',
+        s.energyFlow || 0
     ].join('|');
     return `SP2-${btoa(payload).replace(/=+$/, '')}`;
 }
@@ -141,6 +144,8 @@ export function decodeSeedDetailed(codeStr, targetState = null) {
             patch.innerRingRadius = p.length >= 28 ? clampNum(p[27], 0, 60, 0) : 0;
             patch.textOffsetY = p.length >= 29 ? clampNum(p[28], 20, 140, 58) : 58;
             patch.gradAngle = p.length >= 30 ? clampNum(p[29], -180, 180, 0) : 0;
+            patch.visualStyle = p.length >= 31 && VALID_VISUAL_STYLES.has(p[30]) ? p[30] : 'classic';
+            patch.energyFlow = p.length >= 32 ? clampNum(p[31], 0, 100, 0) : 0;
         } else {
             if (!isValidHex6(p[12])) {
                 return { ok: false, error: 'Legacy SP1 seed has invalid color hex.' };

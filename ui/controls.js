@@ -107,11 +107,18 @@ export function initControls({ timelineApi }) {
         pushHistory();
     });
 
+    els.visualStyleSelect?.addEventListener('change', (e) => {
+        state.visualStyle = e.target.value || 'classic';
+        render();
+        pushHistory();
+    });
+
     // Numeric Range Sliders + Lock & Fine-Step Buttons
     const rangeBindings = [
         ['glowBlur', 'glowBlur'],
         ['glowOpacity', 'glowOpacity'],
         ['gradAngle', 'gradAngle'],
+        ['energyFlow', 'energyFlow'],
         ['circleRadius', 'circleRadius'],
         ['ringStrokeWidth', 'ringStrokeWidth'],
         ['ringFillOpacity', 'ringFillOpacity'],

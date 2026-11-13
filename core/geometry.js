@@ -78,25 +78,56 @@ export function generateSVGString(s, {
         ? ` stroke-dasharray="${dashLength.toFixed(2)} ${gapLength.toFixed(2)}" transform="rotate(${s.ringRotate + (s.ringGapDeg / 2)} ${cx} ${cy})"`
         : '';
 
-    const strokePaint = s.useGradient ? 'url(#solopassGrad)' : s.strokeColor;
-    const filterAttr = s.glowBlur > 0 ? 'filter="url(#neonGlow)"' : '';
+    const styleMode = s.visualStyle || 'classic';
+    const useMultiGrad = s.useGradient || styleMode === 'plasma' || styleMode === 'holographic';
+    const strokePaint = useMultiGrad ? 'url(#solopassGrad)' : s.strokeColor;
+    const effectiveGlow = styleMode === 'minimal'
+        ? 0
+        : styleMode === 'bloom'
+            ? (forExport ? Math.min(22, Math.max(8, s.glowBlur * 1.15)) : Math.max(10, s.glowBlur * 1.35))
+            : s.glowBlur;
+    const filterAttr = effectiveGlow > 0 ? 'filter="url(#neonGlow)"' : '';
     const seedCode = encodeStateToCode(s);
     const safeTitle = escapeXml(s.brandText || 'SOLOPASS');
+
+    let gradStops = `
+      <stop offset="0%" stop-color="${s.strokeColor}" />
+      <stop offset="50%" stop-color="${s.secondaryColor}" />
+      <stop offset="100%" stop-color="${s.strokeColor}" />`;
+    if (styleMode === 'plasma') {
+        gradStops = `
+      <stop offset="0%" stop-color="${s.strokeColor}" />
+      <stop offset="35%" stop-color="#ffffff" stop-opacity="0.95" />
+      <stop offset="68%" stop-color="${s.secondaryColor}" />
+      <stop offset="100%" stop-color="${s.strokeColor}" />`;
+    } else if (styleMode === 'holographic') {
+        gradStops = `
+      <stop offset="0%" stop-color="${s.strokeColor}" />
+      <stop offset="28%" stop-color="#38bdf8" />
+      <stop offset="52%" stop-color="#f472b6" />
+      <stop offset="76%" stop-color="#a78bfa" />
+      <stop offset="100%" stop-color="${s.secondaryColor || '#34d399'}" />`;
+    }
+
+    const bloomExtraFilter = styleMode === 'bloom' && !forExport
+        ? `\n      <feGaussianBlur stdDeviation="${(effectiveGlow * 1.65).toFixed(1)}" result="blurOuter" />`
+        : '';
+    const bloomExtraMerge = styleMode === 'bloom' && !forExport
+        ? `\n        <feMergeNode in="blurOuter" />`
+        : '';
 
     const defs = `
   <defs>
     <linearGradient id="solopassGrad" gradientUnits="userSpaceOnUse" x1="60" y1="0" x2="540" y2="0" gradientTransform="rotate(${s.gradAngle || 0} ${cx} ${cy})">
-      <stop offset="0%" stop-color="${s.strokeColor}" />
-      <stop offset="50%" stop-color="${s.secondaryColor}" />
-      <stop offset="100%" stop-color="${s.strokeColor}" />
+${gradStops}
     </linearGradient>
-    <filter id="neonGlow" x="-35%" y="-35%" width="170%" height="170%">
-      <feGaussianBlur stdDeviation="${s.glowBlur}" result="blur1" />
-      <feGaussianBlur stdDeviation="${(s.glowBlur * 0.45).toFixed(1)}" result="blur2" />
+    <filter id="neonGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="${effectiveGlow.toFixed(1)}" result="blur1" />
+      <feGaussianBlur stdDeviation="${(effectiveGlow * 0.42).toFixed(1)}" result="blur2" />${bloomExtraFilter}
       <feComponentTransfer in="blur1" result="fadeBlur1">
         <feFuncA type="linear" slope="${s.glowOpacity}" />
       </feComponentTransfer>
-      <feMerge>
+      <feMerge>${bloomExtraMerge}
         <feMergeNode in="fadeBlur1" />
         <feMergeNode in="blur2" />
         <feMergeNode in="SourceGraphic" />
@@ -140,13 +171,50 @@ export function generateSVGString(s, {
     </g>`;
 
     const echoMarkup = (s.motionTrail && isTimelinePlaying && !forExport) ? `
-  <g opacity="0.22" fill="none" stroke="${strokePaint}" stroke-linecap="${s.lineCap}" stroke-linejoin="round" transform="translate(${cx} ${cy}) scale(0.92) translate(${-cx} ${-cy})">${emblemCore}
+  <g opacity="0.22" fill="none" stroke="${strokePaint}" stroke-linecap="${s.lineCap}" stroke-linejoin="round" transform="translate(${cx} ${cy}) scale(0.93) translate(${-cx} ${-cy})">${emblemCore}
+  </g>
+  <g opacity="0.10" fill="none" stroke="${strokePaint}" stroke-linecap="${s.lineCap}" stroke-linejoin="round" transform="translate(${cx} ${cy}) scale(0.86) translate(${-cx} ${-cy})">${emblemCore}
+  </g>` : '';
+
+    const glitchMarkup = styleMode === 'glitch' ? `
+  <g opacity="0.58" fill="none" stroke="#22d3ee" stroke-linecap="${s.lineCap}" stroke-linejoin="round" transform="translate(-3.2 -1)">${emblemCore}
+  </g>
+  <g opacity="0.55" fill="none" stroke="#f43f5e" stroke-linecap="${s.lineCap}" stroke-linejoin="round" transform="translate(3.2 1)">${emblemCore}
+  </g>` : '';
+
+    const minimalAccentMarkup = styleMode === 'minimal' ? `
+  <circle cx="${cx}" cy="${cy}" r="${(r + 6).toFixed(1)}" fill="none" stroke="${strokePaint}" stroke-width="1" stroke-opacity="0.28" stroke-dasharray="3 5" />` : '';
+
+    const coreHighlightMarkup = (styleMode === 'plasma' || styleMode === 'bloom' || styleMode === 'aggressive') ? `
+  <g opacity="${styleMode === 'bloom' ? '0.42' : '0.28'}" fill="none" stroke="#ffffff" stroke-linecap="${s.lineCap}" stroke-linejoin="round">
+    <g transform="rotate(${-effectiveAngle} ${cx} ${cy + offsetY})">
+      <path d="${leftTopPath}" stroke-width="${Math.max(1.2, s.wingStrokeWidth * 0.24).toFixed(1)}" />
+      <path d="${leftBotPath}" stroke-width="${Math.max(1.0, s.wingStrokeWidth * 0.2).toFixed(1)}" />
+    </g>
+    <g transform="rotate(${effectiveAngle} ${cx} ${cy + offsetY})">
+      <path d="${rightTopPath}" stroke-width="${Math.max(1.2, s.wingStrokeWidth * 0.24).toFixed(1)}" />
+      <path d="${rightBotPath}" stroke-width="${Math.max(1.0, s.wingStrokeWidth * 0.2).toFixed(1)}" />
+    </g>
+  </g>` : '';
+
+    const flowAmount = Number(s.energyFlow || 0);
+    const flowPhase = Number(s._flowPhase ?? ((s.gradAngle || 0) * 0.5));
+    const flowMarkup = flowAmount > 0 ? `
+  <g opacity="${Math.min(0.85, 0.25 + (flowAmount / 100) * 0.6).toFixed(2)}" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-dasharray="18 32" stroke-dashoffset="${flowPhase.toFixed(1)}">
+    <g transform="rotate(${-effectiveAngle} ${cx} ${cy + offsetY})">
+      <path d="${leftTopPath}" stroke-width="${Math.max(1.2, s.wingStrokeWidth * 0.32).toFixed(1)}" />
+      <path d="${leftBotPath}" stroke-width="${Math.max(1.0, s.wingStrokeWidth * 0.28).toFixed(1)}" />
+    </g>
+    <g transform="rotate(${effectiveAngle} ${cx} ${cy + offsetY})">
+      <path d="${rightTopPath}" stroke-width="${Math.max(1.2, s.wingStrokeWidth * 0.32).toFixed(1)}" />
+      <path d="${rightBotPath}" stroke-width="${Math.max(1.0, s.wingStrokeWidth * 0.28).toFixed(1)}" />
+    </g>
   </g>` : '';
 
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="100%" height="100%" role="img" aria-label="${safeTitle} Vector Emblem" data-solopass-seed="${seedCode}">
   <title>${safeTitle} Vector Emblem</title>
-  <!-- SOLOPASS Vector Emblem | Seed: ${seedCode} -->${defs}${opticalGridMarkup}${guidesMarkup}${echoMarkup}
+  <!-- SOLOPASS Vector Emblem | Seed: ${seedCode} -->${defs}${opticalGridMarkup}${guidesMarkup}${echoMarkup}${glitchMarkup}${minimalAccentMarkup}
   <g ${filterAttr} fill="none" stroke="${strokePaint}" stroke-linecap="${s.lineCap}" stroke-linejoin="round">${emblemCore}
-  </g>${wordmarkMarkup}
+  </g>${coreHighlightMarkup}${flowMarkup}${wordmarkMarkup}
 </svg>`;
 }

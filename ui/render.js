@@ -23,6 +23,9 @@ export const els = {
     glowOpacityVal: $('glowOpacityVal'),
     gradAngle: $('gradAngle'),
     gradAngleVal: $('gradAngleVal'),
+    visualStyleSelect: $('visualStyleSelect'),
+    energyFlow: $('energyFlow'),
+    energyFlowVal: $('energyFlowVal'),
     circleRadius: $('circleRadius'),
     radiusVal: $('radiusVal'),
     ringStrokeWidth: $('ringStrokeWidth'),
@@ -135,6 +138,7 @@ export function render() {
     setText(els.wingCurveVal, `${state.wingCurve}px`);
     setText(els.wingBalanceVal, `${state.wingBalance > 0 ? '+' : ''}${state.wingBalance}%`);
     setText(els.wingLagVal, `${state.wingLag || 0}%`);
+    setText(els.energyFlowVal, `${state.energyFlow || 0}%`);
     setText(els.fontSizeVal, `${state.fontSize}px`);
     setText(els.letterSpacingVal, `${state.letterSpacing}px`);
     setText(els.textOffsetYVal, `${state.textOffsetY || 58}px`);
@@ -204,6 +208,8 @@ export function syncInputsFromState() {
     setVal(els.glowBlur, state.glowBlur);
     setVal(els.glowOpacity, state.glowOpacity);
     setVal(els.gradAngle, state.gradAngle || 0);
+    setVal(els.visualStyleSelect, state.visualStyle || 'classic');
+    setVal(els.energyFlow, state.energyFlow || 0);
     setVal(els.circleRadius, state.circleRadius);
     setVal(els.ringStrokeWidth, state.ringStrokeWidth);
     setVal(els.ringFillOpacity, state.ringFillOpacity);

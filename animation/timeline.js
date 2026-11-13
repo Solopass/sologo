@@ -12,6 +12,7 @@ export function captureAnimatableSnapshot(label = 'Key') {
     snap.state.secondaryColor = state.secondaryColor;
     snap.state.useGradient = state.useGradient;
     snap.state.tripleWing = state.tripleWing;
+    snap.state.visualStyle = state.visualStyle || 'classic';
     return snap;
 }
 
@@ -79,24 +80,49 @@ export function bindTimelineCallbacks({ stopPulse, pushHistory }) {
 }
 
 export function applyEasingCurve(t, curveName) {
-    if (curveName === 'linear') return t;
+    const x = Math.max(0, Math.min(1, t));
+    if (curveName === 'linear') return x;
+    if (curveName === 'easeInOutQuint') {
+        return x < 0.5 ? 16 * x * x * x * x * x : 1 - Math.pow(-2 * x + 2, 5) / 2;
+    }
     if (curveName === 'easeOutBack') {
         const c1 = 1.70158;
         const c3 = c1 + 1;
-        return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+        return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+    }
+    if (curveName === 'easeInOutBack') {
+        const c1 = 1.70158;
+        const c2 = c1 * 1.525;
+        return x < 0.5
+            ? (Math.pow(2 * x, 2) * ((c2 + 1) * 2 * x - c2)) / 2
+            : (Math.pow(2 * x - 2, 2) * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2;
+    }
+    if (curveName === 'easeOutElastic') {
+        if (x === 0 || x === 1) return x;
+        const c4 = (2 * Math.PI) / 3;
+        return Math.pow(2, -10 * x) * Math.sin((x * 10 - 0.75) * c4) + 1;
+    }
+    if (curveName === 'easeOutBounce') {
+        const n1 = 7.5625;
+        const d1 = 2.75;
+        if (x < 1 / d1) return n1 * x * x;
+        if (x < 2 / d1) { const k = x - 1.5 / d1; return n1 * k * k + 0.75; }
+        if (x < 2.5 / d1) { const k = x - 2.25 / d1; return n1 * k * k + 0.9375; }
+        const k = x - 2.625 / d1;
+        return n1 * k * k + 0.984375;
     }
     if (curveName === 'easeInOutExpo') {
-        if (t === 0 || t === 1) return t;
-        return t < 0.5 ? Math.pow(2, 20 * t - 10) / 2 : (2 - Math.pow(2, -20 * t + 10)) / 2;
+        if (x === 0 || x === 1) return x;
+        return x < 0.5 ? Math.pow(2, 20 * x - 10) / 2 : (2 - Math.pow(2, -20 * x + 10)) / 2;
     }
     if (curveName === 'spring') {
-        if (t === 0 || t === 1) return t;
+        if (x === 0 || x === 1) return x;
         const c4 = (2 * Math.PI) / 3;
-        return t < 0.5
-            ? -(Math.pow(2, 20 * t - 10) * Math.sin((20 * t - 11.125) * c4)) / 2
-            : (Math.pow(2, -20 * t + 10) * Math.sin((20 * t - 11.125) * c4)) / 2 + 1;
+        return x < 0.5
+            ? -(Math.pow(2, 20 * x - 10) * Math.sin((20 * x - 11.125) * c4)) / 2
+            : (Math.pow(2, -20 * x + 10) * Math.sin((20 * x - 11.125) * c4)) / 2 + 1;
     }
-    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
 }
 
 export function applyInterpolatedTimeline(progress) {
@@ -128,9 +154,11 @@ export function applyInterpolatedTimeline(progress) {
         const lT = applyEasingCurve(lagScaled - lIdx, motionTimeline.easing || kfs[lIdx].easing || 'easeInOutCubic');
         const la = kfs[lIdx].state;
         const lb = kfs[lIdx + 1].state;
-        const lb1 = typeof la.botWingLen === 'number' ? la.botWingLen : state.botWingLen;
-        const lb2 = typeof lb.botWingLen === 'number' ? lb.botWingLen : state.botWingLen;
-        state.botWingLen = Number((lb1 + (lb2 - lb1) * lT).toFixed(2));
+        for (const lagKey of ['botWingLen', 'wingCurve', 'wingAngle']) {
+            const lb1 = typeof la[lagKey] === 'number' ? la[lagKey] : state[lagKey];
+            const lb2 = typeof lb[lagKey] === 'number' ? lb[lagKey] : state[lagKey];
+            state[lagKey] = Number((lb1 + (lb2 - lb1) * lT).toFixed(2));
+        }
     }
     if (a.strokeColor && b.strokeColor) {
         state.strokeColor = lerpHexColor(a.strokeColor, b.strokeColor, localT);
@@ -143,6 +171,12 @@ export function applyInterpolatedTimeline(progress) {
     }
     if (typeof a.tripleWing === 'boolean') {
         state.tripleWing = localT < 0.5 ? a.tripleWing : b.tripleWing;
+    }
+    if (a.visualStyle || b.visualStyle) {
+        state.visualStyle = localT < 0.5 ? (a.visualStyle || 'classic') : (b.visualStyle || 'classic');
+    }
+    if ((state.energyFlow || 0) > 0) {
+        state._flowPhase = Number((-(clamped * 160)).toFixed(1));
     }
 
     syncInputsFromState();
@@ -370,6 +404,81 @@ export function stopSmoothMorphLoop(silent = false) {
         morphLoopBtn.classList.add('bg-cyan-500/15', 'border-cyan-400/30', 'text-cyan-200');
     }
     if (!silent) showToast('Smooth Morph paused');
+}
+
+let idleMode = 'none';
+let idleRafId = null;
+let idleBaseSnapshot = null;
+
+export function stopIdleBehavior(restore = false) {
+    if (idleRafId) {
+        cancelAnimationFrame(idleRafId);
+        idleRafId = null;
+    }
+    if (restore && idleBaseSnapshot) {
+        Object.assign(state, idleBaseSnapshot);
+        state._flowPhase = 0;
+        syncInputsFromState();
+        render();
+    }
+    idleBaseSnapshot = null;
+    idleMode = 'none';
+    document.querySelectorAll('[data-idle-mode]').forEach((btn) => {
+        const active = btn.dataset.idleMode === 'none';
+        btn.classList.toggle('bg-sky-500/30', active);
+        btn.classList.toggle('border-sky-400', active);
+        btn.classList.toggle('text-white', active);
+    });
+}
+
+export function setIdleMode(mode) {
+    if (mode === 'none' || idleMode === mode) {
+        stopIdleBehavior(true);
+        showToast('Idle motion paused');
+        return;
+    }
+    if (isTimelinePlaying) stopTimelinePlayback();
+    if (isMorphLoopActive) stopSmoothMorphLoop(true);
+    stopPulseFn();
+    stopIdleBehavior(true);
+
+    idleMode = mode;
+    idleBaseSnapshot = captureAnimatableSnapshot().state;
+    const t0 = performance.now();
+
+    document.querySelectorAll('[data-idle-mode]').forEach((btn) => {
+        const active = btn.dataset.idleMode === mode;
+        btn.classList.toggle('bg-sky-500/30', active);
+        btn.classList.toggle('border-sky-400', active);
+        btn.classList.toggle('text-white', active);
+    });
+
+    const tick = (now) => {
+        if (idleMode !== mode || !idleBaseSnapshot) return;
+        const elapsed = (now - t0) / 1000;
+        const b = idleBaseSnapshot;
+        if (mode === 'pulse') {
+            const wave = Math.sin(elapsed * 2.4);
+            if (!isKeyLocked('glowBlur')) state.glowBlur = Number(Math.max(2, b.glowBlur + wave * 5).toFixed(1));
+            if (!isKeyLocked('circleRadius')) state.circleRadius = Number((b.circleRadius + wave * 1.6).toFixed(1));
+            if (!isKeyLocked('ringGapDeg') && b.ringGapDeg > 0) {
+                state.ringGapDeg = Number(Math.max(0, b.ringGapDeg + wave * 8).toFixed(1));
+            }
+        } else if (mode === 'orbit') {
+            if (!isKeyLocked('ringRotate')) state.ringRotate = Number((((b.ringRotate + elapsed * 42 + 180) % 360) - 180).toFixed(1));
+            if (!isKeyLocked('gradAngle')) state.gradAngle = Number((((b.gradAngle + elapsed * 36 + 180) % 360) - 180).toFixed(1));
+            if (!isKeyLocked('ringGapDeg') && b.ringGapDeg === 0) state.ringGapDeg = 36;
+        } else if (mode === 'flow') {
+            if (!isKeyLocked('energyFlow') && (b.energyFlow || 0) < 40) state.energyFlow = 70;
+            state._flowPhase = Number((-(elapsed * 55)).toFixed(1));
+            if (!isKeyLocked('gradAngle')) state.gradAngle = Number((((b.gradAngle + elapsed * 24 + 180) % 360) - 180).toFixed(1));
+        }
+        scheduleRender();
+        idleRafId = requestAnimationFrame(tick);
+    };
+    idleRafId = requestAnimationFrame(tick);
+    const labels = { pulse: 'Idle Pulse/Breathe', orbit: 'Continuous Orbit', flow: 'Energy Flow' };
+    showToast(`${labels[mode] || mode} active`);
 }
 
 export function initTimeline() {
@@ -601,6 +710,117 @@ export function initTimeline() {
     });
 
     renderKeyframeStrip();
+
+    const applyMotionPreset = (presetName) => {
+        stopIdleBehavior(false);
+        if (presetName === 'smoothMorphLoop') {
+            if (!isMorphLoopActive) {
+                const easeEl = document.getElementById('timelineEasingSelect');
+                if (easeEl) easeEl.value = 'easeInOutQuint';
+                motionTimeline.easing = 'easeInOutQuint';
+                startSmoothMorphLoop();
+                showToast(`Smooth Morph Loop active (${(motionTimeline.durationSec || 3).toFixed(1)}s)${getLockedSummaryLabel()}`);
+            } else {
+                queueNextMorphTarget();
+            }
+            return;
+        }
+
+        if (isMorphLoopActive) stopSmoothMorphLoop(true);
+        if (isTimelinePlaying) stopTimelinePlayback();
+        stopPulseFn();
+
+        const anchor = { ...state };
+        const base = captureAnimatableSnapshot().state;
+        const makeState = (overrides) => applyLocksToState({ ...base, ...overrides }, anchor);
+
+        let frames = [];
+        let durationSec = 2.6;
+        let easing = 'easeInOutQuint';
+        let playMode = 'loop';
+        let title = presetName;
+
+        if (presetName === 'idlePulse') {
+            title = 'Idle Pulse';
+            durationSec = 2.8;
+            easing = 'easeInOutQuint';
+            frames = [
+                { label: 'Rest', easing, state: makeState({}) },
+                { label: 'Inhale', easing, state: makeState({ circleRadius: Math.min(70, base.circleRadius + 3), glowBlur: Math.min(30, base.glowBlur + 8), topWingLen: base.topWingLen + 8 }) },
+                { label: 'Rest', easing, state: makeState({}) }
+            ];
+        } else if (presetName === 'powerUp') {
+            title = 'Power Up';
+            durationSec = 2.4;
+            easing = 'easeOutBack';
+            playMode = 'pingpong';
+            frames = [
+                { label: 'Charge', easing, state: makeState({ circleRadius: Math.max(24, base.circleRadius - 6), wingGap: Math.max(10, base.wingGap - 6), glowBlur: Math.max(4, base.glowBlur - 4), energyFlow: 35 }) },
+                { label: 'Surge', easing, state: makeState({ visualStyle: 'plasma', useGradient: true, topWingLen: Math.min(200, base.topWingLen + 36), botWingLen: Math.min(165, base.botWingLen + 26), glowBlur: 24, energyFlow: 90, wingCurve: 10 }) },
+                { label: 'Lock', easing, state: makeState({ visualStyle: 'plasma', useGradient: true, topWingLen: Math.min(190, base.topWingLen + 24), glowBlur: 18, energyFlow: 65 }) }
+            ];
+        } else if (presetName === 'scan') {
+            title = 'Energy Scan';
+            durationSec = 3.0;
+            easing = 'linear';
+            frames = [
+                { label: 'Sweep A', easing, state: makeState({ visualStyle: 'holographic', useGradient: true, energyFlow: 90, gradAngle: -140 }) },
+                { label: 'Apex', easing, state: makeState({ visualStyle: 'holographic', useGradient: true, energyFlow: 95, gradAngle: 0, glowBlur: Math.min(28, base.glowBlur + 6) }) },
+                { label: 'Sweep B', easing, state: makeState({ visualStyle: 'holographic', useGradient: true, energyFlow: 90, gradAngle: 140 }) }
+            ];
+        } else if (presetName === 'spinExpand') {
+            title = 'Spin & Expand';
+            durationSec = 3.2;
+            easing = 'easeOutElastic';
+            frames = [
+                { label: 'Origin', easing, state: makeState({ ringGapDeg: 32, ringRotate: -160 }) },
+                { label: 'Flare', easing, state: makeState({ ringGapDeg: 92, ringRotate: 20, topWingLen: Math.min(200, base.topWingLen + 32), wingGap: Math.min(60, base.wingGap + 14), wingAngle: 9, glowBlur: 20 }) },
+                { label: 'Resolve', easing, state: makeState({ ringGapDeg: 32, ringRotate: 175 }) }
+            ];
+        } else if (presetName === 'glitchBurst') {
+            title = 'Glitch Burst';
+            durationSec = 1.8;
+            easing = 'easeInOutBack';
+            frames = [
+                { label: 'Clean', easing, state: makeState({ visualStyle: 'classic', wingBalance: 0, wingAngle: 0 }) },
+                { label: 'Spike L', easing, state: makeState({ visualStyle: 'glitch', useGradient: true, wingBalance: -24, wingAngle: -11, ringGapDeg: 68, energyFlow: 90 }) },
+                { label: 'Spike R', easing, state: makeState({ visualStyle: 'glitch', useGradient: true, wingBalance: 26, wingAngle: 12, ringGapDeg: 45, energyFlow: 95 }) },
+                { label: 'Settle', easing, state: makeState({ visualStyle: 'classic', wingBalance: 0, wingAngle: 0 }) }
+            ];
+        }
+
+        if (!frames.length) return;
+        motionTimeline.durationSec = durationSec;
+        motionTimeline.easing = easing;
+        motionTimeline.playMode = playMode;
+        motionTimeline.keyframes = frames;
+
+        const durEl = document.getElementById('timelineDuration');
+        const durVal = document.getElementById('timelineDurationVal');
+        const easeEl = document.getElementById('timelineEasingSelect');
+        const modeEl = document.getElementById('timelinePlayMode');
+        if (durEl) durEl.value = durationSec;
+        if (durVal) durVal.textContent = `${durationSec.toFixed(1)}s`;
+        if (easeEl) easeEl.value = easing;
+        if (modeEl) modeEl.value = playMode;
+
+        Object.assign(state, frames[0].state);
+        syncInputsFromState();
+        render();
+        activeKeyframeIdx = 0;
+        renderKeyframeStrip();
+        pushHistoryFn();
+        document.getElementById('playTimelineBtn')?.click();
+        showToast(`${title} motion preset active${getLockedSummaryLabel()}`);
+    };
+
+    document.querySelectorAll('[data-idle-mode]').forEach((btn) => {
+        btn.addEventListener('click', () => setIdleMode(btn.dataset.idleMode));
+    });
+    document.querySelectorAll('[data-motion-preset]').forEach((btn) => {
+        btn.addEventListener('click', () => applyMotionPreset(btn.dataset.motionPreset));
+    });
+
     return {
         getMotionTimeline,
         setMotionTimeline,
@@ -608,6 +828,9 @@ export function initTimeline() {
         getIsMorphLoopActive,
         stopTimelinePlayback,
         stopSmoothMorphLoop,
+        stopIdleBehavior,
+        setIdleMode,
+        applyMotionPreset,
         applyInterpolatedTimeline,
         captureAnimatableSnapshot,
         renderKeyframeStrip

@@ -306,6 +306,12 @@
                     <button onclick="applyPreset('primes')" class="shrink-0 px-2.5 py-1 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-400/30 text-[11px] text-indigo-200 transition" title="Prime Number Geometry">Prime Symmetry</button>
                     <button onclick="applyPreset('lockup')" class="shrink-0 px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] text-gray-200 transition">Emblem + Wordmark</button>
                     <button onclick="applyPreset('gradient')" class="shrink-0 px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] text-gray-200 transition">Cyber Fade</button>
+                    <button onclick="applyPreset('plasma')" class="shrink-0 px-2.5 py-1 rounded-xl bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/30 text-[11px] text-cyan-200 transition">⚡ Plasma Core</button>
+                    <button onclick="applyPreset('hologram')" class="shrink-0 px-2.5 py-1 rounded-xl bg-fuchsia-500/15 hover:bg-fuchsia-500/25 border border-fuchsia-400/30 text-[11px] text-fuchsia-200 transition">🌈 Holo Prism</button>
+                    <button onclick="applyPreset('glitch')" class="shrink-0 px-2.5 py-1 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/30 text-[11px] text-rose-200 transition">👾 Cyber Glitch</button>
+                    <button onclick="applyPreset('bloom')" class="shrink-0 px-2.5 py-1 rounded-xl bg-orange-500/15 hover:bg-orange-500/25 border border-orange-400/30 text-[11px] text-orange-200 transition">🔥 Heavy Bloom</button>
+                    <button onclick="applyPreset('minimal')" class="shrink-0 px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-[11px] text-gray-200 transition">📐 Minimal</button>
+                    <button onclick="applyPreset('aggressive')" class="shrink-0 px-2.5 py-1 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/30 text-[11px] text-amber-200 transition">🦅 Apex Razor</button>
                     <span class="shrink-0 w-px h-4 bg-white/15 mx-0.5"></span>
                     <button id="openAiPresetsBtn" class="shrink-0 px-2.5 py-1 rounded-xl bg-gradient-to-r from-indigo-500/25 to-sky-500/25 hover:from-indigo-500/35 hover:to-sky-500/35 border border-sky-400/30 text-[11px] font-medium text-sky-200 transition flex items-center gap-1.5" title="Browse 10 Local AI Generated Logo Themes with Encoded Messages">
                         <span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>
@@ -432,11 +438,37 @@
                         <span class="text-[10px] text-gray-400">Curve</span>
                         <select id="timelineEasingSelect" class="bg-transparent text-[11px] font-mono text-sky-200 focus:outline-none cursor-pointer">
                             <option value="easeInOutCubic" class="bg-[#11111c]">Smooth Cubic</option>
+                            <option value="easeInOutQuint" class="bg-[#11111c]">Strong Quint</option>
                             <option value="spring" class="bg-[#11111c]">Elastic Spring</option>
+                            <option value="easeOutElastic" class="bg-[#11111c]">Out Elastic</option>
+                            <option value="easeOutBounce" class="bg-[#11111c]">Out Bounce</option>
                             <option value="easeOutBack" class="bg-[#11111c]">Overshoot Back</option>
+                            <option value="easeInOutBack" class="bg-[#11111c]">In-Out Back</option>
                             <option value="easeInOutExpo" class="bg-[#11111c]">Warp Expo</option>
                             <option value="linear" class="bg-[#11111c]">Linear</option>
                         </select>
+                    </div>
+                </div>
+
+                <!-- One-Click Motion Modes & Continuous Idle Behaviors -->
+                <div class="space-y-1.5 pt-0.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] uppercase tracking-wider text-sky-300/80 font-semibold">Motion Modes</span>
+                        <div class="flex items-center gap-1">
+                            <span class="text-[9px] text-gray-500 mr-0.5">Idle:</span>
+                            <button type="button" data-idle-mode="pulse" class="px-1.5 py-0.5 rounded bg-white/5 hover:bg-sky-500/20 border border-white/10 text-[9px] text-gray-300 transition" title="Continuous breathing pulse">Pulse</button>
+                            <button type="button" data-idle-mode="orbit" class="px-1.5 py-0.5 rounded bg-white/5 hover:bg-sky-500/20 border border-white/10 text-[9px] text-gray-300 transition" title="Continuous ring & gradient orbit">Orbit</button>
+                            <button type="button" data-idle-mode="flow" class="px-1.5 py-0.5 rounded bg-white/5 hover:bg-sky-500/20 border border-white/10 text-[9px] text-gray-300 transition" title="Continuous energy highlight flow">Flow</button>
+                            <button type="button" data-idle-mode="none" class="px-1.5 py-0.5 rounded bg-sky-500/30 border border-sky-400 text-[9px] text-white transition" title="Stop idle behavior">Off</button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-1.5">
+                        <button type="button" data-motion-preset="idlePulse" class="px-2 py-1 rounded-lg bg-white/5 hover:bg-sky-500/20 border border-white/10 text-[10px] text-gray-200 transition">💓 Idle Pulse</button>
+                        <button type="button" data-motion-preset="powerUp" class="px-2 py-1 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/30 text-[10px] text-cyan-200 transition">⚡ Power Up</button>
+                        <button type="button" data-motion-preset="scan" class="px-2 py-1 rounded-lg bg-fuchsia-500/15 hover:bg-fuchsia-500/25 border border-fuchsia-400/30 text-[10px] text-fuchsia-200 transition">📡 Scan</button>
+                        <button type="button" data-motion-preset="spinExpand" class="px-2 py-1 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-400/30 text-[10px] text-indigo-200 transition">🌀 Spin &amp; Expand</button>
+                        <button type="button" data-motion-preset="glitchBurst" class="px-2 py-1 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/30 text-[10px] text-rose-200 transition">👾 Glitch Burst</button>
+                        <button type="button" data-motion-preset="smoothMorphLoop" class="px-2 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/30 text-[10px] text-emerald-200 transition">🌊 Morph Loop</button>
                     </div>
                 </div>
 
@@ -587,12 +619,35 @@
                     </div>
                 </div>
 
-                <div>
-                    <div class="flex justify-between text-xs text-gray-400 mb-1.5">
-                        <span>Gradient Angle</span>
-                        <span id="gradAngleVal" class="text-gray-200 font-mono">0°</span>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <div class="flex justify-between text-xs text-gray-400 mb-1.5">
+                            <span>Gradient Angle</span>
+                            <span id="gradAngleVal" class="text-gray-200 font-mono">0°</span>
+                        </div>
+                        <input type="range" id="gradAngle" min="-180" max="180" step="5" value="0" class="w-full">
                     </div>
-                    <input type="range" id="gradAngle" min="-180" max="180" step="5" value="0" class="w-full">
+
+                    <div>
+                        <div class="flex justify-between text-xs text-gray-400 mb-1.5">
+                            <span>Energy Flow</span>
+                            <span id="energyFlowVal" class="text-gray-200 font-mono">0%</span>
+                        </div>
+                        <input type="range" id="energyFlow" min="0" max="100" step="5" value="0" class="w-full">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between bg-black/30 px-3 py-2 rounded-xl border border-white/5">
+                    <label for="visualStyleSelect" class="text-xs text-gray-300">Visual Treatment</label>
+                    <select id="visualStyleSelect" class="bg-[#11111c] text-xs font-mono text-indigo-200 border border-white/15 rounded-lg px-2 py-1 focus:outline-none cursor-pointer">
+                        <option value="classic">Classic Neon</option>
+                        <option value="plasma">Plasma Core</option>
+                        <option value="holographic">Holographic</option>
+                        <option value="glitch">Chromatic Glitch</option>
+                        <option value="bloom">Heavy Bloom</option>
+                        <option value="minimal">Minimal Futurist</option>
+                        <option value="aggressive">Apex Aggressive</option>
+                    </select>
                 </div>
             </div>
 

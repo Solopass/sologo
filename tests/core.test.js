@@ -3,6 +3,7 @@ import { encodeStateToCode, decodeSeedDetailed, decodeCodeToState } from '../cor
 import { encodeMessageToState } from '../core/cipher.js';
 import { lockedGroups, lockedSliders, applyLocksToState } from '../core/locks.js';
 import { generateSVGString } from '../core/geometry.js';
+import { applyEasingCurve } from '../animation/timeline.js';
 
 function assert(cond, msg) {
     if (!cond) throw new Error(msg || 'Assertion failed');
@@ -43,7 +44,9 @@ export function runAllTests() {
             encodedMessage: 'SOLOPASS TEST',
             brandText: 'SOLOPASS',
             showText: true,
-            letterSpacing: 6
+            letterSpacing: 6,
+            visualStyle: 'holographic',
+            energyFlow: 75
         };
 
         const seed = encodeStateToCode(custom);
@@ -68,7 +71,9 @@ export function runAllTests() {
             'encodedMessage',
             'brandText',
             'showText',
-            'letterSpacing'
+            'letterSpacing',
+            'visualStyle',
+            'energyFlow'
         ];
         for (const k of keysToVerify) {
             assertEqual(decoded.state[k], custom[k], `Field ${k}`);
@@ -146,6 +151,22 @@ export function runAllTests() {
         assert(svg.startsWith('<svg '), 'Starts with <svg');
         assert(svg.includes('</svg>'), 'Ends with </svg>');
         assert(svg.includes('linearGradient'), 'Includes linearGradient when useGradient is true');
+
+        const glitchSvg = generateSVGString({ ...DEFAULTS, visualStyle: 'glitch', energyFlow: 60 });
+        assert(glitchSvg.includes('#22d3ee') && glitchSvg.includes('#f43f5e'), 'Glitch renders chromatic split layers');
+        assert(glitchSvg.includes('stroke-dasharray="18 32"'), 'Energy flow renders highlight dasharray');
+
+        const minimalSvg = generateSVGString({ ...DEFAULTS, visualStyle: 'minimal' });
+        assert(!minimalSvg.includes('filter="url(#neonGlow)"'), 'Minimal omits heavy glow filter');
+    });
+
+    test('Expanded easing curves return exact endpoints and finite midpoints', () => {
+        const curves = ['linear', 'easeInOutCubic', 'easeInOutQuint', 'spring', 'easeOutElastic', 'easeOutBounce', 'easeOutBack', 'easeInOutBack', 'easeInOutExpo'];
+        for (const c of curves) {
+            assert(Math.abs(applyEasingCurve(0, c)) < 1e-6, `${c} at 0`);
+            assert(Math.abs(applyEasingCurve(1, c) - 1) < 1e-6, `${c} at 1`);
+            assert(Number.isFinite(applyEasingCurve(0.5, c)), `${c} finite at 0.5`);
+        }
     });
 
     return results;

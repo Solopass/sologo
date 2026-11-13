@@ -2055,14 +2055,17 @@
             img.onload = () => {
                 canvas.width = 512;
                 canvas.height = 512;
-                ctx.fillStyle = state.bgColor === 'transparent' ? '#0d0d16' : state.bgColor;
-                ctx.beginPath();
-                if (typeof ctx.roundRect === 'function') {
-                    ctx.roundRect(0, 0, 512, 512, 96);
-                } else {
-                    ctx.rect(0, 0, 512, 512);
+                ctx.clearRect(0, 0, 512, 512);
+                if (state.bgColor !== 'transparent') {
+                    ctx.fillStyle = state.bgColor;
+                    ctx.beginPath();
+                    if (typeof ctx.roundRect === 'function') {
+                        ctx.roundRect(0, 0, 512, 512, 96);
+                    } else {
+                        ctx.rect(0, 0, 512, 512);
+                    }
+                    ctx.fill();
                 }
-                ctx.fill();
                 // Draw centered emblem scaled nicely inside 512x512 badge
                 ctx.drawImage(img, -44, 154, 600, 204);
                 URL.revokeObjectURL(url);
@@ -2075,6 +2078,10 @@
                 link.click();
                 document.body.removeChild(link);
                 showToast('Downloaded 512x512 solopass-icon-512.png');
+            };
+            img.onerror = () => {
+                URL.revokeObjectURL(url);
+                showToast('Failed to export icon PNG');
             };
             img.src = url;
         });

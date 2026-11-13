@@ -220,15 +220,15 @@
     </header>
 
     <!-- Main Workspace: Locked Viewport Split -->
-    <main class="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
+    <main class="flex-1 flex flex-col lg:flex-row min-h-0 min-w-0 overflow-hidden">
         
         <!-- Pinned Live Vector Preview Stage (Always Visible) -->
-        <section class="shrink-0 lg:flex-1 h-[42vh] sm:h-[46vh] lg:h-auto canvas-grid relative flex flex-col items-center justify-between p-3 sm:p-6 border-b lg:border-b-0 border-white/10 select-none">
+        <section class="shrink-0 lg:shrink lg:flex-1 min-w-0 h-[40vh] sm:h-[44vh] lg:h-auto canvas-grid relative flex flex-col items-center justify-between p-3 sm:p-5 border-b lg:border-b-0 border-white/10 select-none overflow-hidden">
             
             <!-- Top Bar inside Stage: Backgrounds & Zoom -->
-            <div class="w-full flex items-center justify-between gap-2 z-10">
+            <div class="w-full min-w-0 flex flex-wrap items-center justify-between gap-2 z-10">
                 <!-- Background Toggle Pills -->
-                <div class="flex items-center gap-1.5 bg-black/60 backdrop-blur-md p-1.5 rounded-xl border border-white/10">
+                <div class="flex items-center gap-1.5 bg-black/60 backdrop-blur-md p-1.5 rounded-xl border border-white/10 shrink-0">
                     <button data-bg="#0d0d16" class="bg-preset w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-[#0d0d16] border-2 border-indigo-400" title="Original Dark"></button>
                     <button data-bg="#000000" class="bg-preset w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-black border border-white/20" title="Pure Black"></button>
                     <button data-bg="#111827" class="bg-preset w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-gray-900 border border-white/20" title="Slate Dark"></button>
@@ -236,7 +236,7 @@
                     <button data-bg="transparent" class="bg-preset w-5 h-5 sm:w-6 sm:h-6 rounded-lg border border-white/20 flex items-center justify-center text-[10px] text-gray-400" title="Transparent Grid">Ø</button>
                 </div>
 
-                <div class="flex items-center gap-2">
+                <div class="flex flex-wrap items-center justify-end gap-1.5 min-w-0">
                     <!-- Ambient Pulse Preview Toggle -->
                     <button id="pulseToggleBtn" class="bg-black/60 backdrop-blur-md px-2.5 py-1.5 rounded-xl border border-white/10 text-[11px] text-gray-300 hover:text-white transition flex items-center gap-1.5" title="Preview Subtle Neon Breathing Animation">
                         <span id="pulseDot" class="w-2 h-2 rounded-full bg-gray-500"></span>
@@ -322,9 +322,9 @@
         </section>
 
         <!-- Independently Scrollable Controls Sidebar with 3-Tab Inspector -->
-        <aside class="flex-1 lg:flex-none w-full lg:w-[430px] bg-[#11111c] lg:border-l border-white/10 flex flex-col min-h-0">
+        <aside class="flex-1 lg:flex-none w-full lg:w-[clamp(330px,36vw,430px)] min-w-0 bg-[#11111c] lg:border-l border-white/10 flex flex-col min-h-0">
             <!-- Pinned Tab Switcher -->
-            <div role="tablist" aria-label="Inspector Tabs" class="shrink-0 px-4 pt-3 pb-2.5 border-b border-white/10 bg-[#0d0d16]/80 backdrop-blur-md grid grid-cols-3 gap-1.5">
+            <div role="tablist" aria-label="Inspector Tabs" class="shrink-0 px-3 sm:px-4 pt-3 pb-2.5 border-b border-white/10 bg-[#0d0d16]/80 backdrop-blur-md grid grid-cols-3 gap-1.5">
                 <button id="tabBtnStudio" type="button" role="tab" aria-selected="true" aria-controls="tabPanelStudio" data-sidebar-tab="studio" class="sidebar-tab-btn px-2 py-1.5 rounded-xl bg-indigo-600/30 border border-indigo-400/50 text-xs font-semibold text-white transition flex items-center justify-center gap-1">
                     <span>🎨 Studio</span><span class="text-[9px] font-mono opacity-60">1</span>
                 </button>
@@ -336,7 +336,7 @@
                 </button>
             </div>
 
-            <div class="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5">
+            <div class="flex-1 overflow-y-auto overflow-x-hidden p-3.5 sm:p-5 space-y-4 sm:space-y-5">
             <!-- TAB 3: CIPHER & SYNC -->
             <div id="tabPanelCipher" role="tabpanel" aria-labelledby="tabBtnCipher" class="hidden space-y-4">
             <!-- Section 0: Mathematical & Message Cipher Codec -->

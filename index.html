@@ -1,0 +1,2663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOLOPASS Vector Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #09090f;
+            color: #f3f4f6;
+        }
+        .font-display {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        /* Custom subtle grid pattern for the canvas */
+        .canvas-grid {
+            background-color: #0d0d16;
+            background-image: 
+                radial-gradient(rgba(110, 108, 255, 0.12) 1px, transparent 1px),
+                radial-gradient(rgba(110, 108, 255, 0.06) 1px, #0d0d16 1px);
+            background-size: 24px 24px;
+            background-position: 0 0, 12px 12px;
+        }
+        /* Custom range slider styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            touch-action: pan-y;
+            cursor: pointer;
+            height: 22px;
+        }
+        input[type=range]:focus {
+            outline: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #6c63ff;
+            cursor: grab;
+            margin-top: -6px;
+            box-shadow: 0 0 10px rgba(108, 99, 255, 0.6);
+            transition: transform 0.1s ease, background-color 0.15s ease;
+        }
+        input[type=range]:active::-webkit-slider-thumb {
+            cursor: grabbing;
+            transform: scale(1.2);
+            background: #818cf8;
+        }
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #232338;
+            border-radius: 2px;
+        }
+        input[type=range]::-moz-range-thumb {
+            height: 16px;
+            width: 16px;
+            border: none;
+            border-radius: 50%;
+            background: #6c63ff;
+            cursor: grab;
+            box-shadow: 0 0 10px rgba(108, 99, 255, 0.6);
+        }
+        input[type=range]::-moz-range-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #232338;
+            border-radius: 2px;
+        }
+        /* Micro stepper buttons */
+        .step-btn {
+            width: 18px;
+            height: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #9ca3af;
+            font-size: 11px;
+            line-height: 1;
+            transition: all 0.12s ease;
+        }
+        .step-btn:hover {
+            background: rgba(99, 102, 241, 0.25);
+            border-color: rgba(129, 140, 248, 0.4);
+            color: #ffffff;
+        }
+        /* Custom sleek scrollbar for controls panel */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0d0d16;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #232338;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6c63ff;
+        }
+    </style>
+</head>
+<body class="h-screen overflow-hidden flex flex-col selection:bg-indigo-500 selection:text-white">
+
+    <!-- Header -->
+    <header class="shrink-0 border-b border-white/10 bg-[#0d0d16]/95 backdrop-blur-md px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3 z-20">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center">
+                <div class="w-3.5 h-3.5 rounded-full border-2 border-indigo-400 shadow-[0_0_8px_#6c63ff]"></div>
+            </div>
+            <div>
+                <h1 class="font-display font-bold text-base sm:text-lg tracking-wide text-white leading-tight">SOLOPASS <span class="text-indigo-400 font-normal text-xs sm:text-sm ml-1">Vector Studio</span></h1>
+                <p class="text-[11px] text-gray-400 hidden sm:block">Precision SVG Generator & Customizer</p>
+            </div>
+        </div>
+
+        <!-- Export & Utility Actions -->
+        <div class="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2">
+            <button id="resetAllBtn" onclick="applyPreset('reference'); showToast('Reset to original SOLOPASS reference');" class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-300 transition" title="Reset All Settings to Original Logo">
+                Reset
+            </button>
+            <button id="undoBtn" disabled class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-300 transition flex items-center gap-1" title="Undo Last Change">
+                <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+                <span class="hidden md:inline">Undo</span>
+            </button>
+            <button id="toggleGuidesBtn" class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-300 transition flex items-center gap-1.5" title="Toggle Alignment Crosshairs">
+                <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                <span class="hidden md:inline">Guides</span>
+            </button>
+            <label class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-200 transition flex items-center gap-1.5 cursor-pointer" title="Import an exported SOLOPASS .SVG to restore sliders & decode hidden message">
+                <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                <span class="hidden sm:inline">Import</span>
+                <input type="file" id="importSvgInput" accept=".svg,image/svg+xml" class="hidden">
+            </label>
+            <button id="inspectSvgBtn" class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-200 transition flex items-center gap-1.5" title="Inspect Live SVG XML Code">
+                <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                <span class="hidden md:inline">Code</span>
+            </button>
+            <button id="copySvgBtn" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-200 transition flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                <span>Copy SVG</span>
+            </button>
+            <button id="downloadSvgBtn" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow-[0_0_20px_rgba(99,102,241,0.4)] transition flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                <span>.SVG</span>
+            </button>
+            <button id="downloadPngBtn" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-200 transition">
+                .PNG
+            </button>
+            <button id="downloadIconBtn" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-200 transition" title="Export 512x512 Square App Icon PNG">
+                Icon
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace: Locked Viewport Split -->
+    <main class="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
+        
+        <!-- Pinned Live Vector Preview Stage (Always Visible) -->
+        <section class="shrink-0 lg:flex-1 h-[42vh] sm:h-[46vh] lg:h-auto canvas-grid relative flex flex-col items-center justify-between p-3 sm:p-6 border-b lg:border-b-0 border-white/10 select-none">
+            
+            <!-- Top Bar inside Stage: Backgrounds & Zoom -->
+            <div class="w-full flex items-center justify-between gap-2 z-10">
+                <!-- Background Toggle Pills -->
+                <div class="flex items-center gap-1.5 bg-black/60 backdrop-blur-md p-1.5 rounded-xl border border-white/10">
+                    <button data-bg="#0d0d16" class="bg-preset w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-[#0d0d16] border-2 border-indigo-400" title="Original Dark"></button>
+                    <button data-bg="#000000" class="bg-preset w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-black border border-white/20" title="Pure Black"></button>
+                    <button data-bg="#111827" class="bg-preset w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-gray-900 border border-white/20" title="Slate Dark"></button>
+                    <button data-bg="#ffffff" class="bg-preset w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-white border border-gray-300" title="Light Mode Test"></button>
+                    <button data-bg="transparent" class="bg-preset w-5 h-5 sm:w-6 sm:h-6 rounded-lg border border-white/20 flex items-center justify-center text-[10px] text-gray-400" title="Transparent Grid">Ø</button>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <!-- Ambient Pulse Preview Toggle -->
+                    <button id="pulseToggleBtn" class="bg-black/60 backdrop-blur-md px-2.5 py-1.5 rounded-xl border border-white/10 text-[11px] text-gray-300 hover:text-white transition flex items-center gap-1.5" title="Preview Subtle Neon Breathing Animation">
+                        <span id="pulseDot" class="w-2 h-2 rounded-full bg-gray-500"></span>
+                        <span class="hidden sm:inline">Pulse</span>
+                    </button>
+
+                    <!-- Harmonic Mutate / Explore Button -->
+                    <button id="mutateBtn" class="bg-black/60 backdrop-blur-md px-2.5 py-1.5 rounded-xl border border-white/10 text-[11px] text-indigo-300 hover:text-white hover:border-indigo-400/40 transition flex items-center gap-1" title="Generate a harmonious geometric variation">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        <span class="hidden sm:inline">Mutate</span>
+                    </button>
+
+                    <!-- Live Zoom Control -->
+                    <div class="flex items-center gap-2 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10">
+                        <span class="text-[11px] text-gray-400">Zoom</span>
+                        <input type="range" id="previewZoom" min="0.5" max="1.6" step="0.05" value="1" class="w-20 sm:w-24">
+                        <span id="zoomVal" class="text-[11px] text-gray-200 font-mono w-9 text-right">100%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live SVG Container -->
+            <div id="previewWrapper" class="w-full max-w-2xl flex-1 my-2 sm:my-4 rounded-2xl border border-white/10 shadow-2xl flex items-center justify-center transition-colors duration-300 overflow-hidden relative" style="background-color: #0d0d16;">
+                <div id="svgStage" class="w-full h-full flex items-center justify-center p-4 sm:p-6 transition-transform duration-150"></div>
+                <div id="directDragHint" class="hidden absolute bottom-2.5 right-3 text-[10px] font-mono px-2 py-0.5 rounded-md bg-black/70 border border-indigo-400/30 text-indigo-300 pointer-events-none">
+                    Direct Handles Active: Drag Ring or Wing Tips
+                </div>
+            </div>
+
+            <!-- Bottom Bar inside Stage: Quick Presets -->
+            <div class="w-full flex items-center justify-start sm:justify-center gap-1.5 overflow-x-auto pb-1 z-10">
+                <button onclick="applyPreset('reference')" class="shrink-0 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] text-gray-200 transition">Exact Reference</button>
+                <button onclick="applyPreset('phi')" class="shrink-0 px-2.5 py-1 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-400/30 text-[11px] text-indigo-200 transition" title="Golden Ratio (1.618)">φ Golden Ratio</button>
+                <button onclick="applyPreset('fibonacci')" class="shrink-0 px-2.5 py-1 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-400/30 text-[11px] text-indigo-200 transition" title="Fibonacci Proportions (21, 34, 55, 89, 144)">Fib Sequence</button>
+                <button onclick="applyPreset('pi')" class="shrink-0 px-2.5 py-1 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-400/30 text-[11px] text-indigo-200 transition" title="Pi Harmonics (3.14159)">π Harmonic</button>
+                <button onclick="applyPreset('primes')" class="shrink-0 px-2.5 py-1 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-400/30 text-[11px] text-indigo-200 transition" title="Prime Number Geometry">Prime Symmetry</button>
+                <button onclick="applyPreset('lockup')" class="shrink-0 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] text-gray-200 transition">Emblem + Wordmark</button>
+                <button onclick="applyPreset('gradient')" class="shrink-0 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] text-gray-200 transition">Cyber Fade</button>
+            </div>
+        </section>
+
+        <!-- Independently Scrollable Controls Sidebar -->
+        <aside class="flex-1 lg:flex-none w-full lg:w-[420px] bg-[#11111c] lg:border-l border-white/10 p-5 sm:p-6 overflow-y-auto space-y-6">
+            
+            <!-- Section 0: Mathematical & Message Cipher Codec -->
+            <div class="bg-indigo-950/25 border border-indigo-500/30 rounded-2xl p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xs font-semibold uppercase tracking-wider text-indigo-300 flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-indigo-400" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        Geometric Cipher & Seed
+                    </h2>
+                    <div class="flex items-center gap-1.5">
+                        <span id="mathRatioBadge" aria-live="polite" class="text-[10px] font-mono px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-400/20">Ratio: 1.353</span>
+                        <button id="saveSnapshotBtn" type="button" class="text-[10px] font-medium px-2 py-0.5 rounded-md bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-200 border border-emerald-400/30 transition" title="Save current logo variation to Vault">+ Snapshot</button>
+                    </div>
+                </div>
+
+                <!-- Saved Variations Vault Strip -->
+                <div id="snapshotVault" class="hidden pt-1 border-t border-indigo-500/20 space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] uppercase tracking-wider text-gray-400">Session Snapshots</span>
+                        <button id="clearVaultBtn" class="text-[10px] text-gray-500 hover:text-gray-300">Clear</button>
+                    </div>
+                    <div id="snapshotList" class="flex items-center gap-1.5 overflow-x-auto pb-1"></div>
+                </div>
+
+                <!-- Secret Message to Geometry Encoder -->
+                <div class="space-y-1.5">
+                    <label class="text-[11px] text-gray-400 block">Encode Message into Slider Geometry</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="cipherMessageInput" placeholder="Type a secret phrase or key..." class="flex-1 px-3 py-1.5 text-xs bg-black/50 border border-white/15 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-indigo-400">
+                        <button id="encodeMessageBtn" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-medium text-white transition shrink-0">
+                            Encode
+                        </button>
+                        <button id="clearCipherBtn" class="hidden px-2 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-gray-400 hover:text-white transition shrink-0" title="Clear Embedded Message">
+                            ✕
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Decoded Secret Message Readout -->
+                <div id="decodedMessageBox" class="hidden bg-black/50 border border-emerald-500/30 rounded-xl px-3 py-2 flex items-center justify-between gap-2">
+                    <div class="min-w-0">
+                        <span class="text-[10px] uppercase tracking-wider text-emerald-400 block">Decoded Hidden Message</span>
+                        <p id="decodedMessageText" class="text-xs font-mono text-white truncate"></p>
+                    </div>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 shrink-0">VERIFIED</span>
+                </div>
+
+                <!-- Two-Way Shareable Vector Seed Code (SP2-) -->
+                <div class="pt-1 border-t border-indigo-500/20 space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <label class="text-[11px] text-gray-400">Live Vector Seed Code (<span class="font-mono text-indigo-300">SP2-</span>)</label>
+                        <button id="copySeedBtn" class="text-[10px] text-indigo-300 hover:text-white transition">Copy Seed</button>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="vectorSeedCode" placeholder="Paste SP2- code here to decode..." class="flex-1 px-2.5 py-1.5 text-[11px] font-mono bg-black/50 border border-white/15 rounded-xl text-indigo-200 focus:outline-none focus:border-indigo-400">
+                        <button id="decodeSeedBtn" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-xs font-medium text-white transition shrink-0">
+                            Decode
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 0.5: .SPMOTION Keyframe Timeline & AI Motion Choreographer -->
+            <div class="bg-sky-950/25 border border-sky-500/30 rounded-2xl p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xs font-semibold uppercase tracking-wider text-sky-300 flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span>.SPMOTION Keyframe & AI Animator</span>
+                    </h2>
+                    <div class="flex items-center gap-1">
+                        <button id="playTimelineBtn" class="px-2.5 py-1 rounded-lg bg-sky-600 hover:bg-sky-500 text-[11px] font-semibold text-white transition flex items-center gap-1">
+                            <span id="playTimelineIcon">▶</span>
+                            <span id="playTimelineLabel">Play</span>
+                        </button>
+                        <button id="updateKeyframeBtn" class="px-2 py-1 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/30 text-[11px] text-sky-200 transition" title="Overwrite selected keyframe with current slider values">Update K1</button>
+                        <button id="addKeyframeBtn" class="px-2 py-1 rounded-lg bg-white/10 hover:bg-white/15 border border-white/10 text-[11px] text-gray-200 transition" title="Capture current sliders as a new keyframe">+ Key</button>
+                    </div>
+                </div>
+
+                <!-- Playback Mode & Easing Curve Selectors -->
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="flex items-center justify-between bg-black/40 px-2.5 py-1 rounded-xl border border-white/10">
+                        <span class="text-[10px] text-gray-400">Mode</span>
+                        <select id="timelinePlayMode" class="bg-transparent text-[11px] font-mono text-sky-200 focus:outline-none cursor-pointer">
+                            <option value="loop" class="bg-[#11111c]">Loop</option>
+                            <option value="pingpong" class="bg-[#11111c]">Ping-Pong</option>
+                            <option value="once" class="bg-[#11111c]">Once</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center justify-between bg-black/40 px-2.5 py-1 rounded-xl border border-white/10">
+                        <span class="text-[10px] text-gray-400">Curve</span>
+                        <select id="timelineEasingSelect" class="bg-transparent text-[11px] font-mono text-sky-200 focus:outline-none cursor-pointer">
+                            <option value="easeInOutCubic" class="bg-[#11111c]">Smooth Cubic</option>
+                            <option value="spring" class="bg-[#11111c]">Elastic Spring</option>
+                            <option value="linear" class="bg-[#11111c]">Linear</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Unified AI Studio Co-Pilot (Controls Sliders, Ciphers, & Keyframes) -->
+                <div class="space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <label class="text-[11px] text-gray-400">AI Studio Co-Pilot (Sliders, Ciphers & Motion)</label>
+                        <span class="text-[10px] font-mono text-sky-400">SOLOPASS_API</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="aiMotionPrompt" placeholder="e.g., Portal opens, wings flare & encode 'NOVA'..." class="flex-1 px-3 py-1.5 text-xs bg-black/50 border border-white/15 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-sky-400">
+                        <button id="aiGenerateMotionBtn" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-500 hover:to-sky-500 text-xs font-semibold text-white transition shrink-0 flex items-center gap-1">
+                            <span>AI Run</span>
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-1 overflow-x-auto pt-0.5">
+                        <button type="button" data-ai-chip="Portal opens and wings sweep into a glowing arc" class="ai-chip shrink-0 px-2 py-0.5 rounded-md bg-white/5 hover:bg-sky-500/20 border border-white/10 text-[10px] text-gray-300 transition">Portal Surge</button>
+                        <button type="button" data-ai-chip="Pulse neon cyan to violet with spring bounce" class="ai-chip shrink-0 px-2 py-0.5 rounded-md bg-white/5 hover:bg-sky-500/20 border border-white/10 text-[10px] text-gray-300 transition">Cyan Spring</button>
+                        <button type="button" data-ai-chip="Encode 'SOLOPASS' and make wings triple-tier" class="ai-chip shrink-0 px-2 py-0.5 rounded-md bg-white/5 hover:bg-sky-500/20 border border-white/10 text-[10px] text-gray-300 transition">3-Tier Cipher</button>
+                    </div>
+                </div>
+
+                <!-- Keyframe Strip -->
+                <div id="keyframeStrip" class="flex items-center gap-1.5 overflow-x-auto py-1"></div>
+
+                <!-- Timeline Scrubber & Duration -->
+                <div class="grid grid-cols-3 gap-3 items-center pt-1 border-t border-sky-500/20">
+                    <div class="col-span-2">
+                        <div class="flex justify-between text-[10px] text-gray-400 mb-0.5">
+                            <span>Timeline Scrub</span>
+                            <span id="timelineProgressVal" class="font-mono text-sky-300">0.00s</span>
+                        </div>
+                        <input type="range" id="timelineScrubber" min="0" max="1" step="0.005" value="0" class="w-full">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-[10px] text-gray-400 mb-0.5">
+                            <span>Loop (s)</span>
+                            <span id="timelineDurationVal" class="font-mono text-gray-200">3.0s</span>
+                        </div>
+                        <input type="range" id="timelineDuration" min="1" max="10" step="0.5" value="3" class="w-full">
+                    </div>
+                </div>
+
+                <!-- Export Animated SVG, .WEBM Video & .SPMOTION File -->
+                <div class="grid grid-cols-4 gap-1.5 pt-1">
+                    <button id="exportAnimatedSvgBtn" class="col-span-2 px-2.5 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 text-[11px] font-medium text-sky-200 transition">
+                        Animated .SVG
+                    </button>
+                    <button id="exportWebmBtn" class="px-2 py-1.5 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-400/30 text-[11px] font-medium text-indigo-200 transition" title="Render timeline to .WEBM video">
+                        .WEBM
+                    </button>
+                    <div class="flex gap-1">
+                        <button id="exportSpmotionBtn" class="flex-1 px-1.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] font-medium text-gray-300 transition" title="Export .spmotion JSON">
+                            JSON
+                        </button>
+                        <label class="flex-1 px-1.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] font-medium text-gray-300 transition cursor-pointer text-center" title="Load .spmotion file">
+                            Load
+                            <input type="file" id="importSpmotionInput" accept=".spmotion,.json" class="hidden">
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 1: Color, Gradient & Glow -->
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xs font-semibold uppercase tracking-wider text-indigo-400">1. Color & Neon Glow</h2>
+                    <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-300">
+                        <input type="checkbox" id="useGradient" class="rounded bg-black/40 border-white/20 text-indigo-500 focus:ring-0">
+                        <span>Dual Gradient</span>
+                    </label>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-black/30 p-2.5 rounded-xl border border-white/5">
+                        <label class="text-[11px] text-gray-400 block mb-1.5">Primary Color</label>
+                        <div class="flex items-center gap-2">
+                            <input type="color" id="strokeColor" value="#6b66ff" class="w-7 h-7 rounded-lg bg-transparent border-0 cursor-pointer">
+                            <input type="text" id="strokeColorHex" value="#6b66ff" class="w-full px-2 py-1 text-xs bg-black/40 border border-white/10 rounded-lg text-gray-200 font-mono uppercase">
+                        </div>
+                    </div>
+
+                    <div id="secondaryColorBox" class="bg-black/30 p-2.5 rounded-xl border border-white/5 opacity-40 pointer-events-none transition-opacity">
+                        <label class="text-[11px] text-gray-400 block mb-1.5">Secondary Color</label>
+                        <div class="flex items-center gap-2">
+                            <input type="color" id="secondaryColor" value="#38bdf8" class="w-7 h-7 rounded-lg bg-transparent border-0 cursor-pointer">
+                            <input type="text" id="secondaryColorHex" value="#38bdf8" class="w-full px-2 py-1 text-xs bg-black/40 border border-white/10 rounded-lg text-gray-200 font-mono uppercase">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <div class="flex justify-between text-xs text-gray-400 mb-1.5">
+                            <span>Glow Radius</span>
+                            <span id="glowVal" class="text-gray-200 font-mono">10px</span>
+                        </div>
+                        <input type="range" id="glowBlur" min="0" max="30" step="1" value="10" class="w-full">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs text-gray-400 mb-1.5">
+                            <span>Glow Opacity</span>
+                            <span id="glowOpacityVal" class="text-gray-200 font-mono">100%</span>
+                        </div>
+                        <input type="range" id="glowOpacity" min="0.1" max="1" step="0.05" value="1" class="w-full">
+                    </div>
+                </div>
+            </div>
+
+            <hr class="border-white/10">
+
+            <!-- Section 2: Center Ring Controls -->
+            <div class="space-y-4">
+                <h2 class="text-xs font-semibold uppercase tracking-wider text-indigo-400">2. Center Ring</h2>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <div class="flex justify-between text-xs text-gray-400 mb-1.5">
+                            <span>Ring Radius</span>
+                            <span id="radiusVal" class="text-gray-200 font-mono">44px</span>
+                        </div>
+                        <input type="range" id="circleRadius" min="20" max="72" step="1" value="44" class="w-full">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs text-gray-400 mb-1.5">
+                            <span>Ring Weight</span>
+                            <span id="ringStrokeVal" class="text-gray-200 font-mono">7px</span>
+                        </div>
+                        <input type="range" id="ringStrokeWidth" min="2" max="18" step="0.5" value="7" class="w-full">
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between text-xs text-gray-400 mb-1.5">
+                        <span>Inner Core Fill Opacity</span>
+                        <span id="ringFillVal" class="text-gray-200 font-mono">0%</span>
+                    </div>
+                    <input type="range" id="ringFillOpacity" min="0" max="0.5" step="0.02" value="0" class="w-full">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <div class="flex justify-between text-xs text-gray-400 mb-1.5">
+                            <span>Ring Portal Gap</span>
+                            <span id="ringGapDegVal" class="text-gray-200 font-mono">0°</span>
+                        </div>
+                        <input type="range" id="ringGapDeg" min="0" max="160" step="2" value="0" class="w-full">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs text-gray-400 mb-1.5">
+                            <span>Portal Rotation</span>
+                            <span id="ringRotateVal" class="text-gray-200 font-mono">0°</span>
+                        </div>
+                        <input type="range" id="ringRotate" min="-180" max="180" step="5" value="0" class="w-full">
+                    </div>
+                </div>
+            </div>
+
+            <hr class="border-white/10">
+
+            <!-- Section 3: Wing Geometry & Angles -->
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xs font-semibold uppercase tracking-wider text-indigo-400">3. Side Wings</h2>
+                    <div class="flex items-center gap-1.5">
+                        <button id="tripleWingBtn" class="px-2 py-0.5 rounded-lg bg-white/5 border border-white/10 text-[11px] text-gray-400 transition" title="Toggle 3rd Accent Wing Tier">
+                            3-Wing
+                        </button>
+                        <button id="lockNonStraightBtn" class="px-2 py-0.5 rounded-lg bg-white/5 border border-white/10 text-[11px] text-gray-400 flex items-center gap-1 transition" title="Optional: Locks wings from snapping to flat 0° straight lines">
+                            <svg class="w-3 h-3 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                            <span>Arc Lock</span>
+                        </button>
+                        <div class="flex items-center gap-1 bg-black/40 p-1 rounded-lg border border-white/10">
+                            <button data-cap="round" class="cap-btn px-2 py-0.5 rounded text-[11px] bg-indigo-600 text-white">Round</button>
+                            <button data-cap="butt" class="cap-btn px-2 py-0.5 rounded text-[11px] text-gray-400 hover:text-white">Flat</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <div class="flex justify-between text-xs text-gray-400 mb-1.5">
+                            <span>Wing Weight</span>
+                            <span id="wingStrokeVal" class="text-gray-200 font-mono">7px</span>
+                        </div>
+                        <input type="range" id="wingStrokeWidth" min="2" max="18" step="0.5" value="7" class="w-full">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs text-gray-400 mb-1.5">
+                            <span>Gap from Ring</span>
+                            <span id="gapVal" class="text-gray-200 font-mono">24px</span>
+                        </div>
+                        <input type="range" id="wingGap" min="6" max="65" step="1" value="24" class="w-full">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <div class="flex justify-between text-xs text-gray-400 mb-1.5">
+                            <span>Top Wing Length</span>
+                            <span id="topLenVal" class="text-gray-200 font-mono">115px</span>
+                        </div>
+                        <input type="range" id="topWingLen" min="30" max="190" step="1" value="115" class="w-full">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs text-gray-400 mb-1.5">
+                            <span>Bottom Length</span>
+                            <span id="botLenVal" class="text-gray-200 font-mono">85px</span>
+                        </div>
+                        <input type="range" id="botWingLen" min="20" max="170" step="1" value="85" class="w-full">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <div class="flex justify-between text-xs text-gray-400 mb-1.5">
+                            <span>Vertical Spread</span>
+                            <span id="wingSpacingVal" class="text-gray-200 font-mono">24px</span>
+                        </div>
+                        <input type="range" id="wingSpacing" min="10" max="46" step="1" value="24" class="w-full">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs text-gray-400 mb-1.5">
+                            <span>Vertical Offset</span>
+                            <span id="wingOffsetYVal" class="text-gray-200 font-mono">+4px</span>
+                        </div>
+                        <input type="range" id="wingOffsetY" min="-25" max="25" step="1" value="4" class="w-full">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <div class="flex justify-between text-xs text-gray-400 mb-1.5">
+                            <span>Bottom Inset</span>
+                            <span id="botInsetVal" class="text-gray-200 font-mono">0px</span>
+                        </div>
+                        <input type="range" id="botInnerInset" min="0" max="35" step="1" value="0" class="w-full">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs text-gray-400 mb-1.5">
+                            <span>Wing Sweep Angle</span>
+                            <span id="wingAngleVal" class="text-gray-200 font-mono">0°</span>
+                        </div>
+                        <input type="range" id="wingAngle" min="-15" max="15" step="0.5" value="0" class="w-full">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <div class="flex justify-between text-xs text-gray-400 mb-1.5">
+                            <span>Wing Arc Curvature</span>
+                            <span id="wingCurveVal" class="text-gray-200 font-mono">0px</span>
+                        </div>
+                        <input type="range" id="wingCurve" min="-28" max="28" step="1" value="0" class="w-full">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs text-gray-400 mb-1.5">
+                            <span>Left/Right Balance</span>
+                            <span id="wingBalanceVal" class="text-gray-200 font-mono">0%</span>
+                        </div>
+                        <input type="range" id="wingBalance" min="-35" max="35" step="1" value="0" class="w-full">
+                    </div>
+                </div>
+            </div>
+
+            <hr class="border-white/10">
+
+            <!-- Section 4: Brand Wordmark -->
+            <div class="space-y-4 pb-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xs font-semibold uppercase tracking-wider text-indigo-400">4. Brand Wordmark</h2>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="showText" class="sr-only peer">
+                        <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                    </label>
+                </div>
+
+                <div id="textControls" class="space-y-3 opacity-40 pointer-events-none transition-opacity">
+                    <div>
+                        <label class="text-xs text-gray-400 block mb-1">Logo Text</label>
+                        <input type="text" id="brandText" value="SOLOPASS" class="w-full px-3 py-1.5 text-sm bg-black/40 border border-white/10 rounded-xl text-white tracking-widest font-display">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <div class="flex justify-between text-xs text-gray-400 mb-1.5">
+                                <span>Font Size</span>
+                                <span id="fontSizeVal" class="text-gray-200 font-mono">30px</span>
+                            </div>
+                            <input type="range" id="fontSize" min="18" max="46" step="1" value="30" class="w-full">
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs text-gray-400 mb-1.5">
+                                <span>Tracking</span>
+                                <span id="letterSpacingVal" class="text-gray-200 font-mono">12px</span>
+                            </div>
+                            <input type="range" id="letterSpacing" min="2" max="24" step="1" value="12" class="w-full">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </aside>
+    </main>
+
+    <!-- Live SVG Code Inspector Modal -->
+    <div id="svgInspectorModal" role="dialog" aria-modal="true" aria-labelledby="inspectorModalTitle" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="w-full max-w-2xl bg-[#12121e] border border-white/15 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[82vh]">
+            <div class="px-5 py-3.5 border-b border-white/10 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-400" aria-hidden="true"></span>
+                    <h3 id="inspectorModalTitle" class="font-display font-semibold text-sm text-white">Live Vector XML Output</h3>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="modalCopySvgBtn" type="button" class="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-medium text-white transition">Copy XML</button>
+                    <button id="closeInspectorBtn" type="button" aria-label="Close SVG Code Inspector" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-xs text-gray-300 transition">✕</button>
+                </div>
+            </div>
+            <pre id="svgCodePreview" tabindex="0" class="p-4 text-xs font-mono text-indigo-200 bg-[#0a0a12] overflow-auto flex-1 leading-relaxed select-all"></pre>
+        </div>
+    </div>
+
+    <!-- Hidden canvas for PNG conversion -->
+    <canvas id="exportCanvas" class="hidden"></canvas>
+
+    <!-- Toast Notification -->
+    <div id="toast" role="status" aria-live="polite" class="fixed bottom-5 left-5 z-50 bg-indigo-600 text-white text-xs font-medium px-4 py-2.5 rounded-xl shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        Copied SVG to clipboard!
+    </div>
+
+    <script>
+        // Default values map for double-click reset on any slider
+        const DEFAULT_VALUES = {
+            glowBlur: 10,
+            glowOpacity: 1,
+            circleRadius: 44,
+            ringStrokeWidth: 7,
+            ringFillOpacity: 0,
+            wingStrokeWidth: 7,
+            wingGap: 24,
+            topWingLen: 115,
+            botWingLen: 85,
+            wingSpacing: 24,
+            wingOffsetY: 4,
+            botInnerInset: 0,
+            wingAngle: 0,
+            wingCurve: 0,
+            wingBalance: 0,
+            ringGapDeg: 0,
+            ringRotate: 0,
+            tripleWing: false,
+            fontSize: 30,
+            letterSpacing: 12,
+            zoom: 1
+        };
+
+        // Comprehensive state object for full geometric & visual control
+        const state = {
+            strokeColor: '#6b66ff',
+            secondaryColor: '#38bdf8',
+            useGradient: false,
+            glowBlur: 10,
+            glowOpacity: 1,
+            circleRadius: 44,
+            ringStrokeWidth: 7,
+            ringFillOpacity: 0,
+            ringGapDeg: 0,
+            ringRotate: 0,
+            wingStrokeWidth: 7,
+            wingGap: 24,
+            topWingLen: 115,
+            botWingLen: 85,
+            wingSpacing: 24,
+            wingOffsetY: 4,
+            botInnerInset: 0,
+            wingAngle: 0,
+            wingCurve: 0,
+            wingBalance: 0,
+            tripleWing: false,
+            lockNonStraight: false,
+            lineCap: 'round',
+            showText: false,
+            brandText: 'SOLOPASS',
+            fontSize: 30,
+            letterSpacing: 12,
+            bgColor: '#0d0d16',
+            zoom: 1,
+            showGuides: false,
+            encodedMessage: ''
+        };
+
+        // DOM references
+        const els = {
+            previewWrapper: document.getElementById('previewWrapper'),
+            svgStage: document.getElementById('svgStage'),
+            strokeColor: document.getElementById('strokeColor'),
+            strokeColorHex: document.getElementById('strokeColorHex'),
+            secondaryColor: document.getElementById('secondaryColor'),
+            secondaryColorHex: document.getElementById('secondaryColorHex'),
+            secondaryColorBox: document.getElementById('secondaryColorBox'),
+            useGradient: document.getElementById('useGradient'),
+            glowBlur: document.getElementById('glowBlur'),
+            glowVal: document.getElementById('glowVal'),
+            glowOpacity: document.getElementById('glowOpacity'),
+            glowOpacityVal: document.getElementById('glowOpacityVal'),
+            circleRadius: document.getElementById('circleRadius'),
+            radiusVal: document.getElementById('radiusVal'),
+            ringStrokeWidth: document.getElementById('ringStrokeWidth'),
+            ringStrokeVal: document.getElementById('ringStrokeVal'),
+            ringFillOpacity: document.getElementById('ringFillOpacity'),
+            ringFillVal: document.getElementById('ringFillVal'),
+            ringGapDeg: document.getElementById('ringGapDeg'),
+            ringGapDegVal: document.getElementById('ringGapDegVal'),
+            ringRotate: document.getElementById('ringRotate'),
+            ringRotateVal: document.getElementById('ringRotateVal'),
+            wingStrokeWidth: document.getElementById('wingStrokeWidth'),
+            wingStrokeVal: document.getElementById('wingStrokeVal'),
+            wingGap: document.getElementById('wingGap'),
+            gapVal: document.getElementById('gapVal'),
+            topWingLen: document.getElementById('topWingLen'),
+            topLenVal: document.getElementById('topLenVal'),
+            botWingLen: document.getElementById('botWingLen'),
+            botLenVal: document.getElementById('botLenVal'),
+            wingSpacing: document.getElementById('wingSpacing'),
+            wingSpacingVal: document.getElementById('wingSpacingVal'),
+            wingOffsetY: document.getElementById('wingOffsetY'),
+            wingOffsetYVal: document.getElementById('wingOffsetYVal'),
+            botInnerInset: document.getElementById('botInnerInset'),
+            botInsetVal: document.getElementById('botInsetVal'),
+            wingAngle: document.getElementById('wingAngle'),
+            wingAngleVal: document.getElementById('wingAngleVal'),
+            wingCurve: document.getElementById('wingCurve'),
+            wingCurveVal: document.getElementById('wingCurveVal'),
+            wingBalance: document.getElementById('wingBalance'),
+            wingBalanceVal: document.getElementById('wingBalanceVal'),
+            showText: document.getElementById('showText'),
+            textControls: document.getElementById('textControls'),
+            brandText: document.getElementById('brandText'),
+            fontSize: document.getElementById('fontSize'),
+            fontSizeVal: document.getElementById('fontSizeVal'),
+            letterSpacing: document.getElementById('letterSpacing'),
+            letterSpacingVal: document.getElementById('letterSpacingVal'),
+            previewZoom: document.getElementById('previewZoom'),
+            zoomVal: document.getElementById('zoomVal'),
+            toast: document.getElementById('toast')
+        };
+
+        // Undo History Stack (up to 40 snapshots)
+        const historyStack = [];
+        let isApplyingHistory = false;
+
+        function updateUndoButton() {
+            const btn = document.getElementById('undoBtn');
+            if (btn) btn.disabled = historyStack.length <= 1;
+        }
+
+        function pushHistory() {
+            if (isApplyingHistory) return;
+            const snapshot = JSON.stringify(state);
+            if (historyStack[historyStack.length - 1] === snapshot) return;
+            historyStack.push(snapshot);
+            if (historyStack.length > 40) historyStack.shift();
+            updateUndoButton();
+        }
+
+        document.getElementById('undoBtn').addEventListener('click', () => {
+            if (historyStack.length <= 1) return;
+            if (isTimelinePlaying) stopTimelinePlayback();
+            historyStack.pop();
+            const prev = JSON.parse(historyStack[historyStack.length - 1]);
+            isApplyingHistory = true;
+            Object.assign(state, prev);
+            document.getElementById('cipherMessageInput').value = state.encodedMessage || '';
+            syncInputsFromState();
+            render();
+            isApplyingHistory = false;
+            updateUndoButton();
+            showToast('Undid last change');
+        });
+
+        // Safe modern UTF-8 Base64 helpers (replaces deprecated unescape/escape)
+        const textEncoder = new TextEncoder();
+        const textDecoder = new TextDecoder();
+
+        function utf8ToBase64(str) {
+            const bytes = textEncoder.encode(str);
+            let binary = '';
+            for (let i = 0; i < bytes.length; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary);
+        }
+
+        function base64ToUtf8(b64) {
+            const binary = atob(b64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            return textDecoder.decode(bytes);
+        }
+
+        // Modern Clipboard API with iframe-safe fallback
+        async function copyTextToClipboard(text, successMessage) {
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(text);
+                    showToast(successMessage);
+                    return;
+                }
+            } catch {
+                // Fall back to execCommand in sandboxed iframes
+            }
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.setAttribute('readonly', '');
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showToast(successMessage);
+        }
+
+        function escapeXml(str) {
+            return String(str).replace(/[<>&'"]/g, (c) => ({
+                '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;'
+            }[c]));
+        }
+
+        // Generate crisp mathematical SVG markup
+        function generateSVGString(forExport = false, includeGuides = false) {
+            const width = 600;
+            const height = state.showText ? 290 : 220;
+            const cx = width / 2;
+            const cy = state.showText ? 105 : 110;
+
+            const r = state.circleRadius;
+            const gap = state.wingGap;
+            const balanceFactor = state.wingBalance / 100;
+            const leftTopLen = Math.max(15, state.topWingLen * (1 - balanceFactor));
+            const rightTopLen = Math.max(15, state.topWingLen * (1 + balanceFactor));
+            const leftBotLen = Math.max(10, state.botWingLen * (1 - balanceFactor));
+            const rightBotLen = Math.max(10, state.botWingLen * (1 + balanceFactor));
+            const halfSpread = state.wingSpacing / 2;
+            const offsetY = state.wingOffsetY;
+            const inset = state.botInnerInset;
+
+            // Enforce non-straight curvature if Arc Lock is enabled
+            let effectiveAngle = state.wingAngle;
+            let effectiveCurve = state.wingCurve;
+            if (state.lockNonStraight && effectiveAngle === 0 && effectiveCurve === 0) {
+                effectiveCurve = 8;
+            }
+
+            const topY = cy - halfSpread + offsetY;
+            const botY = cy + halfSpread + offsetY;
+
+            // Left wings (inner to outer)
+            const leftTopInX = cx - r - gap;
+            const leftTopOutX = leftTopInX - leftTopLen;
+            const leftBotInX = cx - r - gap - inset;
+            const leftBotOutX = leftBotInX - leftBotLen;
+
+            // Right wings (inner to outer)
+            const rightTopInX = cx + r + gap;
+            const rightTopOutX = rightTopInX + rightTopLen;
+            const rightBotInX = cx + r + gap + inset;
+            const rightBotOutX = rightBotInX + rightBotLen;
+
+            // Quadratic Bezier path helper
+            const buildWingPath = (x1, y1, x2, y2, curveY) => {
+                const midX = (x1 + x2) / 2;
+                const midY = (y1 + y2) / 2 - curveY;
+                return `M ${x1.toFixed(1)} ${y1.toFixed(1)} Q ${midX.toFixed(1)} ${midY.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}`;
+            };
+
+            const leftTopPath = buildWingPath(leftTopInX, topY, leftTopOutX, topY, effectiveCurve);
+            const leftBotPath = buildWingPath(leftBotInX, botY, leftBotOutX, botY, effectiveCurve * 0.75);
+            const rightTopPath = buildWingPath(rightTopInX, topY, rightTopOutX, topY, effectiveCurve);
+            const rightBotPath = buildWingPath(rightBotInX, botY, rightBotOutX, botY, effectiveCurve * 0.75);
+
+            // Optional 3rd accent wing tier
+            let thirdTierMarkup = { left: '', right: '' };
+            if (state.tripleWing) {
+                const thirdY = botY + halfSpread * 0.92;
+                const thirdInset = inset * 1.6 + 8;
+                const l3InX = cx - r - gap - thirdInset;
+                const l3OutX = l3InX - Math.max(12, leftBotLen * 0.62);
+                const r3InX = cx + r + gap + thirdInset;
+                const r3OutX = r3InX + Math.max(12, rightBotLen * 0.62);
+                const l3Path = buildWingPath(l3InX, thirdY, l3OutX, thirdY, effectiveCurve * 0.5);
+                const r3Path = buildWingPath(r3InX, thirdY, r3OutX, thirdY, effectiveCurve * 0.5);
+                thirdTierMarkup.left = `\n      <path d="${l3Path}" stroke-width="${Math.max(2, state.wingStrokeWidth * 0.85)}" />`;
+                thirdTierMarkup.right = `\n      <path d="${r3Path}" stroke-width="${Math.max(2, state.wingStrokeWidth * 0.85)}" />`;
+            }
+
+            // Center Ring Portal Gap (open arc vs closed circle)
+            const circumference = 2 * Math.PI * r;
+            const gapFraction = Math.max(0, Math.min(0.45, state.ringGapDeg / 360));
+            const dashLength = circumference * (1 - gapFraction);
+            const gapLength = circumference * gapFraction;
+            const ringDashAttr = gapFraction > 0
+                ? ` stroke-dasharray="${dashLength.toFixed(2)} ${gapLength.toFixed(2)}" transform="rotate(${state.ringRotate + (state.ringGapDeg / 2)} ${cx} ${cy})"`
+                : '';
+
+            const strokePaint = state.useGradient ? 'url(#solopassGrad)' : state.strokeColor;
+            const filterAttr = state.glowBlur > 0 ? 'filter="url(#neonGlow)"' : '';
+            const seedCode = encodeStateToCode();
+            const safeTitle = escapeXml(state.brandText || 'SOLOPASS');
+
+            const defs = `
+  <defs>
+    <linearGradient id="solopassGrad" gradientUnits="userSpaceOnUse" x1="60" y1="0" x2="540" y2="0">
+      <stop offset="0%" stop-color="${state.strokeColor}" />
+      <stop offset="50%" stop-color="${state.secondaryColor}" />
+      <stop offset="100%" stop-color="${state.strokeColor}" />
+    </linearGradient>
+    <filter id="neonGlow" x="-35%" y="-35%" width="170%" height="170%">
+      <feGaussianBlur stdDeviation="${state.glowBlur}" result="blur1" />
+      <feGaussianBlur stdDeviation="${(state.glowBlur * 0.45).toFixed(1)}" result="blur2" />
+      <feComponentTransfer in="blur1" result="fadeBlur1">
+        <feFuncA type="linear" slope="${state.glowOpacity}" />
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode in="fadeBlur1" />
+        <feMergeNode in="blur2" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>`;
+
+            const guidesMarkup = includeGuides ? `
+  <g stroke="#6366f1" stroke-opacity="0.32" stroke-width="1" stroke-dasharray="4 4">
+    <line x1="0" y1="${cy}" x2="${width}" y2="${cy}" />
+    <line x1="${cx}" y1="0" x2="${cx}" y2="${height}" />
+    <circle cx="${cx}" cy="${cy}" r="${r + gap}" fill="none" />
+  </g>
+  <g class="direct-handles">
+    <circle data-handle="radius" cx="${cx}" cy="${cy - r}" r="6.5" fill="#0d0d16" stroke="#38bdf8" stroke-width="2" style="cursor:ns-resize" />
+    <circle data-handle="gap" cx="${rightTopInX}" cy="${topY}" r="6.5" fill="#0d0d16" stroke="#a78bfa" stroke-width="2" style="cursor:ew-resize" />
+    <circle data-handle="topLen" cx="${rightTopOutX}" cy="${topY}" r="6.5" fill="#0d0d16" stroke="#818cf8" stroke-width="2" style="cursor:ew-resize" />
+    <circle data-handle="botLen" cx="${rightBotOutX}" cy="${botY}" r="6.5" fill="#0d0d16" stroke="#818cf8" stroke-width="2" style="cursor:ew-resize" />
+  </g>` : '';
+
+            const wordmarkMarkup = state.showText ? `
+  <text x="${cx}" y="${cy + r + 58}" text-anchor="middle" fill="${strokePaint}" font-family="'Space Grotesk', 'Inter', sans-serif" font-weight="700" font-size="${state.fontSize}" letter-spacing="${state.letterSpacing}" ${filterAttr}>${safeTitle}</text>` : '';
+
+            return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="100%" height="100%" role="img" aria-label="${safeTitle} Vector Emblem" data-solopass-seed="${seedCode}">
+  <title>${safeTitle} Vector Emblem</title>
+  <!-- SOLOPASS Vector Emblem | Seed: ${seedCode} -->${defs}${guidesMarkup}
+  <g ${filterAttr} fill="none" stroke="${strokePaint}" stroke-linecap="${state.lineCap}" stroke-linejoin="round">
+    <!-- Center Ring -->
+    <circle cx="${cx}" cy="${cy}" r="${r}" stroke-width="${state.ringStrokeWidth}" fill="${state.strokeColor}" fill-opacity="${state.ringFillOpacity}"${ringDashAttr} />
+    <!-- Left Wings -->
+    <g transform="rotate(${-effectiveAngle} ${cx} ${cy + offsetY})">
+      <path d="${leftTopPath}" stroke-width="${state.wingStrokeWidth}" />
+      <path d="${leftBotPath}" stroke-width="${state.wingStrokeWidth}" />${thirdTierMarkup.left}
+    </g>
+    <!-- Right Wings -->
+    <g transform="rotate(${effectiveAngle} ${cx} ${cy + offsetY})">
+      <path d="${rightTopPath}" stroke-width="${state.wingStrokeWidth}" />
+      <path d="${rightBotPath}" stroke-width="${state.wingStrokeWidth}" />${thirdTierMarkup.right}
+    </g>
+  </g>${wordmarkMarkup}
+</svg>`;
+        }
+
+        // Main render & UI readout sync
+        function render() {
+            els.svgStage.innerHTML = generateSVGString(false, state.showGuides);
+            els.svgStage.style.transform = `scale(${state.zoom})`;
+
+            // Update numeric slider labels
+            els.glowVal.textContent = `${state.glowBlur}px`;
+            els.glowOpacityVal.textContent = `${Math.round(state.glowOpacity * 100)}%`;
+            els.radiusVal.textContent = `${state.circleRadius}px`;
+            els.ringStrokeVal.textContent = `${state.ringStrokeWidth}px`;
+            els.ringFillVal.textContent = `${Math.round(state.ringFillOpacity * 100)}%`;
+            els.ringGapDegVal.textContent = `${state.ringGapDeg}°`;
+            els.ringRotateVal.textContent = `${state.ringRotate}°`;
+            els.wingStrokeVal.textContent = `${state.wingStrokeWidth}px`;
+            els.gapVal.textContent = `${state.wingGap}px`;
+            els.topLenVal.textContent = `${state.topWingLen}px`;
+            els.botLenVal.textContent = `${state.botWingLen}px`;
+            els.wingSpacingVal.textContent = `${state.wingSpacing}px`;
+            els.wingOffsetYVal.textContent = `${state.wingOffsetY >= 0 ? '+' : ''}${state.wingOffsetY}px`;
+            els.botInsetVal.textContent = `${state.botInnerInset}px`;
+            els.wingAngleVal.textContent = `${state.wingAngle}°`;
+            els.wingCurveVal.textContent = `${state.wingCurve}px`;
+            els.wingBalanceVal.textContent = `${state.wingBalance > 0 ? '+' : ''}${state.wingBalance}%`;
+            els.fontSizeVal.textContent = `${state.fontSize}px`;
+            els.letterSpacingVal.textContent = `${state.letterSpacing}px`;
+            els.zoomVal.textContent = `${Math.round(state.zoom * 100)}%`;
+
+            // Update Wing-to-Wing Mathematical Ratio Badge & Live Vector Code
+            const ratio = (state.topWingLen / Math.max(1, state.botWingLen)).toFixed(3);
+            document.getElementById('mathRatioBadge').textContent = `Top/Bot: ${ratio}`;
+            const seedField = document.getElementById('vectorSeedCode');
+            if (seedField && document.activeElement !== seedField) {
+                seedField.value = encodeStateToCode();
+            }
+
+            // Refresh SVG Inspector modal if open
+            const inspectorModal = document.getElementById('svgInspectorModal');
+            if (inspectorModal && !inspectorModal.classList.contains('hidden')) {
+                document.getElementById('svgCodePreview').textContent = generateSVGString(false, false);
+            }
+
+            // Show decoded message banner if an encoded message is embedded
+            const decodedBox = document.getElementById('decodedMessageBox');
+            const decodedText = document.getElementById('decodedMessageText');
+            const clearCipherBtn = document.getElementById('clearCipherBtn');
+            if (state.encodedMessage) {
+                decodedBox.classList.remove('hidden');
+                clearCipherBtn.classList.remove('hidden');
+                decodedText.textContent = state.encodedMessage;
+            } else {
+                decodedBox.classList.add('hidden');
+                clearCipherBtn.classList.add('hidden');
+            }
+
+            if (state.useGradient) {
+                els.secondaryColorBox.classList.remove('opacity-40', 'pointer-events-none');
+            } else {
+                els.secondaryColorBox.classList.add('opacity-40', 'pointer-events-none');
+            }
+
+            if (state.showText) {
+                els.textControls.classList.remove('opacity-40', 'pointer-events-none');
+            } else {
+                els.textControls.classList.add('opacity-40', 'pointer-events-none');
+            }
+        }
+
+        // Serialize all geometric sliders + embedded message payload into an SP2 code
+        function encodeStateToCode() {
+            const msgToken = state.encodedMessage ? utf8ToBase64(state.encodedMessage) : '';
+            const payload = [
+                state.circleRadius,
+                state.ringStrokeWidth,
+                state.wingStrokeWidth,
+                state.wingGap,
+                state.topWingLen,
+                state.botWingLen,
+                state.wingSpacing,
+                state.wingOffsetY,
+                state.botInnerInset,
+                state.wingAngle,
+                state.wingCurve,
+                state.glowBlur,
+                Math.round(state.glowOpacity * 100),
+                Math.round(state.ringFillOpacity * 100),
+                state.lineCap === 'round' ? 1 : 0,
+                state.strokeColor.replace('#', ''),
+                state.useGradient ? state.secondaryColor.replace('#', '') : '0',
+                msgToken,
+                state.showText ? 1 : 0,
+                utf8ToBase64(state.brandText || 'SOLOPASS'),
+                state.fontSize,
+                state.letterSpacing,
+                state.wingBalance,
+                state.ringGapDeg,
+                state.ringRotate,
+                state.tripleWing ? 1 : 0,
+                state.lockNonStraight ? 1 : 0
+            ].join('.');
+            return `SP2-${btoa(payload).replace(/=+$/, '')}`;
+        }
+
+        // Decode an SP2 (or legacy SP1) vector code back into exact sliders AND hidden text message
+        function decodeCodeToState(codeStr) {
+            try {
+                let raw = codeStr.trim();
+                const seedAttrMatch = raw.match(/data-solopass-seed=["'](SP[12]-[A-Za-z0-9+/=_-]+)["']/);
+                if (seedAttrMatch) {
+                    raw = seedAttrMatch[1];
+                }
+                const isV2 = raw.startsWith('SP2-');
+                let clean = raw.replace(/^SP[12]-/, '').replace(/-/g, '+').replace(/_/g, '/');
+                while (clean.length % 4) clean += '=';
+                const decoded = atob(clean);
+                const p = decoded.split('.');
+                if (p.length < 15) return false;
+
+                if (isV2 && p.length >= 17) {
+                    state.circleRadius = parseFloat(p[0]);
+                    state.ringStrokeWidth = parseFloat(p[1]);
+                    state.wingStrokeWidth = parseFloat(p[2]);
+                    state.wingGap = parseFloat(p[3]);
+                    state.topWingLen = parseFloat(p[4]);
+                    state.botWingLen = parseFloat(p[5]);
+                    state.wingSpacing = parseFloat(p[6]);
+                    state.wingOffsetY = parseFloat(p[7]);
+                    state.botInnerInset = parseFloat(p[8]);
+                    state.wingAngle = parseFloat(p[9]);
+                    state.wingCurve = parseFloat(p[10]);
+                    state.glowBlur = parseFloat(p[11]);
+                    state.glowOpacity = parseFloat(p[12]) / 100;
+                    state.ringFillOpacity = parseFloat(p[13]) / 100;
+                    state.lineCap = p[14] === '1' ? 'round' : 'butt';
+                    state.strokeColor = `#${p[15]}`;
+                    if (p[16] && p[16] !== '0') {
+                        state.useGradient = true;
+                        state.secondaryColor = `#${p[16]}`;
+                    } else {
+                        state.useGradient = false;
+                    }
+                    state.encodedMessage = p[17] ? base64ToUtf8(p[17]) : '';
+                    if (p.length >= 22) {
+                        state.showText = p[18] === '1';
+                        state.brandText = p[19] ? base64ToUtf8(p[19]) : 'SOLOPASS';
+                        state.fontSize = parseFloat(p[20]) || 30;
+                        state.letterSpacing = parseFloat(p[21]) || 12;
+                    }
+                    state.wingBalance = p.length >= 23 ? (parseFloat(p[22]) || 0) : 0;
+                    state.ringGapDeg = p.length >= 24 ? (parseFloat(p[23]) || 0) : 0;
+                    state.ringRotate = p.length >= 25 ? (parseFloat(p[24]) || 0) : 0;
+                    state.tripleWing = p.length >= 26 ? p[25] === '1' : false;
+                    state.lockNonStraight = p.length >= 27 ? p[26] === '1' : false;
+                } else {
+                    state.circleRadius = parseFloat(p[0]);
+                    state.ringStrokeWidth = parseFloat(p[1]);
+                    state.wingStrokeWidth = parseFloat(p[2]);
+                    state.wingGap = parseFloat(p[3]);
+                    state.topWingLen = parseFloat(p[4]);
+                    state.botWingLen = parseFloat(p[5]);
+                    state.wingSpacing = parseFloat(p[6]);
+                    state.wingOffsetY = parseFloat(p[7]);
+                    state.botInnerInset = parseFloat(p[8]);
+                    state.wingAngle = parseFloat(p[9]);
+                    state.wingCurve = 0;
+                    state.glowBlur = parseFloat(p[10]);
+                    state.lineCap = p[11] === '1' ? 'round' : 'butt';
+                    state.strokeColor = `#${p[12]}`;
+                    if (p[13] && p[13] !== '0') {
+                        state.useGradient = true;
+                        state.secondaryColor = `#${p[13]}`;
+                    } else {
+                        state.useGradient = false;
+                    }
+                    state.encodedMessage = '';
+                }
+                return true;
+            } catch (err) {
+                return false;
+            }
+        }
+
+        // Deterministic Message-to-Geometry Cipher Encoder
+        function encodeMessageToGeometry(msg) {
+            const text = msg.trim();
+            if (!text) return;
+
+            let h1 = 2166136261;
+            let h2 = 16777619;
+            for (let i = 0; i < text.length; i++) {
+                const code = text.charCodeAt(i);
+                h1 ^= code;
+                h1 = Math.imul(h1, 16777619);
+                h2 = (h2 * 31 + code * (i + 7)) >>> 0;
+            }
+
+            const pick = (seed, min, max, step = 1) => {
+                const norm = ((seed >>> 0) % 10000) / 10000;
+                const raw = min + norm * (max - min);
+                return Math.round(raw / step) * step;
+            };
+
+            state.encodedMessage = text;
+            state.circleRadius = pick(h1, 34, 58, 1);
+            state.ringStrokeWidth = pick(h1 >> 3, 5, 10, 0.5);
+            state.wingStrokeWidth = pick(h2 >> 2, 5, 10, 0.5);
+            state.wingGap = pick(h1 >> 6, 16, 40, 1);
+            state.topWingLen = pick(h2 >> 5, 85, 165, 1);
+            state.botWingLen = pick(h1 >> 9, 55, 130, 1);
+            state.wingSpacing = pick(h2 >> 8, 18, 36, 1);
+            state.wingOffsetY = pick(h1 >> 12, -10, 12, 1);
+            state.botInnerInset = pick(h2 >> 11, 0, 18, 1);
+            state.wingAngle = pick(h1 >> 15, -8, 8, 0.5);
+            state.wingCurve = pick(h2 >> 14, -14, 14, 1);
+
+            syncInputsFromState();
+            render();
+            pushHistory();
+            showToast(`Encoded "${text}" into geometry & SP2 code!`);
+        }
+
+        document.getElementById('encodeMessageBtn').addEventListener('click', () => {
+            const val = document.getElementById('cipherMessageInput').value;
+            if (!val.trim()) {
+                showToast('Enter a phrase or key to encode first');
+                return;
+            }
+            encodeMessageToGeometry(val);
+        });
+
+        document.getElementById('clearCipherBtn').addEventListener('click', () => {
+            state.encodedMessage = '';
+            document.getElementById('cipherMessageInput').value = '';
+            render();
+            pushHistory();
+            showToast('Cleared embedded cipher message');
+        });
+
+        // Import exported .SVG file and decode embedded SP2 seed + secret message + .spmotion timeline
+        document.getElementById('importSvgInput').addEventListener('change', (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const content = String(ev.target?.result || '');
+                let restoredAny = false;
+                if (decodeCodeToState(content)) {
+                    document.getElementById('cipherMessageInput').value = state.encodedMessage || '';
+                    syncInputsFromState();
+                    render();
+                    pushHistory();
+                    restoredAny = true;
+                }
+                const motionMatch = content.match(/<metadata id="spmotion-data">([\s\S]*?)<\/metadata>/);
+                if (motionMatch && motionMatch[1]) {
+                    try {
+                        const unescaped = motionMatch[1]
+                            .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+                            .replace(/&amp;/g, '&').replace(/&apos;/g, "'").replace(/&quot;/g, '"');
+                        const parsedTimeline = JSON.parse(unescaped);
+                        if (Array.isArray(parsedTimeline.keyframes) && parsedTimeline.keyframes.length >= 2) {
+                            window.SOLOPASS_API.setTimeline(parsedTimeline);
+                            restoredAny = true;
+                        }
+                    } catch {
+                        // Ignore malformed metadata
+                    }
+                }
+                if (restoredAny) {
+                    showToast(state.encodedMessage
+                        ? `Imported SVG & decoded: "${state.encodedMessage}"`
+                        : 'Imported SOLOPASS SVG & timeline!');
+                } else {
+                    showToast('No SOLOPASS cipher metadata found in SVG.');
+                }
+                e.target.value = '';
+            };
+            reader.readAsText(file);
+        });
+
+        document.getElementById('cipherMessageInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('encodeMessageBtn').click();
+            }
+        });
+
+        // Two-way SP2 Seed Code Copy & Decode
+        document.getElementById('copySeedBtn').addEventListener('click', () => {
+            copyTextToClipboard(encodeStateToCode(), 'Copied SP2 vector seed code!');
+        });
+
+        document.getElementById('decodeSeedBtn').addEventListener('click', () => {
+            const raw = document.getElementById('vectorSeedCode').value;
+            if (!raw.trim()) {
+                showToast('Paste an SP2- code to decode');
+                return;
+            }
+            if (decodeCodeToState(raw)) {
+                document.getElementById('cipherMessageInput').value = state.encodedMessage || '';
+                syncInputsFromState();
+                render();
+                pushHistory();
+                showToast(state.encodedMessage
+                    ? `Decoded message: "${state.encodedMessage}"`
+                    : 'Restored geometry from SP2 seed!');
+            } else {
+                showToast('Invalid SP2 vector code');
+            }
+        });
+
+        document.getElementById('vectorSeedCode').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('decodeSeedBtn').click();
+            }
+        });
+
+        // Live SVG Code Inspector Modal Handlers
+        let lastFocusedBeforeModal = null;
+        document.getElementById('inspectSvgBtn').addEventListener('click', () => {
+            lastFocusedBeforeModal = document.activeElement;
+            document.getElementById('svgCodePreview').textContent = generateSVGString(false, false);
+            document.getElementById('svgInspectorModal').classList.remove('hidden');
+            document.getElementById('closeInspectorBtn').focus();
+        });
+
+        function closeSvgInspectorModal() {
+            const modal = document.getElementById('svgInspectorModal');
+            if (!modal.classList.contains('hidden')) {
+                modal.classList.add('hidden');
+                if (lastFocusedBeforeModal && typeof lastFocusedBeforeModal.focus === 'function') {
+                    lastFocusedBeforeModal.focus();
+                }
+            }
+        }
+
+        document.getElementById('closeInspectorBtn').addEventListener('click', closeSvgInspectorModal);
+
+        document.getElementById('svgInspectorModal').addEventListener('click', (e) => {
+            if (e.target.id === 'svgInspectorModal') {
+                closeSvgInspectorModal();
+            }
+        });
+
+        document.getElementById('modalCopySvgBtn').addEventListener('click', () => {
+            copyTextToClipboard(generateSVGString(false, false), 'Copied formatted SVG XML!');
+        });
+
+        // Keyboard shortcuts: Escape to close modal, Ctrl/Cmd + Z for Undo
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeSvgInspectorModal();
+                return;
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
+                e.preventDefault();
+                document.getElementById('undoBtn').click();
+            }
+        });
+
+        // Color & Gradient Listeners
+        els.strokeColor.addEventListener('input', (e) => {
+            state.strokeColor = e.target.value;
+            els.strokeColorHex.value = e.target.value;
+            render();
+        });
+        els.strokeColor.addEventListener('change', pushHistory);
+
+        els.strokeColorHex.addEventListener('input', (e) => {
+            const val = e.target.value;
+            if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+                state.strokeColor = val;
+                els.strokeColor.value = val;
+                render();
+                pushHistory();
+            }
+        });
+
+        els.secondaryColor.addEventListener('input', (e) => {
+            state.secondaryColor = e.target.value;
+            els.secondaryColorHex.value = e.target.value;
+            render();
+        });
+        els.secondaryColor.addEventListener('change', pushHistory);
+
+        els.secondaryColorHex.addEventListener('input', (e) => {
+            const val = e.target.value;
+            if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+                state.secondaryColor = val;
+                els.secondaryColor.value = val;
+                render();
+                pushHistory();
+            }
+        });
+
+        els.useGradient.addEventListener('change', (e) => {
+            state.useGradient = e.target.checked;
+            render();
+            pushHistory();
+        });
+
+        // All numeric range sliders (smooth non-sticky input handling)
+        const rangeBindings = [
+            ['glowBlur', 'glowBlur'],
+            ['glowOpacity', 'glowOpacity'],
+            ['circleRadius', 'circleRadius'],
+            ['ringStrokeWidth', 'ringStrokeWidth'],
+            ['ringFillOpacity', 'ringFillOpacity'],
+            ['ringGapDeg', 'ringGapDeg'],
+            ['ringRotate', 'ringRotate'],
+            ['wingStrokeWidth', 'wingStrokeWidth'],
+            ['wingGap', 'wingGap'],
+            ['topWingLen', 'topWingLen'],
+            ['botWingLen', 'botWingLen'],
+            ['wingSpacing', 'wingSpacing'],
+            ['wingOffsetY', 'wingOffsetY'],
+            ['botInnerInset', 'botInnerInset'],
+            ['wingAngle', 'wingAngle'],
+            ['wingCurve', 'wingCurve'],
+            ['wingBalance', 'wingBalance'],
+            ['fontSize', 'fontSize'],
+            ['letterSpacing', 'letterSpacing'],
+            ['previewZoom', 'zoom']
+        ];
+
+        rangeBindings.forEach(([elId, stateKey]) => {
+            const slider = els[elId];
+            if (!slider) return;
+            slider.title = 'Double-click to reset to default';
+
+            // Inject compact - / + fine-step micro controls beside numeric readout
+            const headerRow = slider.previousElementSibling;
+            const valSpan = headerRow?.querySelector('span:last-child');
+            if (headerRow && valSpan && !headerRow.querySelector('.step-btn')) {
+                const stepWrap = document.createElement('span');
+                stepWrap.className = 'inline-flex items-center gap-1';
+                const minusBtn = document.createElement('button');
+                minusBtn.type = 'button';
+                minusBtn.className = 'step-btn';
+                minusBtn.textContent = '−';
+                minusBtn.title = 'Decrease by 1 step';
+                const plusBtn = document.createElement('button');
+                plusBtn.type = 'button';
+                plusBtn.className = 'step-btn';
+                plusBtn.textContent = '+';
+                plusBtn.title = 'Increase by 1 step';
+
+                const nudge = (dir) => {
+                    if (isTimelinePlaying) stopTimelinePlayback();
+                    const step = parseFloat(slider.step) || 1;
+                    const min = parseFloat(slider.min);
+                    const max = parseFloat(slider.max);
+                    const next = Math.max(min, Math.min(max, Number((state[stateKey] + dir * step).toFixed(3))));
+                    state[stateKey] = next;
+                    slider.value = next;
+                    render();
+                    pushHistory();
+                };
+                minusBtn.addEventListener('click', () => nudge(-1));
+                plusBtn.addEventListener('click', () => nudge(1));
+
+                headerRow.removeChild(valSpan);
+                stepWrap.appendChild(minusBtn);
+                stepWrap.appendChild(valSpan);
+                stepWrap.appendChild(plusBtn);
+                headerRow.appendChild(stepWrap);
+            }
+
+            // Prevent sticky drag by stopping pointer/touch propagation to stage & avoiding active-input DOM clobbering
+            ['pointerdown', 'mousedown', 'touchstart'].forEach(evt => {
+                slider.addEventListener(evt, (e) => e.stopPropagation(), { passive: true });
+            });
+
+            slider.addEventListener('input', (e) => {
+                if (isTimelinePlaying) stopTimelinePlayback();
+                state[stateKey] = parseFloat(e.target.value);
+                render();
+            });
+            slider.addEventListener('change', pushHistory);
+            slider.addEventListener('dblclick', () => {
+                if (DEFAULT_VALUES[stateKey] !== undefined) {
+                    state[stateKey] = DEFAULT_VALUES[stateKey];
+                    slider.value = DEFAULT_VALUES[stateKey];
+                    render();
+                    pushHistory();
+                    showToast(`Reset ${stateKey} to default (${DEFAULT_VALUES[stateKey]})`);
+                }
+            });
+        });
+
+        // Arc Lock toggle (locks wings from becoming perfectly flat straight lines)
+        document.getElementById('lockNonStraightBtn').addEventListener('click', () => {
+            state.lockNonStraight = !state.lockNonStraight;
+            syncInputsFromState();
+            render();
+            pushHistory();
+            showToast(state.lockNonStraight ? 'Arc Lock ON: Wings locked from flat straight lines' : 'Arc Lock OFF: Straight 0° lines allowed');
+        });
+
+        // 3-Wing Accent Tier toggle
+        document.getElementById('tripleWingBtn').addEventListener('click', () => {
+            state.tripleWing = !state.tripleWing;
+            syncInputsFromState();
+            render();
+            pushHistory();
+            showToast(state.tripleWing ? 'Enabled 3rd Accent Wing Tier' : 'Standard 2-Wing Layout');
+        });
+
+        // Harmonic Mutate / Explore button
+        document.getElementById('mutateBtn').addEventListener('click', () => {
+            const palettes = [
+                { primary: '#6b66ff', secondary: '#38bdf8' },
+                { primary: '#818cf8', secondary: '#c084fc' },
+                { primary: '#38bdf8', secondary: '#34d399' },
+                { primary: '#6366f1', secondary: '#f472b6' },
+                { primary: '#60a5fa', secondary: '#a78bfa' }
+            ];
+            const pal = palettes[Math.floor(Math.random() * palettes.length)];
+            const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+            state.strokeColor = pal.primary;
+            state.secondaryColor = pal.secondary;
+            state.useGradient = Math.random() > 0.35;
+            state.circleRadius = randInt(34, 56);
+            state.ringGapDeg = Math.random() > 0.5 ? randInt(16, 68) : 0;
+            state.ringRotate = state.ringGapDeg > 0 ? randInt(-45, 45) : 0;
+            state.wingGap = randInt(16, 38);
+            state.topWingLen = randInt(95, 160);
+            state.botWingLen = Math.round(state.topWingLen * (0.58 + Math.random() * 0.24));
+            state.wingSpacing = randInt(18, 34);
+            state.wingAngle = Math.random() > 0.55 ? (randInt(-6, 6) * 0.5) : 0;
+            state.wingCurve = Math.random() > 0.55 ? randInt(-10, 10) : 0;
+            state.tripleWing = Math.random() > 0.72;
+
+            syncInputsFromState();
+            render();
+            pushHistory();
+            showToast('Generated harmonic logo variation!');
+        });
+
+        // Line cap toggle
+        document.querySelectorAll('.cap-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                state.lineCap = btn.dataset.cap;
+                syncInputsFromState();
+                render();
+                pushHistory();
+            });
+        });
+
+        // Guides toggle (also activates direct-manipulation canvas drag handles)
+        document.getElementById('toggleGuidesBtn').addEventListener('click', (e) => {
+            state.showGuides = !state.showGuides;
+            e.currentTarget.classList.toggle('border-indigo-400', state.showGuides);
+            e.currentTarget.classList.toggle('bg-indigo-500/20', state.showGuides);
+            const hint = document.getElementById('directDragHint');
+            if (hint) hint.classList.toggle('hidden', !state.showGuides);
+            render();
+        });
+
+        // Direct Manipulation Drag Handles on Preview Stage
+        let activeDragHandle = null;
+        els.svgStage.addEventListener('pointerdown', (e) => {
+            const handleEl = e.target.closest('[data-handle]');
+            if (!handleEl) return;
+            e.preventDefault();
+            e.stopPropagation();
+            if (isTimelinePlaying) stopTimelinePlayback();
+            activeDragHandle = handleEl.dataset.handle;
+            els.svgStage.setPointerCapture?.(e.pointerId);
+        });
+
+        window.addEventListener('pointermove', (e) => {
+            if (!activeDragHandle) return;
+            const svgEl = els.svgStage.querySelector('svg');
+            if (!svgEl) return;
+            const rect = svgEl.getBoundingClientRect();
+            const viewW = 600;
+            const viewH = state.showText ? 290 : 220;
+            const svgX = ((e.clientX - rect.left) / rect.width) * viewW;
+            const svgY = ((e.clientY - rect.top) / rect.height) * viewH;
+            const cx = viewW / 2;
+            const cy = state.showText ? 105 : 110;
+
+            if (activeDragHandle === 'radius') {
+                state.circleRadius = Math.max(20, Math.min(72, Math.round(Math.abs(cy - svgY))));
+            } else if (activeDragHandle === 'gap') {
+                state.wingGap = Math.max(6, Math.min(65, Math.round(svgX - cx - state.circleRadius)));
+            } else if (activeDragHandle === 'topLen') {
+                const rawLen = svgX - cx - state.circleRadius - state.wingGap;
+                state.topWingLen = Math.max(30, Math.min(190, Math.round(rawLen)));
+            } else if (activeDragHandle === 'botLen') {
+                const rawLen = svgX - cx - state.circleRadius - state.wingGap - state.botInnerInset;
+                state.botWingLen = Math.max(20, Math.min(170, Math.round(rawLen)));
+            }
+            syncInputsFromState();
+            render();
+        });
+
+        window.addEventListener('pointerup', () => {
+            if (activeDragHandle) {
+                activeDragHandle = null;
+                pushHistory();
+            }
+        });
+
+        els.showText.addEventListener('change', (e) => {
+            state.showText = e.target.checked;
+            render();
+            pushHistory();
+        });
+
+        els.brandText.addEventListener('input', (e) => {
+            state.brandText = e.target.value;
+            render();
+        });
+        els.brandText.addEventListener('change', pushHistory);
+
+        // Background switcher
+        document.querySelectorAll('.bg-preset').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.bg-preset').forEach(b => b.classList.remove('border-2', 'border-indigo-400'));
+                btn.classList.add('border-2', 'border-indigo-400');
+                state.bgColor = btn.dataset.bg;
+                els.previewWrapper.style.backgroundColor = state.bgColor === 'transparent' ? 'transparent' : state.bgColor;
+            });
+        });
+
+        // Presets (straight OG lines by default, with optional Wing Arc Curvature slider)
+        window.applyPreset = function(type) {
+            if (isTimelinePlaying) stopTimelinePlayback();
+            if (type === 'reference') {
+                Object.assign(state, {
+                    strokeColor: '#6b66ff', useGradient: false, glowBlur: 10, glowOpacity: 1,
+                    circleRadius: 44, ringStrokeWidth: 7, ringFillOpacity: 0, ringGapDeg: 0, ringRotate: 0,
+                    wingStrokeWidth: 7, wingGap: 24, topWingLen: 115, botWingLen: 85,
+                    wingSpacing: 24, wingOffsetY: 4, botInnerInset: 0, wingAngle: 0, wingCurve: 0,
+                    wingBalance: 0, tripleWing: false, lineCap: 'round', showText: false
+                });
+            } else if (type === 'phi') {
+                // Golden Ratio (φ = 1.6180339...)
+                Object.assign(state, {
+                    strokeColor: '#6b66ff', secondaryColor: '#a78bfa', useGradient: true,
+                    glowBlur: 11, glowOpacity: 0.95, circleRadius: 45, ringStrokeWidth: 6.5,
+                    ringFillOpacity: 0.04, wingStrokeWidth: 6.5, wingGap: 28,
+                    topWingLen: 136, botWingLen: 84, wingSpacing: 26, wingOffsetY: 0,
+                    botInnerInset: 0, wingAngle: 0, wingCurve: 0, lineCap: 'round', showText: false
+                });
+            } else if (type === 'fibonacci') {
+                // Strict Fibonacci integers: 5, 8, 13, 21, 34, 55, 89, 144
+                Object.assign(state, {
+                    strokeColor: '#7873ff', useGradient: false,
+                    glowBlur: 13, glowOpacity: 0.95, circleRadius: 55, ringStrokeWidth: 8,
+                    ringFillOpacity: 0.02, wingStrokeWidth: 8, wingGap: 21,
+                    topWingLen: 144, botWingLen: 89, wingSpacing: 34, wingOffsetY: 5,
+                    botInnerInset: 0, wingAngle: 0, wingCurve: 0, lineCap: 'round', showText: false
+                });
+            } else if (type === 'pi') {
+                // Pi Harmonics (3.14159...)
+                Object.assign(state, {
+                    strokeColor: '#60a5fa', secondaryColor: '#6b66ff', useGradient: true,
+                    glowBlur: 12, glowOpacity: 1, circleRadius: 42, ringStrokeWidth: 6.5,
+                    ringFillOpacity: 0.06, wingStrokeWidth: 6.5, wingGap: 31,
+                    topWingLen: 126, botWingLen: 94, wingSpacing: 25, wingOffsetY: 3,
+                    botInnerInset: 0, wingAngle: 0, wingCurve: 0, lineCap: 'round', showText: false
+                });
+            } else if (type === 'primes') {
+                // Pure Prime Number Proportions: 7, 11, 17, 23, 29, 43, 83, 131
+                Object.assign(state, {
+                    strokeColor: '#6b66ff', useGradient: false,
+                    glowBlur: 11, glowOpacity: 1, circleRadius: 43, ringStrokeWidth: 7,
+                    ringFillOpacity: 0, wingStrokeWidth: 7, wingGap: 23,
+                    topWingLen: 131, botWingLen: 83, wingSpacing: 29, wingOffsetY: 7,
+                    botInnerInset: 0, wingAngle: 0, wingCurve: 0, lineCap: 'round', showText: false
+                });
+            } else if (type === 'lockup') {
+                Object.assign(state, {
+                    strokeColor: '#7873ff', useGradient: false, glowBlur: 9, glowOpacity: 0.9,
+                    circleRadius: 38, ringStrokeWidth: 6.5, ringFillOpacity: 0.04,
+                    wingStrokeWidth: 6.5, wingGap: 22, topWingLen: 105, botWingLen: 75,
+                    wingSpacing: 22, wingOffsetY: 3, botInnerInset: 0, wingAngle: 0, wingCurve: 0,
+                    lineCap: 'round', showText: true, brandText: 'SOLOPASS', fontSize: 30, letterSpacing: 14
+                });
+            } else if (type === 'gradient') {
+                Object.assign(state, {
+                    strokeColor: '#6b66ff', secondaryColor: '#38bdf8', useGradient: true,
+                    glowBlur: 12, glowOpacity: 0.95, circleRadius: 44, ringStrokeWidth: 7,
+                    ringFillOpacity: 0.06, wingStrokeWidth: 6.5, wingGap: 24,
+                    topWingLen: 125, botWingLen: 85, wingSpacing: 24, wingOffsetY: 2,
+                    botInnerInset: 0, wingAngle: 0, wingCurve: 0, lineCap: 'round', showText: false
+                });
+            }
+            if (motionTimeline.keyframes && motionTimeline.keyframes.length > 0) {
+                motionTimeline.keyframes[0] = captureAnimatableSnapshot(motionTimeline.keyframes[0].label || 'Origin');
+                if (motionTimeline.keyframes.length >= 3) {
+                    motionTimeline.keyframes[motionTimeline.keyframes.length - 1] = captureAnimatableSnapshot(
+                        motionTimeline.keyframes[motionTimeline.keyframes.length - 1].label || 'Return'
+                    );
+                }
+                renderKeyframeStrip();
+            }
+            syncInputsFromState();
+            render();
+            pushHistory();
+        };
+
+        function syncInputsFromState() {
+            els.strokeColor.value = state.strokeColor;
+            els.strokeColorHex.value = state.strokeColor;
+            els.secondaryColor.value = state.secondaryColor;
+            els.secondaryColorHex.value = state.secondaryColor;
+            els.useGradient.checked = state.useGradient;
+            els.glowBlur.value = state.glowBlur;
+            els.glowOpacity.value = state.glowOpacity;
+            els.circleRadius.value = state.circleRadius;
+            els.ringStrokeWidth.value = state.ringStrokeWidth;
+            els.ringFillOpacity.value = state.ringFillOpacity;
+            els.ringGapDeg.value = state.ringGapDeg;
+            els.ringRotate.value = state.ringRotate;
+            els.wingStrokeWidth.value = state.wingStrokeWidth;
+            els.wingGap.value = state.wingGap;
+            els.topWingLen.value = state.topWingLen;
+            els.botWingLen.value = state.botWingLen;
+            els.wingSpacing.value = state.wingSpacing;
+            els.wingOffsetY.value = state.wingOffsetY;
+            els.botInnerInset.value = state.botInnerInset;
+            els.wingAngle.value = state.wingAngle;
+            els.wingCurve.value = state.wingCurve;
+            els.wingBalance.value = state.wingBalance;
+            els.showText.checked = state.showText;
+            els.brandText.value = state.brandText;
+            els.fontSize.value = state.fontSize;
+            els.letterSpacing.value = state.letterSpacing;
+
+            const lockBtn = document.getElementById('lockNonStraightBtn');
+            if (lockBtn) {
+                lockBtn.classList.toggle('bg-indigo-500/20', state.lockNonStraight);
+                lockBtn.classList.toggle('border-indigo-400/40', state.lockNonStraight);
+                lockBtn.classList.toggle('text-indigo-200', state.lockNonStraight);
+                lockBtn.classList.toggle('bg-white/5', !state.lockNonStraight);
+                lockBtn.classList.toggle('border-white/10', !state.lockNonStraight);
+                lockBtn.classList.toggle('text-gray-400', !state.lockNonStraight);
+            }
+
+            const tripleBtn = document.getElementById('tripleWingBtn');
+            if (tripleBtn) {
+                tripleBtn.classList.toggle('bg-indigo-500/20', state.tripleWing);
+                tripleBtn.classList.toggle('border-indigo-400/40', state.tripleWing);
+                tripleBtn.classList.toggle('text-indigo-200', state.tripleWing);
+                tripleBtn.classList.toggle('bg-white/5', !state.tripleWing);
+                tripleBtn.classList.toggle('border-white/10', !state.tripleWing);
+                tripleBtn.classList.toggle('text-gray-400', !state.tripleWing);
+            }
+
+            document.querySelectorAll('.cap-btn').forEach(b => {
+                const isActive = b.dataset.cap === state.lineCap;
+                b.classList.toggle('bg-indigo-600', isActive);
+                b.classList.toggle('text-white', isActive);
+                b.classList.toggle('text-gray-400', !isActive);
+            });
+        }
+
+        let toastTimer = null;
+        function showToast(msg) {
+            els.toast.textContent = msg;
+            els.toast.classList.remove('translate-y-20', 'opacity-0');
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                els.toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2400);
+        }
+
+        // Copy raw SVG code
+        document.getElementById('copySvgBtn').addEventListener('click', () => {
+            copyTextToClipboard(generateSVGString(false, false), 'Clean SVG code copied to clipboard!');
+        });
+
+        // Download .SVG file
+        document.getElementById('downloadSvgBtn').addEventListener('click', () => {
+            const svgCode = generateSVGString(false, false);
+            const blob = new Blob([svgCode], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'solopass-logo.svg';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showToast('Downloaded solopass-logo.svg');
+        });
+
+        // Download high-res .PNG file
+        document.getElementById('downloadPngBtn').addEventListener('click', () => {
+            const svgCode = generateSVGString(true, false);
+            const canvas = document.getElementById('exportCanvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            const svgBlob = new Blob([svgCode], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(svgBlob);
+
+            img.onload = () => {
+                canvas.width = 1800;
+                canvas.height = state.showText ? 870 : 660;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                URL.revokeObjectURL(url);
+
+                const pngUrl = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.href = pngUrl;
+                link.download = 'solopass-logo.png';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showToast('Downloaded high-res solopass-logo.png');
+            };
+            img.onerror = () => {
+                URL.revokeObjectURL(url);
+                showToast('PNG export failed—check SVG settings');
+            };
+            img.src = url;
+        });
+
+        // Download 512x512 Square App Icon / Favicon PNG
+        document.getElementById('downloadIconBtn').addEventListener('click', () => {
+            const prevShowText = state.showText;
+            state.showText = false;
+            const svgCode = generateSVGString(true, false);
+            state.showText = prevShowText;
+
+            const canvas = document.getElementById('exportCanvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            const svgBlob = new Blob([svgCode], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(svgBlob);
+
+            img.onload = () => {
+                canvas.width = 512;
+                canvas.height = 512;
+                ctx.fillStyle = state.bgColor === 'transparent' ? '#0d0d16' : state.bgColor;
+                ctx.beginPath();
+                if (typeof ctx.roundRect === 'function') {
+                    ctx.roundRect(0, 0, 512, 512, 96);
+                } else {
+                    ctx.rect(0, 0, 512, 512);
+                }
+                ctx.fill();
+                // Draw centered emblem scaled nicely inside 512x512 badge
+                ctx.drawImage(img, -44, 154, 600, 204);
+                URL.revokeObjectURL(url);
+
+                const pngUrl = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.href = pngUrl;
+                link.download = 'solopass-icon-512.png';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showToast('Downloaded 512x512 solopass-icon-512.png');
+            };
+            img.src = url;
+        });
+
+        // Session Snapshot Vault
+        const savedSnapshots = [];
+        function renderSnapshotVault() {
+            const vault = document.getElementById('snapshotVault');
+            const list = document.getElementById('snapshotList');
+            if (!savedSnapshots.length) {
+                vault.classList.add('hidden');
+                return;
+            }
+            vault.classList.remove('hidden');
+            list.innerHTML = '';
+            savedSnapshots.forEach((snap, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'shrink-0 px-2.5 py-1 rounded-lg bg-black/50 hover:bg-indigo-500/20 border border-white/10 hover:border-indigo-400/40 text-[10px] font-mono text-gray-200 flex items-center gap-1.5 transition';
+                btn.innerHTML = `<span class="w-2 h-2 rounded-full" style="background:${snap.strokeColor}"></span><span>#${idx + 1}${snap.encodedMessage ? ' · ' + snap.encodedMessage.slice(0, 10) : ''}</span>`;
+                btn.title = 'Click to load this saved snapshot';
+                btn.addEventListener('click', () => {
+                    Object.assign(state, snap);
+                    document.getElementById('cipherMessageInput').value = state.encodedMessage || '';
+                    syncInputsFromState();
+                    render();
+                    pushHistory();
+                    showToast(`Loaded Snapshot #${idx + 1}`);
+                });
+                list.appendChild(btn);
+            });
+        }
+
+        document.getElementById('saveSnapshotBtn').addEventListener('click', () => {
+            savedSnapshots.push(JSON.parse(JSON.stringify(state)));
+            renderSnapshotVault();
+            showToast(`Saved Snapshot #${savedSnapshots.length} to Vault`);
+        });
+
+        document.getElementById('clearVaultBtn').addEventListener('click', () => {
+            savedSnapshots.length = 0;
+            renderSnapshotVault();
+            showToast('Cleared session snapshots');
+        });
+
+        // Ambient Neon Pulse Preview Loop
+        let pulseAnimId = null;
+        let isPulsing = false;
+        function setPulseActive(active) {
+            isPulsing = active;
+            const dot = document.getElementById('pulseDot');
+            const btn = document.getElementById('pulseToggleBtn');
+            dot.classList.toggle('bg-indigo-400', isPulsing);
+            dot.classList.toggle('shadow-[0_0_8px_#818cf8]', isPulsing);
+            dot.classList.toggle('bg-gray-500', !isPulsing);
+            btn.classList.toggle('border-indigo-400/40', isPulsing);
+
+            if (isPulsing) {
+                const start = performance.now();
+                const tick = (now) => {
+                    if (!isPulsing) return;
+                    const wave = Math.sin((now - start) / 550);
+                    const blur = Math.max(2, state.glowBlur + wave * 4);
+                    const blurEl = els.svgStage.querySelector('feGaussianBlur');
+                    if (blurEl) blurEl.setAttribute('stdDeviation', blur.toFixed(1));
+                    pulseAnimId = requestAnimationFrame(tick);
+                };
+                pulseAnimId = requestAnimationFrame(tick);
+            } else {
+                if (pulseAnimId) cancelAnimationFrame(pulseAnimId);
+                render();
+            }
+        }
+        document.getElementById('pulseToggleBtn').addEventListener('click', () => {
+            setPulseActive(!isPulsing);
+        });
+
+        // =========================================================================
+        // .SPMOTION KEYFRAME FORMAT & AI MOTION CHOREOGRAPHER ENGINE
+        // =========================================================================
+        const ANIMATABLE_KEYS = [
+            'circleRadius', 'ringStrokeWidth', 'ringFillOpacity', 'ringGapDeg', 'ringRotate',
+            'wingStrokeWidth', 'wingGap', 'topWingLen', 'botWingLen', 'wingSpacing',
+            'wingOffsetY', 'botInnerInset', 'wingAngle', 'wingCurve', 'wingBalance',
+            'glowBlur', 'glowOpacity'
+        ];
+
+        function captureAnimatableSnapshot(label = 'Key') {
+            const snap = { label, easing: 'easeInOutCubic', state: {} };
+            ANIMATABLE_KEYS.forEach(k => { snap.state[k] = state[k]; });
+            snap.state.strokeColor = state.strokeColor;
+            snap.state.secondaryColor = state.secondaryColor;
+            snap.state.useGradient = state.useGradient;
+            snap.state.tripleWing = state.tripleWing;
+            return snap;
+        }
+
+        // Default 3-keyframe breathing/portal loop
+        let motionTimeline = {
+            format: 'solopass-motion-v1',
+            durationSec: 3.0,
+            playMode: 'loop',
+            easing: 'easeInOutCubic',
+            loop: true,
+            keyframes: [
+                captureAnimatableSnapshot('Origin'),
+                {
+                    label: 'Portal Surge',
+                    easing: 'easeInOutCubic',
+                    state: {
+                        ...captureAnimatableSnapshot().state,
+                        ringGapDeg: 48,
+                        ringRotate: 25,
+                        topWingLen: 142,
+                        botWingLen: 98,
+                        wingGap: 30,
+                        wingCurve: 8,
+                        glowBlur: 18
+                    }
+                },
+                captureAnimatableSnapshot('Return')
+            ]
+        };
+
+        let isTimelinePlaying = false;
+        let timelineRafId = null;
+        let activeKeyframeIdx = 0;
+
+        function applyEasingCurve(t, curveName) {
+            if (curveName === 'linear') return t;
+            if (curveName === 'spring') {
+                if (t === 0 || t === 1) return t;
+                const c4 = (2 * Math.PI) / 3;
+                return t < 0.5
+                    ? -(Math.pow(2, 20 * t - 10) * Math.sin((20 * t - 11.125) * c4)) / 2
+                    : (Math.pow(2, -20 * t + 10) * Math.sin((20 * t - 11.125) * c4)) / 2 + 1;
+            }
+            return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        }
+
+        function lerpHexColor(hexA, hexB, t) {
+            const parse = (h) => {
+                const clean = (h || '#6b66ff').replace('#', '');
+                const num = parseInt(clean.length === 3 ? clean.split('').map(c => c + c).join('') : clean, 16);
+                return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
+            };
+            const [r1, g1, b1] = parse(hexA);
+            const [r2, g2, b2] = parse(hexB);
+            const r = Math.max(0, Math.min(255, Math.round(r1 + (r2 - r1) * t)));
+            const g = Math.max(0, Math.min(255, Math.round(g1 + (g2 - g1) * t)));
+            const b = Math.max(0, Math.min(255, Math.round(b1 + (b2 - b1) * t)));
+            return `#${[r, g, b].map(v => v.toString(16).padStart(2, '0')).join('')}`;
+        }
+
+        function applyInterpolatedTimeline(progress) {
+            const kfs = motionTimeline.keyframes;
+            if (!kfs || kfs.length === 0) return;
+            if (kfs.length === 1) {
+                Object.assign(state, kfs[0].state);
+                syncInputsFromState();
+                render();
+                return;
+            }
+            const clamped = Math.max(0, Math.min(1, progress));
+            const scaled = clamped * (kfs.length - 1);
+            const idx = Math.min(kfs.length - 2, Math.floor(scaled));
+            const curveName = motionTimeline.easing || kfs[idx].easing || 'easeInOutCubic';
+            const localT = applyEasingCurve(scaled - idx, curveName);
+            const a = kfs[idx].state;
+            const b = kfs[idx + 1].state;
+
+            ANIMATABLE_KEYS.forEach(k => {
+                const v1 = typeof a[k] === 'number' ? a[k] : state[k];
+                const v2 = typeof b[k] === 'number' ? b[k] : state[k];
+                state[k] = Number((v1 + (v2 - v1) * localT).toFixed(2));
+            });
+            if (a.strokeColor && b.strokeColor) {
+                state.strokeColor = lerpHexColor(a.strokeColor, b.strokeColor, localT);
+            }
+            if (a.secondaryColor && b.secondaryColor) {
+                state.secondaryColor = lerpHexColor(a.secondaryColor, b.secondaryColor, localT);
+            }
+            if (typeof a.useGradient === 'boolean') {
+                state.useGradient = localT < 0.5 ? a.useGradient : b.useGradient;
+            }
+            if (typeof a.tripleWing === 'boolean') {
+                state.tripleWing = localT < 0.5 ? a.tripleWing : b.tripleWing;
+            }
+
+            syncInputsFromState();
+            render();
+        }
+
+        function renderKeyframeStrip() {
+            const strip = document.getElementById('keyframeStrip');
+            const updateBtn = document.getElementById('updateKeyframeBtn');
+            if (updateBtn) updateBtn.textContent = `Update K${activeKeyframeIdx + 1}`;
+            if (!strip) return;
+            strip.innerHTML = '';
+            motionTimeline.keyframes.forEach((kf, idx) => {
+                const pill = document.createElement('div');
+                const isSelected = idx === activeKeyframeIdx;
+                pill.className = `shrink-0 flex items-center gap-1 px-2 py-1 rounded-lg border text-[10px] font-mono cursor-pointer transition ${
+                    isSelected
+                        ? 'bg-sky-500/25 border-sky-400 text-white'
+                        : 'bg-black/40 border-white/10 text-gray-300 hover:border-sky-400/40'
+                }`;
+                pill.innerHTML = `<span>K${idx + 1}: ${escapeXml(kf.label || 'Step')}</span>`;
+                pill.addEventListener('click', () => {
+                    stopTimelinePlayback();
+                    activeKeyframeIdx = idx;
+                    Object.assign(state, kf.state);
+                    const prog = motionTimeline.keyframes.length > 1 ? idx / (motionTimeline.keyframes.length - 1) : 0;
+                    document.getElementById('timelineScrubber').value = prog;
+                    document.getElementById('timelineProgressVal').textContent = `${(prog * motionTimeline.durationSec).toFixed(2)}s`;
+                    syncInputsFromState();
+                    render();
+                    renderKeyframeStrip();
+                });
+
+                if (motionTimeline.keyframes.length > 2) {
+                    const del = document.createElement('button');
+                    del.textContent = '×';
+                    del.className = 'ml-1 text-gray-400 hover:text-rose-400';
+                    del.title = 'Remove keyframe';
+                    del.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        motionTimeline.keyframes.splice(idx, 1);
+                        activeKeyframeIdx = Math.max(0, activeKeyframeIdx - 1);
+                        renderKeyframeStrip();
+                    });
+                    pill.appendChild(del);
+                }
+                strip.appendChild(pill);
+            });
+        }
+
+        function stopTimelinePlayback() {
+            isTimelinePlaying = false;
+            if (timelineRafId) cancelAnimationFrame(timelineRafId);
+            const icon = document.getElementById('playTimelineIcon');
+            const lbl = document.getElementById('playTimelineLabel');
+            if (icon) icon.textContent = '▶';
+            if (lbl) lbl.textContent = 'Play';
+        }
+
+        document.getElementById('playTimelineBtn').addEventListener('click', () => {
+            if (isTimelinePlaying) {
+                stopTimelinePlayback();
+                return;
+            }
+            if (isPulsing) setPulseActive(false);
+            isTimelinePlaying = true;
+            document.getElementById('playTimelineIcon').textContent = '❚❚';
+            document.getElementById('playTimelineLabel').textContent = 'Pause';
+            const startTime = performance.now();
+            const durationMs = motionTimeline.durationSec * 1000;
+
+            const step = (now) => {
+                if (!isTimelinePlaying) return;
+                const totalElapsed = now - startTime;
+                const mode = motionTimeline.playMode || 'loop';
+                let progress = 0;
+
+                if (mode === 'once') {
+                    progress = Math.min(1, totalElapsed / durationMs);
+                    document.getElementById('timelineScrubber').value = progress;
+                    document.getElementById('timelineProgressVal').textContent = `${(progress * motionTimeline.durationSec).toFixed(2)}s`;
+                    applyInterpolatedTimeline(progress);
+                    if (progress >= 1) {
+                        stopTimelinePlayback();
+                        return;
+                    }
+                } else if (mode === 'pingpong') {
+                    const cycle = (totalElapsed % (durationMs * 2)) / durationMs;
+                    progress = cycle <= 1 ? cycle : 2 - cycle;
+                    document.getElementById('timelineScrubber').value = progress;
+                    document.getElementById('timelineProgressVal').textContent = `${(progress * motionTimeline.durationSec).toFixed(2)}s`;
+                    applyInterpolatedTimeline(progress);
+                } else {
+                    const elapsed = totalElapsed % durationMs;
+                    progress = elapsed / durationMs;
+                    document.getElementById('timelineScrubber').value = progress;
+                    document.getElementById('timelineProgressVal').textContent = `${(elapsed / 1000).toFixed(2)}s`;
+                    applyInterpolatedTimeline(progress);
+                }
+                timelineRafId = requestAnimationFrame(step);
+            };
+            timelineRafId = requestAnimationFrame(step);
+        });
+
+        document.getElementById('updateKeyframeBtn').addEventListener('click', () => {
+            stopTimelinePlayback();
+            const existing = motionTimeline.keyframes[activeKeyframeIdx];
+            if (!existing) return;
+            const updated = captureAnimatableSnapshot(existing.label);
+            updated.easing = motionTimeline.easing || 'easeInOutCubic';
+            motionTimeline.keyframes[activeKeyframeIdx] = updated;
+            renderKeyframeStrip();
+            showToast(`Updated Keyframe K${activeKeyframeIdx + 1}`);
+        });
+
+        document.getElementById('timelinePlayMode').addEventListener('change', (e) => {
+            motionTimeline.playMode = e.target.value;
+            motionTimeline.loop = e.target.value !== 'once';
+        });
+
+        document.getElementById('timelineEasingSelect').addEventListener('change', (e) => {
+            motionTimeline.easing = e.target.value;
+            motionTimeline.keyframes.forEach(kf => { kf.easing = e.target.value; });
+        });
+
+        document.getElementById('addKeyframeBtn').addEventListener('click', () => {
+            stopTimelinePlayback();
+            const label = `Pose ${motionTimeline.keyframes.length + 1}`;
+            const kf = captureAnimatableSnapshot(label);
+            kf.easing = motionTimeline.easing || 'easeInOutCubic';
+            motionTimeline.keyframes.push(kf);
+            activeKeyframeIdx = motionTimeline.keyframes.length - 1;
+            renderKeyframeStrip();
+            showToast(`Added Keyframe K${motionTimeline.keyframes.length}`);
+        });
+
+        const scrubberEl = document.getElementById('timelineScrubber');
+        ['pointerdown', 'mousedown', 'touchstart'].forEach(evt => {
+            scrubberEl.addEventListener(evt, (e) => e.stopPropagation(), { passive: true });
+        });
+        scrubberEl.addEventListener('input', (e) => {
+            stopTimelinePlayback();
+            const prog = parseFloat(e.target.value);
+            document.getElementById('timelineProgressVal').textContent = `${(prog * motionTimeline.durationSec).toFixed(2)}s`;
+            applyInterpolatedTimeline(prog);
+        });
+
+        const durationEl = document.getElementById('timelineDuration');
+        ['pointerdown', 'mousedown', 'touchstart'].forEach(evt => {
+            durationEl.addEventListener(evt, (e) => e.stopPropagation(), { passive: true });
+        });
+        durationEl.addEventListener('input', (e) => {
+            motionTimeline.durationSec = parseFloat(e.target.value);
+            document.getElementById('timelineDurationVal').textContent = `${motionTimeline.durationSec.toFixed(1)}s`;
+        });
+
+        // Export .spmotion JSON keyframe timeline file
+        document.getElementById('exportSpmotionBtn').addEventListener('click', () => {
+            const payload = JSON.stringify(motionTimeline, null, 2);
+            const blob = new Blob([payload], { type: 'application/json;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'solopass-animation.spmotion';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showToast('Exported solopass-animation.spmotion');
+        });
+
+        // Import .spmotion file
+        document.getElementById('importSpmotionInput').addEventListener('change', (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                try {
+                    const parsed = JSON.parse(String(ev.target?.result || '{}'));
+                    if (Array.isArray(parsed.keyframes) && parsed.keyframes.length >= 2) {
+                        motionTimeline = parsed;
+                        document.getElementById('timelineDuration').value = motionTimeline.durationSec || 3;
+                        document.getElementById('timelineDurationVal').textContent = `${(motionTimeline.durationSec || 3).toFixed(1)}s`;
+                        document.getElementById('timelinePlayMode').value = motionTimeline.playMode || 'loop';
+                        document.getElementById('timelineEasingSelect').value = motionTimeline.easing || 'easeInOutCubic';
+                        activeKeyframeIdx = 0;
+                        renderKeyframeStrip();
+                        applyInterpolatedTimeline(0);
+                        showToast(`Loaded .spmotion (${motionTimeline.keyframes.length} keyframes)`);
+                    } else {
+                        showToast('Invalid .spmotion file structure');
+                    }
+                } catch {
+                    showToast('Failed to parse .spmotion file');
+                }
+                e.target.value = '';
+            };
+            reader.readAsText(file);
+        });
+
+        // Render .spmotion Timeline directly to .WEBM Video
+        document.getElementById('exportWebmBtn').addEventListener('click', async () => {
+            if (typeof MediaRecorder === 'undefined' || typeof HTMLCanvasElement.prototype.captureStream !== 'function') {
+                showToast('Video recording is not supported in this browser');
+                return;
+            }
+            const btn = document.getElementById('exportWebmBtn');
+            const origLabel = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Rec...';
+            showToast('Rendering .WEBM video loop...');
+
+            const wasPlaying = isTimelinePlaying;
+            stopTimelinePlayback();
+
+            const canvas = document.getElementById('exportCanvas');
+            canvas.width = 1200;
+            canvas.height = state.showText ? 580 : 440;
+            const ctx = canvas.getContext('2d');
+            let recorder = null;
+            try {
+                const stream = canvas.captureStream(30);
+                const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
+                recorder = new MediaRecorder(stream, { mimeType });
+            } catch {
+                btn.disabled = false;
+                btn.textContent = origLabel;
+                showToast('Unable to initialize .WEBM recorder');
+                return;
+            }
+            const chunks = [];
+            recorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+            recorder.onstop = () => {
+                const webmBlob = new Blob(chunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(webmBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'solopass-animation.webm';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                btn.disabled = false;
+                btn.textContent = origLabel;
+                showToast('Downloaded solopass-animation.webm');
+                if (wasPlaying) document.getElementById('playTimelineBtn').click();
+            };
+
+            recorder.start();
+            const fps = 30;
+            const totalFrames = Math.max(15, Math.round(motionTimeline.durationSec * fps));
+            const bgFill = state.bgColor === 'transparent' ? '#0d0d16' : state.bgColor;
+
+            try {
+                for (let f = 0; f <= totalFrames; f++) {
+                    const rawProg = f / totalFrames;
+                    const prog = motionTimeline.playMode === 'pingpong'
+                        ? (rawProg <= 0.5 ? rawProg * 2 : (1 - rawProg) * 2)
+                        : rawProg;
+                    applyInterpolatedTimeline(prog);
+                    const svgMarkup = generateSVGString(true, false);
+                    const svgBlob = new Blob([svgMarkup], { type: 'image/svg+xml;charset=utf-8' });
+                    const imgUrl = URL.createObjectURL(svgBlob);
+
+                    await new Promise((resolve) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            ctx.fillStyle = bgFill;
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                            URL.revokeObjectURL(imgUrl);
+                            resolve();
+                        };
+                        img.onerror = () => {
+                            URL.revokeObjectURL(imgUrl);
+                            resolve();
+                        };
+                        img.src = imgUrl;
+                    });
+                    await new Promise(r => setTimeout(r, 1000 / fps));
+                }
+            } finally {
+                if (recorder && recorder.state !== 'inactive') recorder.stop();
+            }
+        });
+
+        // Export Self-Contained Animated .SVG (embeds .spmotion JSON + lightweight interpolation runtime)
+        document.getElementById('exportAnimatedSvgBtn').addEventListener('click', () => {
+            const width = 600;
+            const height = state.showText ? 290 : 220;
+            const cx = width / 2;
+            const cy = state.showText ? 105 : 110;
+            const seedCode = encodeStateToCode();
+            const safeTitle = escapeXml(state.brandText || 'SOLOPASS');
+            const timelineJson = JSON.stringify(motionTimeline).replace(/</g, '\\u003c');
+            const hasTriple = state.tripleWing || motionTimeline.keyframes.some(k => k.state && k.state.tripleWing);
+
+            const animatedSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="100%" height="100%" role="img" aria-label="${safeTitle} Animated Vector Emblem" data-solopass-seed="${seedCode}">
+  <title>${safeTitle} Animated Vector Emblem</title>
+  <metadata id="spmotion-data">${escapeXml(JSON.stringify(motionTimeline))}</metadata>
+  <defs>
+    <linearGradient id="solopassGrad" gradientUnits="userSpaceOnUse" x1="60" y1="0" x2="540" y2="0">
+      <stop id="sp-stop-0" offset="0%" stop-color="${state.strokeColor}" />
+      <stop id="sp-stop-1" offset="50%" stop-color="${state.secondaryColor}" />
+      <stop id="sp-stop-2" offset="100%" stop-color="${state.strokeColor}" />
+    </linearGradient>
+    <filter id="neonGlow" x="-35%" y="-35%" width="170%" height="170%">
+      <feGaussianBlur id="sp-blur-1" stdDeviation="${state.glowBlur}" result="blur1" />
+      <feGaussianBlur id="sp-blur-2" stdDeviation="${(state.glowBlur * 0.45).toFixed(1)}" result="blur2" />
+      <feComponentTransfer in="blur1" result="fadeBlur1">
+        <feFuncA id="sp-glow-alpha" type="linear" slope="${state.glowOpacity}" />
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode in="fadeBlur1" />
+        <feMergeNode in="blur2" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+  <g id="sp-root" filter="url(#neonGlow)" fill="none" stroke="${state.useGradient ? 'url(#solopassGrad)' : state.strokeColor}" stroke-linecap="${state.lineCap}" stroke-linejoin="round">
+    <circle id="sp-ring" cx="${cx}" cy="${cy}" r="${state.circleRadius}" stroke-width="${state.ringStrokeWidth}" fill="${state.strokeColor}" fill-opacity="${state.ringFillOpacity}" />
+    <g id="sp-left-wings">
+      <path id="sp-lt" stroke-width="${state.wingStrokeWidth}" />
+      <path id="sp-lb" stroke-width="${state.wingStrokeWidth}" />${hasTriple ? `\n      <path id="sp-l3" stroke-width="${Math.max(2, state.wingStrokeWidth * 0.85)}" />` : ''}
+    </g>
+    <g id="sp-right-wings">
+      <path id="sp-rt" stroke-width="${state.wingStrokeWidth}" />
+      <path id="sp-rb" stroke-width="${state.wingStrokeWidth}" />${hasTriple ? `\n      <path id="sp-r3" stroke-width="${Math.max(2, state.wingStrokeWidth * 0.85)}" />` : ''}
+    </g>
+  </g>${state.showText ? `\n  <text id="sp-wordmark" x="${cx}" y="${cy + state.circleRadius + 58}" text-anchor="middle" fill="${state.useGradient ? 'url(#solopassGrad)' : state.strokeColor}" font-family="'Space Grotesk', 'Inter', sans-serif" font-weight="700" font-size="${state.fontSize}" letter-spacing="${state.letterSpacing}" filter="url(#neonGlow)">${safeTitle}</text>` : ''}
+  <script><![CDATA[
+    (function() {
+      const tl = ${timelineJson};
+      const kfs = tl.keyframes || [];
+      if (!kfs.length) return;
+      const cx = ${cx}, cy = ${cy};
+      const keys = ['circleRadius','ringStrokeWidth','ringFillOpacity','ringGapDeg','ringRotate','wingStrokeWidth','wingGap','topWingLen','botWingLen','wingSpacing','wingOffsetY','botInnerInset','wingAngle','wingCurve','wingBalance','glowBlur','glowOpacity'];
+      const ease = (t, curve) => {
+        if (curve === 'linear') return t;
+        if (curve === 'spring') {
+          if (t === 0 || t === 1) return t;
+          const c4 = (2 * Math.PI) / 3;
+          return t < 0.5 ? -(Math.pow(2, 20 * t - 10) * Math.sin((20 * t - 11.125) * c4)) / 2 : (Math.pow(2, -20 * t + 10) * Math.sin((20 * t - 11.125) * c4)) / 2 + 1;
+        }
+        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      };
+      const lerpHex = (hA, hB, t) => {
+        const p = (h) => {
+          const c = (h || '#6b66ff').replace('#', '');
+          const n = parseInt(c.length === 3 ? c.split('').map(x => x + x).join('') : c, 16);
+          return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+        };
+        const [r1, g1, b1] = p(hA), [r2, g2, b2] = p(hB);
+        return '#' + [r1 + (r2 - r1) * t, g1 + (g2 - g1) * t, b1 + (b2 - b1) * t]
+          .map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
+      };
+      const quad = (x1, y1, x2, y2, c) => 'M ' + x1.toFixed(1) + ' ' + y1.toFixed(1) + ' Q ' + ((x1 + x2) / 2).toFixed(1) + ' ' + ((y1 + y2) / 2 - c).toFixed(1) + ' ' + x2.toFixed(1) + ' ' + y2.toFixed(1);
+      const start = performance.now();
+      const dur = (tl.durationSec || 3) * 1000;
+      const mode = tl.playMode || 'loop';
+      const frame = (now) => {
+        const total = now - start;
+        let prog = 0;
+        if (mode === 'once') {
+          prog = Math.min(1, total / dur);
+        } else if (mode === 'pingpong') {
+          const cyc = (total % (dur * 2)) / dur;
+          prog = cyc <= 1 ? cyc : 2 - cyc;
+        } else {
+          prog = (total % dur) / dur;
+        }
+        const scaled = prog * (kfs.length - 1);
+        const i = Math.min(kfs.length - 2, Math.floor(scaled));
+        const t = ease(scaled - i, tl.easing || kfs[i].easing || 'easeInOutCubic');
+        const a = kfs[i].state, b = kfs[i + 1].state, s = {};
+        keys.forEach(k => { s[k] = (a[k] || 0) + ((b[k] || 0) - (a[k] || 0)) * t; });
+        const col1 = lerpHex(a.strokeColor, b.strokeColor, t);
+        const col2 = lerpHex(a.secondaryColor || a.strokeColor, b.secondaryColor || b.strokeColor, t);
+        const useGrad = t < 0.5 ? a.useGradient : b.useGradient;
+        const paint = useGrad ? 'url(#solopassGrad)' : col1;
+        const r = s.circleRadius, gap = s.wingGap, hs = s.wingSpacing / 2, oy = s.wingOffsetY, ins = s.botInnerInset;
+        const bal = (s.wingBalance || 0) / 100;
+        const lTop = Math.max(15, s.topWingLen * (1 - bal)), rTop = Math.max(15, s.topWingLen * (1 + bal));
+        const lBot = Math.max(10, s.botWingLen * (1 - bal)), rBot = Math.max(10, s.botWingLen * (1 + bal));
+        const topY = cy - hs + oy, botY = cy + hs + oy;
+        const ring = document.getElementById('sp-ring');
+        ring.setAttribute('r', r.toFixed(1));
+        ring.setAttribute('stroke-width', s.ringStrokeWidth.toFixed(1));
+        ring.setAttribute('fill', col1);
+        ring.setAttribute('fill-opacity', (s.ringFillOpacity || 0).toFixed(2));
+        const circ = 2 * Math.PI * r, gf = Math.max(0, Math.min(0.45, s.ringGapDeg / 360));
+        if (gf > 0) {
+          ring.setAttribute('stroke-dasharray', (circ * (1 - gf)).toFixed(2) + ' ' + (circ * gf).toFixed(2));
+          ring.setAttribute('transform', 'rotate(' + (s.ringRotate + s.ringGapDeg / 2).toFixed(1) + ' ' + cx + ' ' + cy + ')');
+        } else {
+          ring.removeAttribute('stroke-dasharray');
+          ring.removeAttribute('transform');
+        }
+        const root = document.getElementById('sp-root');
+        root.setAttribute('stroke', paint);
+        const wm = document.getElementById('sp-wordmark');
+        if (wm) wm.setAttribute('fill', paint);
+        document.getElementById('sp-stop-0').setAttribute('stop-color', col1);
+        document.getElementById('sp-stop-1').setAttribute('stop-color', col2);
+        document.getElementById('sp-stop-2').setAttribute('stop-color', col1);
+        ['sp-lt','sp-lb','sp-rt','sp-rb'].forEach(id => document.getElementById(id).setAttribute('stroke-width', s.wingStrokeWidth.toFixed(1)));
+        document.getElementById('sp-lt').setAttribute('d', quad(cx - r - gap, topY, cx - r - gap - lTop, topY, s.wingCurve));
+        document.getElementById('sp-lb').setAttribute('d', quad(cx - r - gap - ins, botY, cx - r - gap - ins - lBot, botY, s.wingCurve * 0.75));
+        document.getElementById('sp-rt').setAttribute('d', quad(cx + r + gap, topY, cx + r + gap + rTop, topY, s.wingCurve));
+        document.getElementById('sp-rb').setAttribute('d', quad(cx + r + gap + ins, botY, cx + r + gap + ins + rBot, botY, s.wingCurve * 0.75));
+        const l3 = document.getElementById('sp-l3'), r3 = document.getElementById('sp-r3');
+        if (l3 && r3) {
+          const show3 = t < 0.5 ? a.tripleWing : b.tripleWing;
+          l3.style.display = show3 ? '' : 'none';
+          r3.style.display = show3 ? '' : 'none';
+          const y3 = botY + hs * 0.92, ins3 = ins * 1.6 + 8;
+          l3.setAttribute('stroke-width', Math.max(2, s.wingStrokeWidth * 0.85).toFixed(1));
+          r3.setAttribute('stroke-width', Math.max(2, s.wingStrokeWidth * 0.85).toFixed(1));
+          l3.setAttribute('d', quad(cx - r - gap - ins3, y3, cx - r - gap - ins3 - Math.max(12, lBot * 0.62), y3, s.wingCurve * 0.5));
+          r3.setAttribute('d', quad(cx + r + gap + ins3, y3, cx + r + gap + ins3 + Math.max(12, rBot * 0.62), y3, s.wingCurve * 0.5));
+        }
+        document.getElementById('sp-left-wings').setAttribute('transform', 'rotate(' + (-s.wingAngle).toFixed(2) + ' ' + cx + ' ' + (cy + oy).toFixed(1) + ')');
+        document.getElementById('sp-right-wings').setAttribute('transform', 'rotate(' + (s.wingAngle).toFixed(2) + ' ' + cx + ' ' + (cy + oy).toFixed(1) + ')');
+        document.getElementById('sp-blur-1').setAttribute('stdDeviation', s.glowBlur.toFixed(1));
+        document.getElementById('sp-blur-2').setAttribute('stdDeviation', (s.glowBlur * 0.45).toFixed(1));
+        const alphaEl = document.getElementById('sp-glow-alpha');
+        if (alphaEl) alphaEl.setAttribute('slope', (s.glowOpacity !== undefined ? s.glowOpacity : 1).toFixed(2));
+        if (mode !== 'once' || prog < 1) requestAnimationFrame(frame);
+      };
+      requestAnimationFrame(frame);
+    })();
+  ]]><\/script>
+</svg>`;
+
+            const blob = new Blob([animatedSvg], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'solopass-animated.svg';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showToast('Exported self-contained solopass-animated.svg');
+        });
+
+        // Unified AI Studio Co-Pilot (Controls Sliders, Ciphers, & Keyframes)
+        function runAiCoPilotPrompt(rawPrompt) {
+            const p = rawPrompt.toLowerCase();
+            const actions = [];
+
+            // 1. Check for cipher encoding request (e.g., encode 'NOVA' or message "ALPHA")
+            const encodeMatch = rawPrompt.match(/(?:encode|cipher|hide|embed)\s+['"“]([^'"”]+)['"”]/i)
+                || rawPrompt.match(/(?:encode|cipher)\s+([a-zA-Z0-9_-]{2,24})/i);
+            if (encodeMatch && encodeMatch[1]) {
+                const msg = encodeMatch[1].trim();
+                document.getElementById('cipherMessageInput').value = msg;
+                encodeMessageToGeometry(msg);
+                actions.push(`encoded "${msg}"`);
+            }
+
+            // 2. Direct static slider/feature commands
+            if (p.includes('triple') || p.includes('3-wing') || p.includes('three wing')) {
+                state.tripleWing = true;
+                actions.push('enabled 3-wing tier');
+            }
+            if (p.includes('wordmark') || p.includes('text')) {
+                state.showText = true;
+                actions.push('enabled wordmark');
+            }
+
+            const base = captureAnimatableSnapshot().state;
+            const peak = { ...base };
+            let title = 'AI Sequence';
+
+            if (p.includes('portal') || p.includes('open') || p.includes('spin')) {
+                peak.ringGapDeg = 95;
+                peak.ringRotate = 90;
+                peak.wingGap = Math.min(58, base.wingGap + 14);
+                peak.glowBlur = 20;
+                title = 'Portal Open';
+            }
+            if (p.includes('flare') || p.includes('sweep') || p.includes('arc') || p.includes('wing') || p.includes('fly')) {
+                peak.topWingLen = Math.min(185, base.topWingLen + 36);
+                peak.botWingLen = Math.min(165, base.botWingLen + 28);
+                peak.wingAngle = -7;
+                peak.wingCurve = 14;
+                title = 'Wing Flare';
+            }
+            if (p.includes('pulse') || p.includes('glow') || p.includes('neon') || p.includes('surge')) {
+                peak.glowBlur = 26;
+                peak.ringFillOpacity = 0.22;
+                peak.ringStrokeWidth = Math.min(14, base.ringStrokeWidth + 3);
+                title = 'Neon Surge';
+            }
+            if (p.includes('cyan') || p.includes('blue') || p.includes('cyber')) {
+                peak.strokeColor = '#38bdf8';
+                peak.secondaryColor = '#818cf8';
+                peak.useGradient = true;
+            }
+            if (p.includes('violet') || p.includes('purple') || p.includes('pink')) {
+                peak.strokeColor = '#a855f7';
+                peak.secondaryColor = '#ec4899';
+                peak.useGradient = true;
+            }
+            if (p.includes('spring') || p.includes('bounce')) {
+                motionTimeline.easing = 'spring';
+                document.getElementById('timelineEasingSelect').value = 'spring';
+            }
+            if (p.includes('ping') || p.includes('boomerang')) {
+                motionTimeline.playMode = 'pingpong';
+                document.getElementById('timelinePlayMode').value = 'pingpong';
+            }
+            if (peak.ringGapDeg === base.ringGapDeg && peak.topWingLen === base.topWingLen && peak.glowBlur === base.glowBlur) {
+                peak.ringGapDeg = 55;
+                peak.topWingLen = Math.min(180, base.topWingLen + 24);
+                peak.wingCurve = 9;
+                peak.glowBlur = 19;
+            }
+
+            syncInputsFromState();
+            render();
+
+            motionTimeline.keyframes = [
+                { label: 'Origin', easing: motionTimeline.easing, state: { ...base } },
+                { label: title, easing: motionTimeline.easing, state: peak },
+                { label: 'Return', easing: motionTimeline.easing, state: { ...base } }
+            ];
+            activeKeyframeIdx = 0;
+            renderKeyframeStrip();
+            if (!isTimelinePlaying) document.getElementById('playTimelineBtn').click();
+            showToast(actions.length ? `AI Co-Pilot: ${actions.join(', ')} & animated "${title}"` : `AI choreographed "${title}"`);
+        }
+
+        document.getElementById('aiGenerateMotionBtn').addEventListener('click', () => {
+            const prompt = document.getElementById('aiMotionPrompt').value.trim();
+            if (!prompt) {
+                showToast('Describe a logo adjustment, cipher, or animation first');
+                return;
+            }
+            runAiCoPilotPrompt(prompt);
+        });
+
+        document.getElementById('aiMotionPrompt').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('aiGenerateMotionBtn').click();
+            }
+        });
+
+        document.querySelectorAll('.ai-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                const promptText = chip.dataset.aiChip || '';
+                document.getElementById('aiMotionPrompt').value = promptText;
+                runAiCoPilotPrompt(promptText);
+            });
+        });
+
+        // Programmatic AI & External Agent Bridge (window.SOLOPASS_API)
+        window.SOLOPASS_API = {
+            getState: () => ({ ...state }),
+            setSliders: (partial = {}) => {
+                if (isTimelinePlaying) stopTimelinePlayback();
+                const bounds = {
+                    circleRadius: [20, 72], ringStrokeWidth: [2, 18], ringFillOpacity: [0, 0.5],
+                    ringGapDeg: [0, 160], ringRotate: [-180, 180], wingStrokeWidth: [2, 18],
+                    wingGap: [6, 65], topWingLen: [30, 190], botWingLen: [20, 170],
+                    wingSpacing: [10, 46], wingOffsetY: [-25, 25], botInnerInset: [0, 35],
+                    wingAngle: [-15, 15], wingCurve: [-28, 28], wingBalance: [-35, 35],
+                    glowBlur: [0, 30], glowOpacity: [0.1, 1], fontSize: [18, 46], letterSpacing: [2, 24]
+                };
+                Object.entries(partial).forEach(([k, v]) => {
+                    if (!(k in state)) return;
+                    if (bounds[k] && typeof v === 'number' && !Number.isNaN(v)) {
+                        state[k] = Math.max(bounds[k][0], Math.min(bounds[k][1], v));
+                    } else if ((k === 'strokeColor' || k === 'secondaryColor') && typeof v === 'string' && /^#[0-9A-Fa-f]{6}$/.test(v)) {
+                        state[k] = v;
+                    } else if (typeof state[k] === 'boolean' && typeof v === 'boolean') {
+                        state[k] = v;
+                    } else if (k === 'brandText' && typeof v === 'string') {
+                        state[k] = v.slice(0, 32);
+                    }
+                });
+                syncInputsFromState();
+                render();
+                pushHistory();
+                return window.SOLOPASS_API.getState();
+            },
+            encodeMessage: (msg) => {
+                document.getElementById('cipherMessageInput').value = msg;
+                encodeMessageToGeometry(msg);
+                return encodeStateToCode();
+            },
+            decodeSeed: (seed) => decodeCodeToState(seed) ? (syncInputsFromState(), render(), state.encodedMessage) : null,
+            getTimeline: () => JSON.parse(JSON.stringify(motionTimeline)),
+            setTimeline: (newTl) => {
+                if (newTl && Array.isArray(newTl.keyframes) && newTl.keyframes.length >= 2) {
+                    motionTimeline = newTl;
+                    activeKeyframeIdx = 0;
+                    renderKeyframeStrip();
+                    applyInterpolatedTimeline(0);
+                }
+            },
+            play: () => { if (!isTimelinePlaying) document.getElementById('playTimelineBtn').click(); },
+            pause: () => stopTimelinePlayback(),
+            promptAI: (text) => runAiCoPilotPrompt(text),
+            exportSVG: () => generateSVGString(false, false)
+        };
+
+        // Initialize stage on load
+        renderKeyframeStrip();
+        syncInputsFromState();
+        render();
+        pushHistory();
+    </script>
+</body>
+</html>

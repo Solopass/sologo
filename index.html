@@ -200,6 +200,18 @@
                         <span class="hidden sm:inline">Pulse</span>
                     </button>
 
+                    <!-- Mic Audio-Reactive Mode -->
+                    <button id="micReactiveBtn" class="bg-black/60 backdrop-blur-md px-2.5 py-1.5 rounded-xl border border-white/10 text-[11px] text-gray-300 hover:text-white transition flex items-center gap-1" title="Pulse emblem to live microphone audio">
+                        <span>🎵</span>
+                        <span class="hidden sm:inline">Mic</span>
+                    </button>
+
+                    <!-- Save to Favorites Vault -->
+                    <button id="quickSaveVaultBtn" class="bg-black/60 backdrop-blur-md px-2.5 py-1.5 rounded-xl border border-amber-400/20 text-[11px] text-amber-200 hover:bg-amber-500/20 transition flex items-center gap-1" title="Save current logo & timeline to My Vault">
+                        <span>⭐</span>
+                        <span class="hidden sm:inline">Save</span>
+                    </button>
+
                     <!-- Harmonic Mutate / Explore Button -->
                     <button id="mutateBtn" class="bg-black/60 backdrop-blur-md px-2.5 py-1.5 rounded-xl border border-white/10 text-[11px] text-indigo-300 hover:text-white hover:border-indigo-400/40 transition flex items-center gap-1" title="Generate a harmonious geometric variation">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
@@ -369,6 +381,7 @@
                     <div class="flex items-center gap-1.5 overflow-x-auto pt-0.5">
                         <button type="button" id="aiRandomizeMotionBtn" class="shrink-0 px-2.5 py-0.5 rounded-md bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/30 text-[10px] font-semibold text-emerald-200 transition" title="Instantly generate a multi-keyframe animation from a random seed">🎲 Randomize</button>
                         <button type="button" id="morphLoopBtn" class="shrink-0 px-2.5 py-0.5 rounded-md bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/30 text-[10px] font-semibold text-cyan-200 transition" title="Continuously morph smoothly from one random seed to the next">🌊 Smooth Morph</button>
+                        <button type="button" id="chainMorphBtn" class="shrink-0 px-2 py-0.5 rounded-md bg-white/5 hover:bg-sky-500/20 border border-white/15 text-[10px] font-semibold text-gray-300 transition" title="Record Smooth Morph targets into timeline keyframes for .WEBM / .SVG export">📌 Chain</button>
                         <button type="button" id="aiBatchVariationsBtn" class="shrink-0 px-2 py-0.5 rounded-md bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-400/30 text-[10px] font-semibold text-indigo-200 transition" title="Generate 4 quick variation seeds to audition">⚡ 4× Variations</button>
                         <input type="text" id="motionSeedInput" placeholder="Seed" value="4829" class="w-16 shrink-0 px-1.5 py-0.5 rounded-md bg-black/60 border border-white/15 text-[10px] font-mono text-sky-300 text-center focus:outline-none focus:border-sky-400" title="Motion seed (press Enter to replay this seed)">
                         <button type="button" data-ai-chip="Generate 5-frame portal surge with spin and cyan burst" class="ai-chip shrink-0 px-2 py-0.5 rounded-md bg-white/5 hover:bg-sky-500/20 border border-white/10 text-[10px] text-gray-300 transition">5-Frame Portal</button>
@@ -645,6 +658,14 @@
                         <input type="range" id="wingBalance" min="-35" max="35" step="1" value="0" class="w-full">
                     </div>
                 </div>
+
+                <div>
+                    <div class="flex justify-between text-xs text-gray-400 mb-1.5">
+                        <span>Lower Wing Phase Lag</span>
+                        <span id="wingLagVal" class="text-gray-200 font-mono">0%</span>
+                    </div>
+                    <input type="range" id="wingLag" min="0" max="100" step="5" value="0" class="w-full">
+                </div>
             </div>
 
             <hr class="border-white/10">
@@ -848,16 +869,20 @@
     <!-- Hidden canvas for PNG conversion -->
     <canvas id="exportCanvas" class="hidden"></canvas>
 
-    <!-- Local AI Presets Drawer Modal -->
+    <!-- Local AI Presets & Saved Vault Modal -->
     <div id="aiPresetsModal" role="dialog" aria-modal="true" aria-labelledby="aiPresetsTitle" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-5">
         <div class="w-full max-w-2xl bg-[#0f0f1c] border border-sky-500/30 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
-            <div class="px-5 py-3.5 border-b border-white/10 flex items-center justify-between bg-black/40">
+            <div class="px-5 py-3.5 border-b border-white/10 flex items-center justify-between bg-black/40 gap-2">
                 <div class="flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
-                    <h3 id="aiPresetsTitle" class="font-display font-semibold text-sm text-white">Local AI Generated Themes (10 Variations with Ciphers)</h3>
+                    <button id="tabAiThemesBtn" type="button" class="px-2.5 py-1 rounded-lg bg-sky-500/25 border border-sky-400/40 text-xs font-semibold text-white transition">AI Themes (10)</button>
+                    <button id="tabSavedVaultBtn" type="button" class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs font-medium text-gray-300 hover:text-white transition">⭐ Saved Vault (<span id="vaultCountBadge">0</span>)</button>
                 </div>
-                <button id="closeAiPresetsBtn" type="button" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-xs text-gray-300 transition">✕</button>
+                <div class="flex items-center gap-2">
+                    <button id="saveToVaultBtn" type="button" class="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/30 text-xs font-semibold text-amber-200 transition">+ Save Current</button>
+                    <button id="closeAiPresetsBtn" type="button" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-xs text-gray-300 transition">✕</button>
+                </div>
             </div>
+            <h3 id="aiPresetsTitle" class="sr-only">AI Themes and Saved Vault</h3>
             <div id="aiPresetsList" class="p-4 overflow-y-auto space-y-2.5 flex-1"></div>
         </div>
     </div>
@@ -939,6 +964,7 @@
             wingAngle: 0,
             wingCurve: 0,
             wingBalance: 0,
+            wingLag: 0,
             tripleWing: false,
             lockNonStraight: false,
             lineCap: 'round',
@@ -2394,7 +2420,7 @@
             'circleRadius', 'ringStrokeWidth', 'ringFillOpacity', 'ringGapDeg', 'ringRotate',
             'wingStrokeWidth', 'wingGap', 'topWingLen', 'botWingLen', 'wingSpacing',
             'wingOffsetY', 'botInnerInset', 'wingAngle', 'wingCurve', 'wingBalance',
-            'glowBlur', 'glowOpacity', 'gradAngle'
+            'glowBlur', 'glowOpacity', 'gradAngle', 'wingLag'
         ];
 
         function captureAnimatableSnapshot(label = 'Key') {
@@ -2495,6 +2521,17 @@
                 const v2 = typeof b[k] === 'number' ? b[k] : state[k];
                 state[k] = Number((v1 + (v2 - v1) * localT).toFixed(2));
             });
+            // Phase-lag lower wings behind top wings when wingLag > 0
+            if ((state.wingLag || 0) > 0) {
+                const lagClamped = Math.max(0, Math.min(1, clamped - (state.wingLag / 100) * 0.22));
+                const lagScaled = lagClamped * (kfs.length - 1);
+                const lIdx = Math.min(kfs.length - 2, Math.floor(lagScaled));
+                const lT = applyEasingCurve(lagScaled - lIdx, motionTimeline.easing || kfs[lIdx].easing || 'easeInOutCubic');
+                const la = kfs[lIdx].state, lb = kfs[lIdx + 1].state;
+                const lb1 = typeof la.botWingLen === 'number' ? la.botWingLen : state.botWingLen;
+                const lb2 = typeof lb.botWingLen === 'number' ? lb.botWingLen : state.botWingLen;
+                state.botWingLen = Number((lb1 + (lb2 - lb1) * lT).toFixed(2));
+            }
             if (a.strokeColor && b.strokeColor) {
                 state.strokeColor = lerpHexColor(a.strokeColor, b.strokeColor, localT);
             }
@@ -3310,16 +3347,41 @@ Do not include any explanation or markdown formatting, output raw JSON only.`;
 
         const aiRandomizeBtn = document.getElementById('aiRandomizeMotionBtn');
         const morphLoopBtn = document.getElementById('morphLoopBtn');
+        const chainMorphBtn = document.getElementById('chainMorphBtn');
         const aiBatchVariationsBtn = document.getElementById('aiBatchVariationsBtn');
         const seedVarStrip = document.getElementById('seedVarStrip');
         const motionSeedInput = document.getElementById('motionSeedInput');
 
+        const wingLagEl = document.getElementById('wingLag');
+        const wingLagValEl = document.getElementById('wingLagVal');
+        if (wingLagEl) {
+            wingLagEl.addEventListener('input', (e) => {
+                state.wingLag = parseFloat(e.target.value) || 0;
+                if (wingLagValEl) wingLagValEl.textContent = `${state.wingLag}%`;
+            });
+        }
+
         // Continuous Smooth Morph Mode (morphs smoothly from current state to next random seed)
         let isMorphLoopActive = false;
+        let isChainMorphActive = false;
+        let chainedMorphFrames = [];
         let morphRafId = null;
         let morphFromState = null;
         let morphToState = null;
         let morphStartTime = 0;
+
+        if (chainMorphBtn) {
+            chainMorphBtn.addEventListener('click', () => {
+                isChainMorphActive = !isChainMorphActive;
+                chainMorphBtn.classList.toggle('bg-sky-500/25', isChainMorphActive);
+                chainMorphBtn.classList.toggle('border-sky-400/50', isChainMorphActive);
+                chainMorphBtn.classList.toggle('text-sky-200', isChainMorphActive);
+                if (isChainMorphActive) {
+                    chainedMorphFrames = [{ label: 'Origin', easing: motionTimeline.easing || 'easeInOutCubic', state: captureAnimatableSnapshot().state }];
+                }
+                showToast(`Chain Morphs to Timeline ${isChainMorphActive ? 'enabled 📌 (up to 12 seeds)' : 'disabled'}`);
+            });
+        }
 
         function buildSeededTargetPose(seedStr, anchor) {
             const rng = createSeededRng(seedStr);
@@ -3372,10 +3434,19 @@ Do not include any explanation or markdown formatting, output raw JSON only.`;
             morphStartTime = performance.now();
 
             const curve = motionTimeline.easing || 'easeInOutCubic';
-            motionTimeline.keyframes = [
-                { label: 'Current', easing: curve, state: { ...morphFromState } },
-                { label: `Seed #${nextSeed}`, easing: curve, state: { ...morphToState } }
-            ];
+            if (isChainMorphActive) {
+                if (chainedMorphFrames.length === 0) {
+                    chainedMorphFrames.push({ label: 'Origin', easing: curve, state: { ...morphFromState } });
+                }
+                if (chainedMorphFrames.length >= 12) chainedMorphFrames.shift();
+                chainedMorphFrames.push({ label: `Seed #${nextSeed}`, easing: curve, state: { ...morphToState } });
+                motionTimeline.keyframes = chainedMorphFrames.map(f => ({ ...f }));
+            } else {
+                motionTimeline.keyframes = [
+                    { label: 'Current', easing: curve, state: { ...morphFromState } },
+                    { label: `Seed #${nextSeed}`, easing: curve, state: { ...morphToState } }
+                ];
+            }
             activeKeyframeIdx = 0;
             renderKeyframeStrip();
         }
@@ -3578,6 +3649,164 @@ Do not include any explanation or markdown formatting, output raw JSON only.`;
         const aiPresetsModal = document.getElementById('aiPresetsModal');
         const closeAiPresetsBtn = document.getElementById('closeAiPresetsBtn');
         const aiPresetsList = document.getElementById('aiPresetsList');
+        const tabAiThemesBtn = document.getElementById('tabAiThemesBtn');
+        const tabSavedVaultBtn = document.getElementById('tabSavedVaultBtn');
+        const vaultCountBadge = document.getElementById('vaultCountBadge');
+        const saveToVaultBtn = document.getElementById('saveToVaultBtn');
+        const quickSaveVaultBtn = document.getElementById('quickSaveVaultBtn');
+        let activePresetsTab = 'themes';
+
+        function getSavedVault() {
+            try { return JSON.parse(localStorage.getItem('solopass_vault') || '[]'); } catch { return []; }
+        }
+        function setSavedVault(items) {
+            localStorage.setItem('solopass_vault', JSON.stringify(items));
+            if (vaultCountBadge) vaultCountBadge.textContent = String(items.length);
+        }
+        setSavedVault(getSavedVault());
+
+        function saveCurrentToVault() {
+            const items = getSavedVault();
+            const seed = document.getElementById('motionSeedInput')?.value || encodeSeed().slice(0, 12);
+            const msg = state.encodedMessage || '';
+            const entry = {
+                id: 'v_' + Date.now(),
+                title: msg ? `Saved (${msg})` : `Logo #${seed}`,
+                seed,
+                message: msg,
+                createdAt: new Date().toLocaleTimeString(),
+                state: { ...state },
+                timeline: JSON.parse(JSON.stringify(motionTimeline))
+            };
+            items.unshift(entry);
+            setSavedVault(items.slice(0, 30));
+            if (activePresetsTab === 'vault') renderSavedVault();
+            showToast(`Saved "${entry.title}" to Vault ⭐`);
+        }
+
+        function renderSavedVault() {
+            if (!aiPresetsList) return;
+            const items = getSavedVault();
+            aiPresetsList.innerHTML = '';
+            if (items.length === 0) {
+                aiPresetsList.innerHTML = '<div class="text-center py-8 text-xs text-gray-400">Your Vault is empty. Click <strong>⭐ Save</strong> or <strong>+ Save Current</strong> to save any logo, seed, or timeline!</div>';
+                return;
+            }
+            items.forEach((item) => {
+                const card = document.createElement('div');
+                card.className = 'p-3 rounded-xl bg-black/50 hover:bg-white/5 border border-white/10 hover:border-amber-400/40 transition flex items-center justify-between gap-3';
+                card.innerHTML = `
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-7 h-7 rounded-lg border border-white/15 shrink-0" style="background: ${item.state.useGradient ? `linear-gradient(135deg, ${item.state.strokeColor}, ${item.state.secondaryColor})` : item.state.strokeColor}"></div>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2">
+                                <h4 class="text-xs font-semibold text-white truncate">${escapeXml(item.title)}</h4>
+                                <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-200 border border-amber-400/20">#${escapeXml(String(item.seed))}</span>
+                            </div>
+                            <p class="text-[10px] text-gray-400">${item.timeline?.keyframes?.length || 0} keyframes · Saved ${item.createdAt}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <button type="button" class="vault-apply px-2.5 py-1 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-[10px] font-medium text-sky-200 border border-sky-400/30 transition">Apply</button>
+                        <button type="button" class="vault-del px-2 py-1 rounded-lg bg-rose-500/15 hover:bg-rose-500/30 text-[10px] text-rose-300 border border-rose-400/20 transition">✕</button>
+                    </div>
+                `;
+                card.querySelector('.vault-apply').addEventListener('click', () => {
+                    if (isTimelinePlaying) stopTimelinePlayback();
+                    if (typeof isMorphLoopActive !== 'undefined' && isMorphLoopActive) stopSmoothMorphLoop(true);
+                    const anchor = { ...state };
+                    Object.assign(state, applyLocksToState(item.state, anchor));
+                    if (item.timeline && Array.isArray(item.timeline.keyframes) && item.timeline.keyframes.length >= 2) {
+                        motionTimeline = JSON.parse(JSON.stringify(item.timeline));
+                        renderKeyframeStrip();
+                    }
+                    document.getElementById('cipherMessageInput').value = state.encodedMessage || '';
+                    syncInputsFromState();
+                    render();
+                    pushHistory();
+                    if (aiPresetsModal) aiPresetsModal.classList.add('hidden');
+                    showToast(`Loaded "${item.title}" from Vault!`);
+                });
+                card.querySelector('.vault-del').addEventListener('click', () => {
+                    const next = getSavedVault().filter(v => v.id !== item.id);
+                    setSavedVault(next);
+                    renderSavedVault();
+                });
+                aiPresetsList.appendChild(card);
+            });
+        }
+
+        function switchPresetsTab(tab) {
+            activePresetsTab = tab;
+            if (tabAiThemesBtn && tabSavedVaultBtn) {
+                tabAiThemesBtn.className = tab === 'themes'
+                    ? 'px-2.5 py-1 rounded-lg bg-sky-500/25 border border-sky-400/40 text-xs font-semibold text-white transition'
+                    : 'px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs font-medium text-gray-300 hover:text-white transition';
+                tabSavedVaultBtn.className = tab === 'vault'
+                    ? 'px-2.5 py-1 rounded-lg bg-amber-500/25 border border-amber-400/40 text-xs font-semibold text-white transition'
+                    : 'px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs font-medium text-gray-300 hover:text-white transition';
+            }
+            if (tab === 'vault') renderSavedVault();
+            else renderAiPresets();
+        }
+        if (tabAiThemesBtn) tabAiThemesBtn.addEventListener('click', () => switchPresetsTab('themes'));
+        if (tabSavedVaultBtn) tabSavedVaultBtn.addEventListener('click', () => switchPresetsTab('vault'));
+        if (saveToVaultBtn) saveToVaultBtn.addEventListener('click', saveCurrentToVault);
+        if (quickSaveVaultBtn) quickSaveVaultBtn.addEventListener('click', saveCurrentToVault);
+
+        // Mic Audio-Reactive Mode (Web Audio API)
+        const micReactiveBtn = document.getElementById('micReactiveBtn');
+        let isMicReactive = false, micStream = null, micAudioCtx = null, micRafId = null, micBaseline = null;
+        function stopMicReactive() {
+            isMicReactive = false;
+            if (micRafId) cancelAnimationFrame(micRafId);
+            if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+            if (micAudioCtx) { micAudioCtx.close().catch(() => {}); micAudioCtx = null; }
+            if (micBaseline) { Object.assign(state, micBaseline); micBaseline = null; syncInputsFromState(); render(); }
+            if (micReactiveBtn) {
+                micReactiveBtn.classList.remove('bg-emerald-500/30', 'border-emerald-400', 'text-emerald-200');
+            }
+        }
+        if (micReactiveBtn) {
+            micReactiveBtn.addEventListener('click', async () => {
+                if (isMicReactive) {
+                    stopMicReactive();
+                    showToast('Mic Audio-Reactive stopped');
+                    return;
+                }
+                try {
+                    if (!navigator.mediaDevices?.getUserMedia) throw new Error('Audio input not supported');
+                    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    micAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const src = micAudioCtx.createMediaStreamSource(micStream);
+                    const analyser = micAudioCtx.createAnalyser();
+                    analyser.fftSize = 256;
+                    src.connect(analyser);
+                    const dataArr = new Uint8Array(analyser.frequencyBinCount);
+                    micBaseline = { circleRadius: state.circleRadius, topWingLen: state.topWingLen, botWingLen: state.botWingLen, glowBlur: state.glowBlur };
+                    isMicReactive = true;
+                    micReactiveBtn.classList.add('bg-emerald-500/30', 'border-emerald-400', 'text-emerald-200');
+                    showToast('Mic Audio-Reactive active 🎵');
+                    const tickMic = () => {
+                        if (!isMicReactive) return;
+                        analyser.getByteFrequencyData(dataArr);
+                        let sum = 0;
+                        for (let i = 0; i < dataArr.length; i++) sum += dataArr[i];
+                        const level = Math.min(1, (sum / dataArr.length) / 95);
+                        state.circleRadius = Math.round(micBaseline.circleRadius + level * 14);
+                        state.topWingLen = Math.round(micBaseline.topWingLen + level * 36);
+                        state.botWingLen = Math.round(micBaseline.botWingLen + level * 26);
+                        state.glowBlur = Math.round(micBaseline.glowBlur + level * 16);
+                        render();
+                        micRafId = requestAnimationFrame(tickMic);
+                    };
+                    micRafId = requestAnimationFrame(tickMic);
+                } catch (err) {
+                    stopMicReactive();
+                    showToast('Mic access unavailable: ' + err.message);
+                }
+            });
+        }
 
         function renderAiPresets() {
             if (!aiPresetsList) return;

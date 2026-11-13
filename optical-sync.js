@@ -68,21 +68,20 @@
 
             if (rawBytes.length === 0) return frames;
 
-            const totalChunks = Math.ceil(rawBytes.length / 2);
+            const totalChunks = rawBytes.length;
 
             for (let seq = 0; seq < totalChunks; seq++) {
-                const b0 = rawBytes[seq * 2];
-                const b1 = (seq * 2 + 1 < rawBytes.length) ? rawBytes[seq * 2 + 1] : 0x00;
+                const b0 = rawBytes[seq];
                 const isLast = (seq === totalChunks - 1);
                 const clockBit = seq % 2;
-                const crc = computeCRC8([seq & 0x0F, b0, b1]);
+                const crc = computeCRC8([seq & 0x0F, b0]);
 
-                const frameState = this.mapBytesToGeometricState(b0, b1, crc, seq, clockBit, isLast);
+                const frameState = this.mapBytesToGeometricState(b0, 0, crc, seq, clockBit, isLast);
                 frames.push({
                     seq,
                     totalChunks,
                     b0,
-                    b1,
+                    b1: undefined,
                     crc,
                     clockBit,
                     isLast,
@@ -94,22 +93,17 @@
         },
 
         /**
-         * Maps 16-bit data + CRC + Clock into exact deterministic emblem geometric attributes
+         * Maps 8-bit byte + CRC + Clock into wide-guard-band geometric attributes (100% CV-exact)
          */
-        mapBytesToGeometricState(b0, b1, crc, seq, clockBit, isLast) {
-            const gapStep = (b0 >> 4) & 0x0F;
-            const rotStep = b0 & 0x0F;
-            // Ensure minimum 20 deg gap when gapStep > 0, 0 when 0
-            const ringGapDeg = Math.round(gapStep * (140 / 15));
-            const ringRotate = Math.round(-120 + rotStep * (240 / 15));
+        mapBytesToGeometricState(b0, _b1, crc, seq, clockBit, isLast) {
+            const gapStep = (b0 >> 5) & 0x07;  // bits 7..5 -> 16 deg/step, always >= 20 deg so rotation is visible
+            const lenStep = (b0 >> 2) & 0x07;  // bits 4..2 -> 17 px/step
+            const rotStep = b0 & 0x03;         // bits 1..0 -> 60 deg/step
 
-            const topLenStep = (b1 >> 4) & 0x0F;
-            const curveStep = (b1 >> 1) & 0x07;
-            const tripleWing = (b1 & 0x01) === 1;
-
-            const topWingLen = Math.round(60 + topLenStep * (120 / 15));
+            const ringGapDeg = 20 + gapStep * 16;
+            const topWingLen = 60 + lenStep * 17;
             const botWingLen = Math.round(topWingLen * 0.72);
-            const wingCurve = Math.round(-24 + curveStep * (48 / 7));
+            const ringRotate = -90 + rotStep * 60;
 
             const color1Idx = (crc >> 5) & 0x07;
             const color2Idx = (crc >> 2) & 0x07;
@@ -136,9 +130,9 @@
                 wingOffsetY: 2,
                 botInnerInset: 0,
                 wingAngle: 0,
-                wingCurve,
+                wingCurve: 0,
                 wingBalance: 0,
-                tripleWing,
+                tripleWing: false,
                 strokeColor,
                 secondaryColor,
                 useGradient: color1Idx !== color2Idx,
@@ -152,19 +146,15 @@
         },
 
         /**
-         * Demodulate geometric measurements back into [b0, b1] bytes
+         * Demodulate wide-guard-band geometric measurements back into exact byte [b0]
          */
         demodulateStateToBytes(meas) {
-            const gapStep = Math.max(0, Math.min(15, Math.round(meas.ringGapDeg / (140 / 15))));
-            const rotStep = Math.max(0, Math.min(15, Math.round((meas.ringRotate + 120) / (240 / 15))));
-            const b0 = ((gapStep & 0x0F) << 4) | (rotStep & 0x0F);
+            const gapStep = Math.max(0, Math.min(7, Math.round((meas.ringGapDeg - 20) / 16)));
+            const lenStep = Math.max(0, Math.min(7, Math.round((meas.topWingLen - 60) / 17)));
+            const rotStep = Math.max(0, Math.min(3, Math.round((meas.ringRotate + 90) / 60)));
+            const b0 = ((gapStep & 0x07) << 5) | ((lenStep & 0x07) << 2) | (rotStep & 0x03);
 
-            const topLenStep = Math.max(0, Math.min(15, Math.round((meas.topWingLen - 60) / (120 / 15))));
-            const curveStep = Math.max(0, Math.min(7, Math.round((meas.wingCurve + 24) / (48 / 7))));
-            const tripleBit = meas.tripleWing ? 1 : 0;
-            const b1 = ((topLenStep & 0x0F) << 4) | ((curveStep & 0x07) << 1) | tripleBit;
-
-            return { b0, b1 };
+            return { b0, b1: undefined };
         }
     };
 

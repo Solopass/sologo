@@ -181,6 +181,9 @@
                     <button id="downloadSvgBtn" class="w-full text-left px-3 py-2 rounded-xl hover:bg-indigo-500/20 text-xs text-white font-medium flex items-center justify-between transition">
                         <span>Download .SVG</span><span class="text-[10px] text-indigo-300 font-mono">Vector</span>
                     </button>
+                    <button id="exportGifMenuBtn" class="w-full text-left px-3 py-2 rounded-xl hover:bg-emerald-500/20 text-xs text-emerald-200 font-medium flex items-center justify-between transition">
+                        <span>Download Animated .GIF</span><span class="text-[10px] text-emerald-300 font-mono">Loop</span>
+                    </button>
                     <button id="downloadPngBtn" class="w-full text-left px-3 py-2 rounded-xl hover:bg-indigo-500/20 text-xs text-gray-200 flex items-center justify-between transition">
                         <span>Download .PNG</span><span class="text-[10px] text-gray-400 font-mono">1800px + Seed</span>
                     </button>
@@ -464,7 +467,8 @@
                         <button type="button" data-lock-group="colors" class="lock-group-btn px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] text-gray-300 transition" title="Lock Colors & Gradient">Colors</button>
                         <button type="button" data-lock-group="ring" class="lock-group-btn px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] text-gray-300 transition" title="Lock Center Ring">Ring</button>
                         <button type="button" data-lock-group="wings" class="lock-group-btn px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] text-gray-300 transition" title="Lock Side Wings">Wings</button>
-                        <button type="button" data-lock-group="glow" class="lock-group-btn px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] text-gray-300 transition" title="Lock Glow & Wordmark">Glow</button>
+                        <button type="button" data-lock-group="glow" class="lock-group-btn px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] text-gray-300 transition" title="Lock Neon Glow">Glow</button>
+                        <button type="button" data-lock-group="text" class="lock-group-btn px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] text-gray-300 transition" title="Lock Brand Wordmark">Text</button>
                         <button type="button" id="toggleAllLocksBtn" class="ml-auto px-2 py-0.5 rounded-md bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/30 text-[10px] font-semibold text-amber-200 transition" title="Lock or unlock all groups & sliders for Randomize / Smooth Morph">🔒 Lock All</button>
                     </div>
                     <div id="seedVarStrip" class="hidden flex items-center gap-1.5 overflow-x-auto pt-0.5"></div>
@@ -491,21 +495,28 @@
                     </div>
                 </div>
 
-                <!-- Export Animated SVG, .WEBM Video & .SPMOTION File -->
-                <div class="grid grid-cols-2 gap-2 pt-2 border-t border-sky-500/20">
-                    <button id="exportAnimatedSvgBtn" class="px-3 py-2 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 text-[11px] font-semibold text-sky-200 transition flex items-center justify-center gap-1.5">
-                        <span>✨</span><span>Animated .SVG</span>
-                    </button>
-                    <button id="exportWebmBtn" class="px-3 py-2 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-400/30 text-[11px] font-semibold text-indigo-200 transition flex items-center justify-center gap-1.5" title="Render timeline to .WEBM video">
-                        <span>🎬</span><span>.WEBM Video</span>
-                    </button>
-                    <button id="exportSpmotionBtn" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-medium text-gray-300 transition text-center" title="Export .spmotion JSON">
-                        Export .SPMOTION
-                    </button>
-                    <label class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-medium text-gray-300 transition cursor-pointer text-center" title="Load .spmotion file">
-                        Load .SPMOTION
-                        <input type="file" id="importSpmotionInput" accept=".spmotion,.json" class="hidden">
-                    </label>
+                <!-- Export Animated .GIF, .WEBM Video, Animated .SVG & .SPMOTION File -->
+                <div class="space-y-2 pt-2 border-t border-sky-500/20">
+                    <div class="grid grid-cols-3 gap-1.5">
+                        <button id="exportGifBtn" class="px-2.5 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/35 text-[11px] font-semibold text-emerald-200 transition flex items-center justify-center gap-1" title="Render timeline to universal Animated .GIF">
+                            <span>🎞️</span><span>.GIF</span>
+                        </button>
+                        <button id="exportWebmBtn" class="px-2.5 py-2 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-400/30 text-[11px] font-semibold text-indigo-200 transition flex items-center justify-center gap-1" title="Render timeline to .WEBM video">
+                            <span>🎬</span><span>.WEBM</span>
+                        </button>
+                        <button id="exportAnimatedSvgBtn" class="px-2.5 py-2 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 text-[11px] font-semibold text-sky-200 transition flex items-center justify-center gap-1" title="Export self-contained Animated .SVG">
+                            <span>✨</span><span>.SVG</span>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-1.5">
+                        <button id="exportSpmotionBtn" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-medium text-gray-300 transition text-center" title="Export .spmotion JSON">
+                            Export .SPMOTION
+                        </button>
+                        <label class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-medium text-gray-300 transition cursor-pointer text-center" title="Load .spmotion file">
+                            Load .SPMOTION
+                            <input type="file" id="importSpmotionInput" accept=".spmotion,.json" class="hidden">
+                        </label>
+                    </div>
                 </div>
             </div>
             </div> <!-- /tabPanelAnimate -->
@@ -519,6 +530,7 @@
                         <h2 class="text-xs font-semibold uppercase tracking-wider text-indigo-400">1. Color & Neon Glow</h2>
                         <button type="button" data-lock-group="colors" class="lock-group-btn px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[9px] text-gray-400 transition" title="Lock Colors during Randomize & AI">🔓</button>
                         <button type="button" data-lock-group="glow" class="lock-group-btn px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[9px] text-gray-400 transition" title="Lock Glow during Randomize & AI">✨🔓</button>
+                        <button type="button" data-reset-section="colors" class="reset-section-btn px-1.5 py-0.5 rounded bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] text-gray-400 hover:text-white transition" title="Reset Colors & Glow to defaults">↺</button>
                     </div>
                     <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-300">
                         <input type="checkbox" id="useGradient" class="rounded bg-black/40 border-white/20 text-indigo-500 focus:ring-0">
@@ -561,13 +573,24 @@
                         <input type="range" id="glowOpacity" min="0.1" max="1" step="0.05" value="1" class="w-full">
                     </div>
                 </div>
+
+                <div>
+                    <div class="flex justify-between text-xs text-gray-400 mb-1.5">
+                        <span>Gradient Angle</span>
+                        <span id="gradAngleVal" class="text-gray-200 font-mono">0°</span>
+                    </div>
+                    <input type="range" id="gradAngle" min="-180" max="180" step="5" value="0" class="w-full">
+                </div>
             </div>
 
             <!-- Section 2: Center Ring Controls -->
             <div class="bg-white/[0.025] border border-white/10 rounded-2xl p-4 space-y-4">
                 <div class="flex items-center justify-between">
                     <h2 class="text-xs font-semibold uppercase tracking-wider text-indigo-400">2. Center Ring</h2>
-                    <button type="button" data-lock-group="ring" class="lock-group-btn px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[9px] text-gray-400 transition" title="Lock Center Ring during Randomize & AI">🔓</button>
+                    <div class="flex items-center gap-1.5">
+                        <button type="button" data-lock-group="ring" class="lock-group-btn px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[9px] text-gray-400 transition" title="Lock Center Ring during Randomize & AI">🔓</button>
+                        <button type="button" data-reset-section="ring" class="reset-section-btn px-1.5 py-0.5 rounded bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] text-gray-400 hover:text-white transition" title="Reset Center Ring to defaults">↺</button>
+                    </div>
                 </div>
                 
                 <div class="grid grid-cols-2 gap-4">
@@ -588,12 +611,22 @@
                     </div>
                 </div>
 
-                <div>
-                    <div class="flex justify-between text-xs text-gray-400 mb-1.5">
-                        <span>Inner Core Fill Opacity</span>
-                        <span id="ringFillVal" class="text-gray-200 font-mono">0%</span>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <div class="flex justify-between text-xs text-gray-400 mb-1.5">
+                            <span>Inner Core Fill Opacity</span>
+                            <span id="ringFillVal" class="text-gray-200 font-mono">0%</span>
+                        </div>
+                        <input type="range" id="ringFillOpacity" min="0" max="0.5" step="0.02" value="0" class="w-full">
                     </div>
-                    <input type="range" id="ringFillOpacity" min="0" max="0.5" step="0.02" value="0" class="w-full">
+
+                    <div>
+                        <div class="flex justify-between text-xs text-gray-400 mb-1.5">
+                            <span>Inner Core Ring</span>
+                            <span id="innerRingVal" class="text-gray-200 font-mono">0px</span>
+                        </div>
+                        <input type="range" id="innerRingRadius" min="0" max="38" step="1" value="0" class="w-full">
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -621,6 +654,7 @@
                     <div class="flex items-center gap-1.5">
                         <h2 class="text-xs font-semibold uppercase tracking-wider text-indigo-400">3. Side Wings</h2>
                         <button type="button" data-lock-group="wings" class="lock-group-btn px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[9px] text-gray-400 transition" title="Lock Side Wings during Randomize & AI">🔓</button>
+                        <button type="button" data-reset-section="wings" class="reset-section-btn px-1.5 py-0.5 rounded bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] text-gray-400 hover:text-white transition" title="Reset Side Wings to defaults">↺</button>
                     </div>
                     <div class="flex items-center gap-1.5">
                         <button id="tripleWingBtn" class="px-2 py-0.5 rounded-lg bg-white/5 border border-white/10 text-[11px] text-gray-400 transition" title="Toggle 3rd Accent Wing Tier">
@@ -739,7 +773,11 @@
             <!-- Section 4: Brand Wordmark -->
             <div class="bg-white/[0.025] border border-white/10 rounded-2xl p-4 space-y-4">
                 <div class="flex items-center justify-between">
-                    <h2 class="text-xs font-semibold uppercase tracking-wider text-indigo-400">4. Brand Wordmark</h2>
+                    <div class="flex items-center gap-1.5">
+                        <h2 class="text-xs font-semibold uppercase tracking-wider text-indigo-400">4. Brand Wordmark</h2>
+                        <button type="button" data-lock-group="text" class="lock-group-btn px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[9px] text-gray-400 transition" title="Lock Brand Wordmark during Randomize & AI">🔓</button>
+                        <button type="button" data-reset-section="text" class="reset-section-btn px-1.5 py-0.5 rounded bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] text-gray-400 hover:text-white transition" title="Reset Brand Wordmark to defaults">↺</button>
+                    </div>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="showText" class="sr-only peer">
                         <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
@@ -766,6 +804,13 @@
                             </div>
                             <input type="range" id="letterSpacing" min="2" max="24" step="1" value="12" class="w-full">
                         </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs text-gray-400 mb-1.5">
+                            <span>Wordmark Offset Y</span>
+                            <span id="textOffsetYVal" class="text-gray-200 font-mono">58px</span>
+                        </div>
+                        <input type="range" id="textOffsetY" min="32" max="100" step="2" value="58" class="w-full">
                     </div>
                 </div>
             </div>
@@ -1007,9 +1052,12 @@
             wingBalance: 0,
             ringGapDeg: 0,
             ringRotate: 0,
+            innerRingRadius: 0,
             tripleWing: false,
             fontSize: 30,
             letterSpacing: 12,
+            textOffsetY: 58,
+            gradAngle: 0,
             zoom: 1
         };
 
@@ -1025,6 +1073,7 @@
             ringFillOpacity: 0,
             ringGapDeg: 0,
             ringRotate: 0,
+            innerRingRadius: 0,
             wingStrokeWidth: 7,
             wingGap: 24,
             topWingLen: 115,
@@ -1043,6 +1092,7 @@
             brandText: 'SOLOPASS',
             fontSize: 30,
             letterSpacing: 12,
+            textOffsetY: 58,
             gradAngle: 0,
             bgColor: '#0d0d16',
             zoom: 1,
@@ -1065,6 +1115,8 @@
             glowVal: document.getElementById('glowVal'),
             glowOpacity: document.getElementById('glowOpacity'),
             glowOpacityVal: document.getElementById('glowOpacityVal'),
+            gradAngle: document.getElementById('gradAngle'),
+            gradAngleVal: document.getElementById('gradAngleVal'),
             circleRadius: document.getElementById('circleRadius'),
             radiusVal: document.getElementById('radiusVal'),
             ringStrokeWidth: document.getElementById('ringStrokeWidth'),
@@ -1073,6 +1125,10 @@
             ringFillVal: document.getElementById('ringFillVal'),
             ringGapDeg: document.getElementById('ringGapDeg'),
             ringGapDegVal: document.getElementById('ringGapDegVal'),
+            ringRotate: document.getElementById('ringRotate'),
+            ringRotateVal: document.getElementById('ringRotateVal'),
+            innerRingRadius: document.getElementById('innerRingRadius'),
+            innerRingVal: document.getElementById('innerRingVal'),
             ringRotate: document.getElementById('ringRotate'),
             ringRotateVal: document.getElementById('ringRotateVal'),
             wingStrokeWidth: document.getElementById('wingStrokeWidth'),
@@ -1104,6 +1160,8 @@
             fontSizeVal: document.getElementById('fontSizeVal'),
             letterSpacing: document.getElementById('letterSpacing'),
             letterSpacingVal: document.getElementById('letterSpacingVal'),
+            textOffsetY: document.getElementById('textOffsetY'),
+            textOffsetYVal: document.getElementById('textOffsetYVal'),
             previewZoom: document.getElementById('previewZoom'),
             zoomVal: document.getElementById('zoomVal'),
             toast: document.getElementById('toast')
@@ -1309,15 +1367,20 @@
   </g>` : '';
 
             const wordmarkMarkup = state.showText ? `
-  <text x="${cx}" y="${cy + r + 58}" text-anchor="middle" fill="${strokePaint}" font-family="'Space Grotesk', 'Inter', sans-serif" font-weight="700" font-size="${state.fontSize}" letter-spacing="${state.letterSpacing}" ${filterAttr}>${safeTitle}</text>` : '';
+  <text x="${cx}" y="${cy + r + (state.textOffsetY || 58)}" text-anchor="middle" fill="${strokePaint}" font-family="'Space Grotesk', 'Inter', sans-serif" font-weight="700" font-size="${state.fontSize}" letter-spacing="${state.letterSpacing}" ${filterAttr}>${safeTitle}</text>` : '';
 
             const opticalGridMarkup = state.showOpticalGrid && typeof SoloSyncGrid !== 'undefined'
                 ? SoloSyncGrid.generateGridMarkup(width, height, state.clockBit || 0, state.seq || 0)
                 : '';
 
+            const innerR = (state.innerRingRadius || 0) > 0 ? Math.max(4, Math.min(r - 4, state.innerRingRadius)) : 0;
+            const innerRingMarkup = innerR > 0
+                ? `\n    <circle cx="${cx}" cy="${cy}" r="${innerR}" stroke-width="${Math.max(1.5, state.ringStrokeWidth * 0.45).toFixed(1)}" stroke-opacity="0.75" fill="none" />`
+                : '';
+
             const emblemCore = `
     <!-- Center Ring -->
-    <circle cx="${cx}" cy="${cy}" r="${r}" stroke-width="${state.ringStrokeWidth}" fill="${state.strokeColor}" fill-opacity="${state.ringFillOpacity}"${ringDashAttr} />
+    <circle cx="${cx}" cy="${cy}" r="${r}" stroke-width="${state.ringStrokeWidth}" fill="${state.strokeColor}" fill-opacity="${state.ringFillOpacity}"${ringDashAttr} />${innerRingMarkup}
     <!-- Left Wings -->
     <g transform="rotate(${-effectiveAngle} ${cx} ${cy + offsetY})">
       <path d="${leftTopPath}" stroke-width="${state.wingStrokeWidth}" />
@@ -1349,11 +1412,13 @@
             // Update numeric slider labels
             els.glowVal.textContent = `${state.glowBlur}px`;
             els.glowOpacityVal.textContent = `${Math.round(state.glowOpacity * 100)}%`;
+            if (els.gradAngleVal) els.gradAngleVal.textContent = `${state.gradAngle || 0}°`;
             els.radiusVal.textContent = `${state.circleRadius}px`;
             els.ringStrokeVal.textContent = `${state.ringStrokeWidth}px`;
             els.ringFillVal.textContent = `${Math.round(state.ringFillOpacity * 100)}%`;
             els.ringGapDegVal.textContent = `${state.ringGapDeg}°`;
             els.ringRotateVal.textContent = `${state.ringRotate}°`;
+            if (els.innerRingVal) els.innerRingVal.textContent = `${state.innerRingRadius || 0}px`;
             els.wingStrokeVal.textContent = `${state.wingStrokeWidth}px`;
             els.gapVal.textContent = `${state.wingGap}px`;
             els.topLenVal.textContent = `${state.topWingLen}px`;
@@ -1367,6 +1432,7 @@
             if (els.wingLagVal) els.wingLagVal.textContent = `${state.wingLag || 0}%`;
             els.fontSizeVal.textContent = `${state.fontSize}px`;
             els.letterSpacingVal.textContent = `${state.letterSpacing}px`;
+            if (els.textOffsetYVal) els.textOffsetYVal.textContent = `${state.textOffsetY || 58}px`;
             els.zoomVal.textContent = `${Math.round(state.zoom * 100)}%`;
 
             // Update Wing-to-Wing Mathematical Ratio Badge & Live Vector Code
@@ -1801,11 +1867,13 @@
         const rangeBindings = [
             ['glowBlur', 'glowBlur'],
             ['glowOpacity', 'glowOpacity'],
+            ['gradAngle', 'gradAngle'],
             ['circleRadius', 'circleRadius'],
             ['ringStrokeWidth', 'ringStrokeWidth'],
             ['ringFillOpacity', 'ringFillOpacity'],
             ['ringGapDeg', 'ringGapDeg'],
             ['ringRotate', 'ringRotate'],
+            ['innerRingRadius', 'innerRingRadius'],
             ['wingStrokeWidth', 'wingStrokeWidth'],
             ['wingGap', 'wingGap'],
             ['topWingLen', 'topWingLen'],
@@ -1819,6 +1887,7 @@
             ['wingLag', 'wingLag'],
             ['fontSize', 'fontSize'],
             ['letterSpacing', 'letterSpacing'],
+            ['textOffsetY', 'textOffsetY'],
             ['previewZoom', 'zoom']
         ];
 
@@ -1831,10 +1900,28 @@
             }
         })();
 
+        function findLockGroupForKey(key) {
+            if (typeof LOCK_GROUP_KEYS === 'undefined') return null;
+            for (const [grp, keys] of Object.entries(LOCK_GROUP_KEYS)) {
+                if (keys.includes(key)) return grp;
+            }
+            return null;
+        }
+
+        function isKeyLockedByGroup(key) {
+            if (typeof lockedGroups === 'undefined') return false;
+            const grp = findLockGroupForKey(key);
+            return grp ? !!lockedGroups[grp] : false;
+        }
+
+        function isKeyLocked(key) {
+            return !!lockedSliders[key] || isKeyLockedByGroup(key);
+        }
+
         function updateSliderLockUI() {
             document.querySelectorAll('.slider-lock-btn').forEach(btn => {
                 const key = btn.dataset.sliderLock;
-                const isLocked = !!lockedSliders[key];
+                const isLocked = isKeyLocked(key);
                 btn.textContent = isLocked ? '🔒' : '🔓';
                 btn.setAttribute('aria-pressed', String(isLocked));
                 btn.title = isLocked ? `Unlock ${key}` : `Lock ${key} during Randomize & AI`;
@@ -1870,11 +1957,22 @@
                     lockBtn.addEventListener('click', (e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        lockedSliders[stateKey] = !lockedSliders[stateKey];
+                        const grp = findLockGroupForKey(stateKey);
+                        if (grp && lockedGroups[grp]) {
+                            // Unpack group lock into individual slider locks so unlocking 1 slider works seamlessly
+                            lockedGroups[grp] = false;
+                            localStorage.setItem('solopass_locks', JSON.stringify(lockedGroups));
+                            LOCK_GROUP_KEYS[grp].forEach(k => {
+                                if (k !== stateKey && els[k]) lockedSliders[k] = true;
+                            });
+                            lockedSliders[stateKey] = false;
+                        } else {
+                            lockedSliders[stateKey] = !lockedSliders[stateKey];
+                        }
                         localStorage.setItem('solopass_locked_sliders', JSON.stringify(lockedSliders));
-                        updateSliderLockUI();
-                        if (typeof updateAllLocksBtnUI === 'function') updateAllLocksBtnUI();
-                        showToast(`${stateKey} ${lockedSliders[stateKey] ? 'locked 🔒' : 'unlocked 🔓'}`);
+                        if (typeof updateLockUI === 'function') updateLockUI();
+                        else updateSliderLockUI();
+                        showToast(`${stateKey} ${isKeyLocked(stateKey) ? 'locked 🔒' : 'unlocked 🔓'}`);
                     });
                     stepWrap.appendChild(lockBtn);
                 }
@@ -2082,7 +2180,8 @@
                     circleRadius: 44, ringStrokeWidth: 7, ringFillOpacity: 0, ringGapDeg: 0, ringRotate: 0,
                     wingStrokeWidth: 7, wingGap: 24, topWingLen: 115, botWingLen: 85,
                     wingSpacing: 24, wingOffsetY: 4, botInnerInset: 0, wingAngle: 0, wingCurve: 0,
-                    wingBalance: 0, tripleWing: false, lineCap: 'round', showText: false
+                    wingBalance: 0, wingLag: 0, gradAngle: 0, innerRingRadius: 0, textOffsetY: 58,
+                    tripleWing: false, lineCap: 'round', showText: false
                 });
             } else if (type === 'phi') {
                 // Golden Ratio (φ = 1.6180339...)
@@ -2159,11 +2258,13 @@
             els.useGradient.checked = state.useGradient;
             els.glowBlur.value = state.glowBlur;
             els.glowOpacity.value = state.glowOpacity;
+            if (els.gradAngle) els.gradAngle.value = state.gradAngle || 0;
             els.circleRadius.value = state.circleRadius;
             els.ringStrokeWidth.value = state.ringStrokeWidth;
             els.ringFillOpacity.value = state.ringFillOpacity;
             els.ringGapDeg.value = state.ringGapDeg;
             els.ringRotate.value = state.ringRotate;
+            if (els.innerRingRadius) els.innerRingRadius.value = state.innerRingRadius || 0;
             els.wingStrokeWidth.value = state.wingStrokeWidth;
             els.wingGap.value = state.wingGap;
             els.topWingLen.value = state.topWingLen;
@@ -2179,6 +2280,7 @@
             els.brandText.value = state.brandText;
             els.fontSize.value = state.fontSize;
             els.letterSpacing.value = state.letterSpacing;
+            if (els.textOffsetY) els.textOffsetY.value = state.textOffsetY || 58;
 
             const lockBtn = document.getElementById('lockNonStraightBtn');
             if (lockBtn) {
@@ -2465,16 +2567,17 @@
         // =========================================================================
         const LOCK_GROUP_KEYS = {
             colors: ['strokeColor', 'secondaryColor', 'useGradient', 'bgColor', 'gradAngle'],
-            ring: ['circleRadius', 'ringStrokeWidth', 'ringFillOpacity', 'ringGapDeg', 'ringRotate'],
+            ring: ['circleRadius', 'ringStrokeWidth', 'ringFillOpacity', 'ringGapDeg', 'ringRotate', 'innerRingRadius'],
             wings: ['wingStrokeWidth', 'wingGap', 'topWingLen', 'botWingLen', 'wingSpacing', 'wingOffsetY', 'botInnerInset', 'wingAngle', 'wingCurve', 'wingBalance', 'wingLag', 'tripleWing', 'lineCap'],
-            glow: ['glowBlur', 'glowOpacity', 'showText', 'brandText', 'letterSpacing', 'fontSize']
+            glow: ['glowBlur', 'glowOpacity'],
+            text: ['showText', 'brandText', 'letterSpacing', 'fontSize', 'textOffsetY']
         };
         const lockedGroups = (() => {
             try {
                 const saved = JSON.parse(localStorage.getItem('solopass_locks') || '{}');
-                return { colors: !!saved.colors, ring: !!saved.ring, wings: !!saved.wings, glow: !!saved.glow };
+                return { colors: !!saved.colors, ring: !!saved.ring, wings: !!saved.wings, glow: !!saved.glow, text: !!saved.text };
             } catch {
-                return { colors: false, ring: false, wings: false, glow: false };
+                return { colors: false, ring: false, wings: false, glow: false, text: false };
             }
         })();
 
@@ -2548,15 +2651,37 @@
             toggleAllLocksBtn.addEventListener('click', () => {
                 const nextLocked = !Object.values(lockedGroups).every(Boolean);
                 Object.keys(lockedGroups).forEach(k => { lockedGroups[k] = nextLocked; });
-                if (!nextLocked) {
-                    Object.keys(lockedSliders).forEach(k => { lockedSliders[k] = false; });
-                    localStorage.setItem('solopass_locked_sliders', JSON.stringify(lockedSliders));
-                }
+                document.querySelectorAll('.slider-lock-btn').forEach(btn => {
+                    const key = btn.dataset.sliderLock;
+                    if (key) lockedSliders[key] = nextLocked;
+                });
+                localStorage.setItem('solopass_locked_sliders', JSON.stringify(lockedSliders));
                 localStorage.setItem('solopass_locks', JSON.stringify(lockedGroups));
                 updateLockUI();
-                showToast(nextLocked ? 'All groups locked for Randomize & Smooth Morph 🔒' : 'All locks cleared 🔓');
+                showToast(nextLocked ? 'All groups & sliders locked 🔒' : 'All locks cleared 🔓');
             });
         }
+
+        // Per-Section Reset Buttons in Studio
+        const SECTION_RESET_PRESETS = {
+            colors: { strokeColor: '#6b66ff', secondaryColor: '#38bdf8', useGradient: false, gradAngle: 0, glowBlur: 10, glowOpacity: 1 },
+            ring: { circleRadius: 44, ringStrokeWidth: 7, ringFillOpacity: 0, ringGapDeg: 0, ringRotate: 0, innerRingRadius: 0 },
+            wings: { wingStrokeWidth: 7, wingGap: 24, topWingLen: 115, botWingLen: 85, wingSpacing: 24, wingOffsetY: 4, botInnerInset: 0, wingAngle: 0, wingCurve: 0, wingBalance: 0, wingLag: 0, tripleWing: false, lineCap: 'round' },
+            text: { showText: false, brandText: 'SOLOPASS', fontSize: 30, letterSpacing: 12, textOffsetY: 58 }
+        };
+        document.querySelectorAll('.reset-section-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const sec = btn.dataset.resetSection;
+                const patch = SECTION_RESET_PRESETS[sec];
+                if (!patch) return;
+                if (isTimelinePlaying) stopTimelinePlayback();
+                Object.assign(state, patch);
+                syncInputsFromState();
+                render();
+                pushHistory();
+                showToast(`Reset ${sec} section to defaults ↺`);
+            });
+        });
         updateLockUI();
 
         const motionTrailBtn = document.getElementById('motionTrailBtn');
@@ -2575,10 +2700,10 @@
         // .SPMOTION KEYFRAME FORMAT & AI MOTION CHOREOGRAPHER ENGINE
         // =========================================================================
         const ANIMATABLE_KEYS = [
-            'circleRadius', 'ringStrokeWidth', 'ringFillOpacity', 'ringGapDeg', 'ringRotate',
+            'circleRadius', 'ringStrokeWidth', 'ringFillOpacity', 'ringGapDeg', 'ringRotate', 'innerRingRadius',
             'wingStrokeWidth', 'wingGap', 'topWingLen', 'botWingLen', 'wingSpacing',
             'wingOffsetY', 'botInnerInset', 'wingAngle', 'wingCurve', 'wingBalance',
-            'glowBlur', 'glowOpacity', 'gradAngle', 'wingLag'
+            'glowBlur', 'glowOpacity', 'gradAngle', 'wingLag', 'textOffsetY'
         ];
 
         function captureAnimatableSnapshot(label = 'Key') {
@@ -2902,6 +3027,215 @@
             reader.readAsText(file);
         });
 
+        async function renderTimelineFrameToCanvas(canvas, ctx, prog, bgFill) {
+            applyInterpolatedTimeline(prog);
+            const svgMarkup = generateSVGString(true, false);
+            const svgBlob = new Blob([svgMarkup], { type: 'image/svg+xml;charset=utf-8' });
+            const imgUrl = URL.createObjectURL(svgBlob);
+
+            await new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    ctx.fillStyle = bgFill;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    URL.revokeObjectURL(imgUrl);
+                    resolve();
+                };
+                img.onerror = () => {
+                    URL.revokeObjectURL(imgUrl);
+                    resolve();
+                };
+                img.src = imgUrl;
+            });
+        }
+
+        // Zero-dependency GIF89a Encoder (216-color 6x6x6 cube + 40 grays, Bayer 2x2 dither, LZW)
+        function encodeGif89a(framesRgba, width, height, delayCs = 5) {
+            const out = [];
+            const pushStr = (s) => { for (let i = 0; i < s.length; i++) out.push(s.charCodeAt(i)); };
+            const pushU16 = (v) => { out.push(v & 0xff, (v >> 8) & 0xff); };
+
+            // Header + Logical Screen Descriptor (Global Color Table: 256 colors -> 0xF7)
+            pushStr('GIF89a');
+            pushU16(width);
+            pushU16(height);
+            out.push(0xf7, 0x00, 0x00);
+
+            // Global Color Table: 216 RGB cube + 40 grayscale
+            for (let r = 0; r < 6; r++) {
+                for (let g = 0; g < 6; g++) {
+                    for (let b = 0; b < 6; b++) {
+                        out.push(Math.round(r * 51), Math.round(g * 51), Math.round(b * 51));
+                    }
+                }
+            }
+            for (let k = 0; k < 40; k++) {
+                const v = Math.round((k * 255) / 39);
+                out.push(v, v, v);
+            }
+
+            // Netscape 2.0 Application Extension for infinite loop
+            out.push(0x21, 0xff, 0x0b);
+            pushStr('NETSCAPE2.0');
+            out.push(0x03, 0x01, 0x00, 0x00, 0x00);
+
+            const bayer = [0, 2, 3, 1];
+            const writeLzwFrame = (rgba) => {
+                const len = width * height;
+                const indices = new Uint8Array(len);
+                for (let y = 0; y < height; y++) {
+                    const rowOff = y * width;
+                    const by = (y & 1) << 1;
+                    for (let x = 0; x < width; x++) {
+                        const p = (rowOff + x) << 2;
+                        const d = (bayer[by | (x & 1)] - 1.5) * 14;
+                        const r = Math.max(0, Math.min(255, rgba[p] + d));
+                        const g = Math.max(0, Math.min(255, rgba[p + 1] + d));
+                        const b = Math.max(0, Math.min(255, rgba[p + 2] + d));
+                        indices[rowOff + x] = Math.round(r * 5 / 255) * 36 + Math.round(g * 5 / 255) * 6 + Math.round(b * 5 / 255);
+                    }
+                }
+
+                out.push(0x08); // LZW minimum code size = 8
+                let bitBuf = 0;
+                let bitCount = 0;
+                const subBlock = [];
+                const flushSubBlock = () => {
+                    if (subBlock.length > 0) {
+                        out.push(subBlock.length);
+                        for (let i = 0; i < subBlock.length; i++) out.push(subBlock[i]);
+                        subBlock.length = 0;
+                    }
+                };
+                const writeBits = (code, size) => {
+                    bitBuf |= code << bitCount;
+                    bitCount += size;
+                    while (bitCount >= 8) {
+                        subBlock.push(bitBuf & 0xff);
+                        bitBuf >>= 8;
+                        bitCount -= 8;
+                        if (subBlock.length === 255) flushSubBlock();
+                    }
+                };
+
+                const clearCode = 256;
+                const eoiCode = 257;
+                let codeSize = 9;
+                let nextCode = 258;
+                let dict = new Map();
+
+                writeBits(clearCode, codeSize);
+                let prefix = indices[0];
+                for (let i = 1; i < len; i++) {
+                    const c = indices[i];
+                    const key = (prefix << 8) | c;
+                    const found = dict.get(key);
+                    if (found !== undefined) {
+                        prefix = found;
+                    } else {
+                        writeBits(prefix, codeSize);
+                        if (nextCode < 4096) {
+                            dict.set(key, nextCode++);
+                            if (nextCode > (1 << codeSize) && codeSize < 12) codeSize++;
+                        } else {
+                            writeBits(clearCode, codeSize);
+                            dict.clear();
+                            nextCode = 258;
+                            codeSize = 9;
+                        }
+                        prefix = c;
+                    }
+                }
+                writeBits(prefix, codeSize);
+                writeBits(eoiCode, codeSize);
+                if (bitCount > 0) subBlock.push(bitBuf & 0xff);
+                flushSubBlock();
+                out.push(0x00); // Block terminator
+            };
+
+            for (const rgba of framesRgba) {
+                // Graphic Control Extension (disposal 1 = do not dispose)
+                out.push(0x21, 0xf9, 0x04, 0x04);
+                pushU16(delayCs);
+                out.push(0x00, 0x00);
+                // Image Descriptor
+                out.push(0x2c);
+                pushU16(0);
+                pushU16(0);
+                pushU16(width);
+                pushU16(height);
+                out.push(0x00);
+                writeLzwFrame(rgba);
+            }
+
+            out.push(0x3b); // GIF Trailer
+            return new Uint8Array(out);
+        }
+
+        // Export Timeline directly to universal Animated .GIF
+        async function exportTimelineToGif() {
+            const btn = document.getElementById('exportGifBtn');
+            const origHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'GIF 0%';
+            }
+            showToast('Rendering Animated .GIF...');
+
+            const wasPlaying = isTimelinePlaying;
+            stopTimelinePlayback();
+
+            const resVal = parseInt(document.getElementById('webmResSelect')?.value || '1200', 10);
+            const canvas = document.getElementById('exportCanvas');
+            if (resVal === 512) {
+                canvas.width = 480;
+                canvas.height = 480;
+            } else {
+                canvas.width = 600;
+                canvas.height = state.showText ? 290 : 220;
+            }
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            const fps = 18;
+            const totalFrames = Math.max(12, Math.min(90, Math.round(motionTimeline.durationSec * fps)));
+            const bgFill = state.bgColor === 'transparent' ? '#0d0d16' : state.bgColor;
+            const framesRgba = [];
+
+            try {
+                for (let f = 0; f < totalFrames; f++) {
+                    if (btn) btn.textContent = `GIF ${Math.round(((f + 1) / totalFrames) * 100)}%`;
+                    const rawProg = f / totalFrames;
+                    const prog = motionTimeline.playMode === 'pingpong'
+                        ? (rawProg <= 0.5 ? rawProg * 2 : (1 - rawProg) * 2)
+                        : rawProg;
+                    await renderTimelineFrameToCanvas(canvas, ctx, prog, bgFill);
+                    framesRgba.push(ctx.getImageData(0, 0, canvas.width, canvas.height).data);
+                }
+                if (btn) btn.textContent = 'Encoding...';
+                await new Promise(r => setTimeout(r, 10));
+                const delayCs = Math.max(2, Math.round(100 / fps));
+                const gifBytes = encodeGif89a(framesRgba, canvas.width, canvas.height, delayCs);
+                const gifBlob = new Blob([gifBytes], { type: 'image/gif' });
+                const url = URL.createObjectURL(gifBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'solopass-animation.gif';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                showToast(`Downloaded solopass-animation.gif (${(gifBlob.size / 1024).toFixed(0)} KB)`);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                }
+                if (wasPlaying) document.getElementById('playTimelineBtn').click();
+            }
+        }
+        document.getElementById('exportGifBtn')?.addEventListener('click', exportTimelineToGif);
+        document.getElementById('exportGifMenuBtn')?.addEventListener('click', exportTimelineToGif);
+
         // Render .spmotion Timeline directly to .WEBM Video
         document.getElementById('exportWebmBtn').addEventListener('click', async () => {
             if (typeof MediaRecorder === 'undefined' || typeof HTMLCanvasElement.prototype.captureStream !== 'function') {
@@ -2971,26 +3305,7 @@
                     const prog = motionTimeline.playMode === 'pingpong'
                         ? (rawProg <= 0.5 ? rawProg * 2 : (1 - rawProg) * 2)
                         : rawProg;
-                    applyInterpolatedTimeline(prog);
-                    const svgMarkup = generateSVGString(true, false);
-                    const svgBlob = new Blob([svgMarkup], { type: 'image/svg+xml;charset=utf-8' });
-                    const imgUrl = URL.createObjectURL(svgBlob);
-
-                    await new Promise((resolve) => {
-                        const img = new Image();
-                        img.onload = () => {
-                            ctx.fillStyle = bgFill;
-                            ctx.fillRect(0, 0, canvas.width, canvas.height);
-                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                            URL.revokeObjectURL(imgUrl);
-                            resolve();
-                        };
-                        img.onerror = () => {
-                            URL.revokeObjectURL(imgUrl);
-                            resolve();
-                        };
-                        img.src = imgUrl;
-                    });
+                    await renderTimelineFrameToCanvas(canvas, ctx, prog, bgFill);
                     await new Promise(r => setTimeout(r, 1000 / fps));
                 }
             } finally {
@@ -3643,20 +3958,23 @@ Do not include any explanation or markdown formatting, output raw JSON only.`;
                 const eased = applyEasingCurve(rawProg, curve);
 
                 ANIMATABLE_KEYS.forEach(k => {
+                    if (isKeyLocked(k)) return;
                     const v1 = typeof morphFromState[k] === 'number' ? morphFromState[k] : state[k];
                     const v2 = typeof morphToState[k] === 'number' ? morphToState[k] : state[k];
                     state[k] = Number((v1 + (v2 - v1) * eased).toFixed(2));
                 });
-                if (morphFromState.strokeColor && morphToState.strokeColor) {
+                if (!isKeyLocked('strokeColor') && morphFromState.strokeColor && morphToState.strokeColor) {
                     state.strokeColor = lerpHexColor(morphFromState.strokeColor, morphToState.strokeColor, eased);
                 }
-                if (morphFromState.secondaryColor && morphToState.secondaryColor) {
+                if (!isKeyLocked('secondaryColor') && morphFromState.secondaryColor && morphToState.secondaryColor) {
                     state.secondaryColor = lerpHexColor(morphFromState.secondaryColor, morphToState.secondaryColor, eased);
                 }
-                if (typeof morphToState.tripleWing === 'boolean') {
+                if (!isKeyLocked('tripleWing') && typeof morphToState.tripleWing === 'boolean') {
                     state.tripleWing = eased < 0.5 ? morphFromState.tripleWing : morphToState.tripleWing;
                 }
-                state.useGradient = eased < 0.5 ? morphFromState.useGradient : morphToState.useGradient;
+                if (!isKeyLocked('useGradient')) {
+                    state.useGradient = eased < 0.5 ? morphFromState.useGradient : morphToState.useGradient;
+                }
 
                 const scrubber = document.getElementById('timelineScrubber');
                 const progVal = document.getElementById('timelineProgressVal');

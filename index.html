@@ -368,6 +368,7 @@
                     </div>
                     <div class="flex items-center gap-1.5 overflow-x-auto pt-0.5">
                         <button type="button" id="aiRandomizeMotionBtn" class="shrink-0 px-2.5 py-0.5 rounded-md bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/30 text-[10px] font-semibold text-emerald-200 transition" title="Instantly generate a multi-keyframe animation from a random seed">🎲 Randomize</button>
+                        <button type="button" id="morphLoopBtn" class="shrink-0 px-2.5 py-0.5 rounded-md bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/30 text-[10px] font-semibold text-cyan-200 transition" title="Continuously morph smoothly from one random seed to the next">🌊 Smooth Morph</button>
                         <button type="button" id="aiBatchVariationsBtn" class="shrink-0 px-2 py-0.5 rounded-md bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-400/30 text-[10px] font-semibold text-indigo-200 transition" title="Generate 4 quick variation seeds to audition">⚡ 4× Variations</button>
                         <input type="text" id="motionSeedInput" placeholder="Seed" value="4829" class="w-16 shrink-0 px-1.5 py-0.5 rounded-md bg-black/60 border border-white/15 text-[10px] font-mono text-sky-300 text-center focus:outline-none focus:border-sky-400" title="Motion seed (press Enter to replay this seed)">
                         <button type="button" data-ai-chip="Generate 5-frame portal surge with spin and cyan burst" class="ai-chip shrink-0 px-2 py-0.5 rounded-md bg-white/5 hover:bg-sky-500/20 border border-white/10 text-[10px] text-gray-300 transition">5-Frame Portal</button>
@@ -2570,6 +2571,7 @@
                 return;
             }
             if (isPulsing) setPulseActive(false);
+            if (typeof isMorphLoopActive !== 'undefined' && isMorphLoopActive) stopSmoothMorphLoop(true);
             isTimelinePlaying = true;
             document.getElementById('playTimelineIcon').textContent = '❚❚';
             document.getElementById('playTimelineLabel').textContent = 'Pause';
@@ -3307,14 +3309,162 @@ Do not include any explanation or markdown formatting, output raw JSON only.`;
         }
 
         const aiRandomizeBtn = document.getElementById('aiRandomizeMotionBtn');
+        const morphLoopBtn = document.getElementById('morphLoopBtn');
         const aiBatchVariationsBtn = document.getElementById('aiBatchVariationsBtn');
         const seedVarStrip = document.getElementById('seedVarStrip');
         const motionSeedInput = document.getElementById('motionSeedInput');
+
+        // Continuous Smooth Morph Mode (morphs smoothly from current state to next random seed)
+        let isMorphLoopActive = false;
+        let morphRafId = null;
+        let morphFromState = null;
+        let morphToState = null;
+        let morphStartTime = 0;
+
+        function buildSeededTargetPose(seedStr, anchor) {
+            const rng = createSeededRng(seedStr);
+            const rRange = (min, max) => Math.round(min + rng() * (max - min));
+            const pick = (arr) => arr[Math.floor(rng() * arr.length)];
+            const palettes = [
+                { name: 'Cyber Cyan', c1: '#38bdf8', c2: '#6366f1' },
+                { name: 'Neon Synth', c1: '#a855f7', c2: '#ec4899' },
+                { name: 'Emerald Matrix', c1: '#34d399', c2: '#06b6d4' },
+                { name: 'Solar Flare', c1: '#fb923c', c2: '#facc15' },
+                { name: 'Crimson Pulse', c1: '#f43f5e', c2: '#8b5cf6' },
+                { name: 'Arctic White', c1: '#ffffff', c2: '#38bdf8' }
+            ];
+            const pal = pick(palettes);
+            const topLen = rRange(85, 180);
+            const hasGap = rng() > 0.3;
+            return applyLocksToState({
+                ...captureAnimatableSnapshot().state,
+                strokeColor: pal.c1,
+                secondaryColor: pal.c2,
+                useGradient: true,
+                gradAngle: rRange(-150, 150),
+                circleRadius: rRange(32, 60),
+                ringStrokeWidth: rRange(5, 13),
+                ringFillOpacity: Number((rng() * 0.28).toFixed(2)),
+                ringGapDeg: hasGap ? rRange(24, 125) : 0,
+                ringRotate: hasGap ? rRange(-135, 135) : 0,
+                wingStrokeWidth: rRange(4, 10),
+                wingGap: rRange(14, 44),
+                topWingLen: topLen,
+                botWingLen: Math.round(topLen * (0.58 + rng() * 0.25)),
+                wingSpacing: rRange(16, 36),
+                wingOffsetY: rRange(-6, 8),
+                botInnerInset: rRange(0, 14),
+                wingAngle: rRange(-12, 12),
+                wingCurve: rRange(-20, 20),
+                wingBalance: rng() > 0.6 ? rRange(-18, 18) : 0,
+                tripleWing: rng() > 0.4,
+                glowBlur: rRange(8, 26),
+                glowOpacity: Number((0.7 + rng() * 0.3).toFixed(2))
+            }, anchor);
+        }
+
+        function queueNextMorphTarget(explicitSeed = null) {
+            const anchor = { ...state };
+            const nextSeed = explicitSeed || String(Math.floor(1000 + Math.random() * 9000));
+            if (motionSeedInput) motionSeedInput.value = nextSeed;
+            morphFromState = captureAnimatableSnapshot().state;
+            morphToState = buildSeededTargetPose(nextSeed, anchor);
+            morphStartTime = performance.now();
+
+            const curve = motionTimeline.easing || 'easeInOutCubic';
+            motionTimeline.keyframes = [
+                { label: 'Current', easing: curve, state: { ...morphFromState } },
+                { label: `Seed #${nextSeed}`, easing: curve, state: { ...morphToState } }
+            ];
+            activeKeyframeIdx = 0;
+            renderKeyframeStrip();
+        }
+
+        function stopSmoothMorphLoop(silent = false) {
+            isMorphLoopActive = false;
+            if (morphRafId) {
+                cancelAnimationFrame(morphRafId);
+                morphRafId = null;
+            }
+            if (morphLoopBtn) {
+                morphLoopBtn.textContent = '🌊 Smooth Morph';
+                morphLoopBtn.classList.remove('bg-cyan-500/35', 'border-cyan-300', 'text-white', 'animate-pulse');
+                morphLoopBtn.classList.add('bg-cyan-500/15', 'border-cyan-400/30', 'text-cyan-200');
+            }
+            if (!silent) showToast('Smooth Morph paused');
+        }
+
+        function startSmoothMorphLoop(explicitSeed = null) {
+            if (isTimelinePlaying) stopTimelinePlayback();
+            if (isPulsing) setPulseActive(false);
+            isMorphLoopActive = true;
+            if (morphLoopBtn) {
+                morphLoopBtn.textContent = '🌊 Morphing...';
+                morphLoopBtn.classList.remove('bg-cyan-500/15', 'border-cyan-400/30', 'text-cyan-200');
+                morphLoopBtn.classList.add('bg-cyan-500/35', 'border-cyan-300', 'text-white', 'animate-pulse');
+            }
+            queueNextMorphTarget(explicitSeed);
+
+            const tick = (now) => {
+                if (!isMorphLoopActive) return;
+                const durMs = Math.max(800, (motionTimeline.durationSec || 3.0) * 1000);
+                const rawProg = Math.min(1, (now - morphStartTime) / durMs);
+                const curve = document.getElementById('timelineEasingSelect')?.value || motionTimeline.easing || 'easeInOutCubic';
+                const eased = applyEasingCurve(rawProg, curve);
+
+                ANIMATABLE_KEYS.forEach(k => {
+                    const v1 = typeof morphFromState[k] === 'number' ? morphFromState[k] : state[k];
+                    const v2 = typeof morphToState[k] === 'number' ? morphToState[k] : state[k];
+                    state[k] = Number((v1 + (v2 - v1) * eased).toFixed(2));
+                });
+                if (morphFromState.strokeColor && morphToState.strokeColor) {
+                    state.strokeColor = lerpHexColor(morphFromState.strokeColor, morphToState.strokeColor, eased);
+                }
+                if (morphFromState.secondaryColor && morphToState.secondaryColor) {
+                    state.secondaryColor = lerpHexColor(morphFromState.secondaryColor, morphToState.secondaryColor, eased);
+                }
+                if (typeof morphToState.tripleWing === 'boolean') {
+                    state.tripleWing = eased < 0.5 ? morphFromState.tripleWing : morphToState.tripleWing;
+                }
+                state.useGradient = eased < 0.5 ? morphFromState.useGradient : morphToState.useGradient;
+
+                const scrubber = document.getElementById('timelineScrubber');
+                const progVal = document.getElementById('timelineProgressVal');
+                if (scrubber) scrubber.value = rawProg;
+                if (progVal) progVal.textContent = `${(rawProg * (durMs / 1000)).toFixed(2)}s`;
+
+                syncInputsFromState();
+                render();
+
+                if (rawProg >= 1) {
+                    queueNextMorphTarget();
+                }
+                morphRafId = requestAnimationFrame(tick);
+            };
+            morphRafId = requestAnimationFrame(tick);
+        }
+
+        if (morphLoopBtn) {
+            morphLoopBtn.addEventListener('click', () => {
+                if (isMorphLoopActive) {
+                    stopSmoothMorphLoop();
+                } else {
+                    startSmoothMorphLoop();
+                    showToast(`Smooth Morph active (${(motionTimeline.durationSec || 3).toFixed(1)}s per transition)${getLockedSummaryLabel()}`);
+                }
+            });
+        }
+
         if (aiRandomizeBtn) {
             aiRandomizeBtn.addEventListener('click', () => {
                 const newSeed = String(Math.floor(1000 + Math.random() * 9000));
                 if (motionSeedInput) motionSeedInput.value = newSeed;
-                generateSeededAnimation(newSeed);
+                if (isMorphLoopActive) {
+                    queueNextMorphTarget(newSeed);
+                    showToast(`Morphing smoothly to Seed #${newSeed}${getLockedSummaryLabel()}`);
+                } else {
+                    generateSeededAnimation(newSeed);
+                }
             });
         }
         if (aiBatchVariationsBtn && seedVarStrip) {
@@ -3329,19 +3479,32 @@ Do not include any explanation or markdown formatting, output raw JSON only.`;
                     btn.textContent = `Var ${idx + 1} #${s}`;
                     btn.addEventListener('click', () => {
                         if (motionSeedInput) motionSeedInput.value = s;
-                        generateSeededAnimation(s);
+                        if (isMorphLoopActive) {
+                            queueNextMorphTarget(s);
+                        } else {
+                            generateSeededAnimation(s);
+                        }
                     });
                     seedVarStrip.appendChild(btn);
                 });
                 if (motionSeedInput) motionSeedInput.value = seeds[0];
-                generateSeededAnimation(seeds[0]);
+                if (isMorphLoopActive) {
+                    queueNextMorphTarget(seeds[0]);
+                } else {
+                    generateSeededAnimation(seeds[0]);
+                }
             });
         }
         if (motionSeedInput) {
             motionSeedInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    generateSeededAnimation(motionSeedInput.value.trim() || '4829');
+                    const s = motionSeedInput.value.trim() || '4829';
+                    if (isMorphLoopActive) {
+                        queueNextMorphTarget(s);
+                    } else {
+                        generateSeededAnimation(s);
+                    }
                 }
             });
         }

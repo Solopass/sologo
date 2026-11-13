@@ -134,7 +134,7 @@ function exportCanvasWithSeed(canvas, filename, toastMsg) {
     }, 'image/png');
 }
 
-export function encodeGif89a(framesRgba, width, height, delayCs = 5) {
+export function encodeGif89a(framesRgba, width, height, delayCs = 5, { transparent = false } = {}) {
     const out = [];
     const pushStr = (s) => { for (let i = 0; i < s.length; i++) out.push(s.charCodeAt(i)); };
     const pushU16 = (v) => { out.push(v & 0xff, (v >> 8) & 0xff); };
@@ -169,11 +169,16 @@ export function encodeGif89a(framesRgba, width, height, delayCs = 5) {
             const by = (y & 1) << 1;
             for (let x = 0; x < width; x++) {
                 const p = (rowOff + x) << 2;
+                if (transparent && rgba[p + 3] < 48) {
+                    indices[rowOff + x] = 255;
+                    continue;
+                }
                 const d = (bayer[by | (x & 1)] - 1.5) * 14;
                 const r = Math.max(0, Math.min(255, rgba[p] + d));
                 const g = Math.max(0, Math.min(255, rgba[p + 1] + d));
                 const b = Math.max(0, Math.min(255, rgba[p + 2] + d));
-                indices[rowOff + x] = Math.round(r * 5 / 255) * 36 + Math.round(g * 5 / 255) * 6 + Math.round(b * 5 / 255);
+                const idx = Math.round(r * 5 / 255) * 36 + Math.round(g * 5 / 255) * 6 + Math.round(b * 5 / 255);
+                indices[rowOff + x] = transparent && idx === 255 ? 254 : idx;
             }
         }
 
@@ -235,9 +240,9 @@ export function encodeGif89a(framesRgba, width, height, delayCs = 5) {
     };
 
     for (const rgba of framesRgba) {
-        out.push(0x21, 0xf9, 0x04, 0x04);
+        out.push(0x21, 0xf9, 0x04, transparent ? 0x09 : 0x04);
         pushU16(delayCs);
-        out.push(0x00, 0x00);
+        out.push(transparent ? 0xff : 0x00, 0x00);
         out.push(0x2c);
         pushU16(0);
         pushU16(0);
@@ -259,7 +264,16 @@ export function initExporters({
     stopTimelinePlayback,
     applyInterpolatedTimeline
 }) {
-    async function renderTimelineFrameToCanvas(canvas, ctx, prog, bgFill) {
+    function resolveOverlaySettings() {
+        const bgMode = document.getElementById('exportOverlayBg')?.value || 'transparent';
+        const bugPos = document.getElementById('exportBugPosition')?.value || 'centered';
+        let bgFill = state.bgColor === 'transparent' ? '#0d0d16' : state.bgColor;
+        if (bgMode === 'transparent') bgFill = 'transparent';
+        else if (bgMode === 'chroma') bgFill = '#00ff00';
+        return { bgMode, bgFill, bugPos };
+    }
+
+    async function renderTimelineFrameToCanvas(canvas, ctx, prog, bgFill, bugPos = 'centered') {
         applyInterpolatedTimeline(prog);
         const svgMarkup = generateSVGString(state, { forExport: true, includeGuides: false });
         const svgBlob = new Blob([svgMarkup], { type: 'image/svg+xml;charset=utf-8' });
@@ -268,9 +282,23 @@ export function initExporters({
         await new Promise((resolve, reject) => {
             const img = new Image();
             img.onload = () => {
-                ctx.fillStyle = bgFill;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                if (bgFill !== 'transparent') {
+                    ctx.fillStyle = bgFill;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+                if (bugPos === 'yt-bottom-left' || bugPos === 'yt-bottom-right') {
+                    const bugW = Math.round(canvas.width * 0.25);
+                    const aspect = img.naturalHeight && img.naturalWidth ? (img.naturalHeight / img.naturalWidth) : (state.showText ? 290 / 600 : 220 / 600);
+                    const bugH = Math.round(bugW * aspect);
+                    const padX = Math.round(canvas.width * 0.035);
+                    const padY = Math.round(canvas.height * 0.045);
+                    const dx = bugPos === 'yt-bottom-left' ? padX : canvas.width - bugW - padX;
+                    const dy = canvas.height - bugH - padY;
+                    ctx.drawImage(img, dx, dy, bugW, bugH);
+                } else {
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                }
                 URL.revokeObjectURL(imgUrl);
                 resolve();
             };
@@ -359,8 +387,12 @@ export function initExporters({
         const wasPlaying = isTimelinePlaying();
         stopTimelinePlayback();
         const timeline = getMotionTimeline();
+        const { bgFill, bugPos } = resolveOverlaySettings();
         const resVal = parseInt(document.getElementById('webmResSelect')?.value || '1200', 10);
-        if (resVal === 512) {
+        if (bugPos !== 'centered') {
+            canvas.width = 640;
+            canvas.height = 360;
+        } else if (resVal === 512) {
             canvas.width = 480;
             canvas.height = 480;
         } else {
@@ -370,7 +402,6 @@ export function initExporters({
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         const fps = 18;
         const totalFrames = Math.max(12, Math.min(90, Math.round(timeline.durationSec * fps)));
-        const bgFill = state.bgColor === 'transparent' ? '#0d0d16' : state.bgColor;
         const framesRgba = [];
 
         try {
@@ -380,13 +411,13 @@ export function initExporters({
                 const prog = timeline.playMode === 'pingpong'
                     ? (rawProg <= 0.5 ? rawProg * 2 : (1 - rawProg) * 2)
                     : rawProg;
-                await renderTimelineFrameToCanvas(canvas, ctx, prog, bgFill);
+                await renderTimelineFrameToCanvas(canvas, ctx, prog, bgFill, bugPos);
                 framesRgba.push(ctx.getImageData(0, 0, canvas.width, canvas.height).data);
             }
             if (btn) btn.textContent = 'Encoding...';
             await new Promise(r => setTimeout(r, 10));
             const delayCs = Math.max(2, Math.round(100 / fps));
-            const gifBytes = encodeGif89a(framesRgba, canvas.width, canvas.height, delayCs);
+            const gifBytes = encodeGif89a(framesRgba, canvas.width, canvas.height, delayCs, { transparent: bgFill === 'transparent' });
             const gifBlob = new Blob([gifBytes], { type: 'image/gif' });
             triggerDownload(gifBlob, 'solopass-animation.gif');
             showToast(`Downloaded solopass-animation.gif (${(gifBlob.size / 1024).toFixed(0)} KB)`);
@@ -421,8 +452,12 @@ export function initExporters({
         const wasPlaying = isTimelinePlaying();
         stopTimelinePlayback();
         const timeline = getMotionTimeline();
+        const { bgFill, bugPos } = resolveOverlaySettings();
         const resVal = parseInt(document.getElementById('webmResSelect')?.value || '1200', 10);
-        if (resVal === 512) {
+        if (bugPos !== 'centered') {
+            canvas.width = resVal === 1920 ? 1920 : 1280;
+            canvas.height = resVal === 1920 ? 1080 : 720;
+        } else if (resVal === 512) {
             canvas.width = 512;
             canvas.height = 512;
         } else if (resVal === 1920) {
@@ -464,7 +499,6 @@ export function initExporters({
         recorder.start();
         const fps = 30;
         const totalFrames = Math.max(15, Math.round(timeline.durationSec * fps));
-        const bgFill = state.bgColor === 'transparent' ? '#0d0d16' : state.bgColor;
 
         try {
             for (let f = 0; f <= totalFrames; f++) {
@@ -473,7 +507,7 @@ export function initExporters({
                 const prog = timeline.playMode === 'pingpong'
                     ? (rawProg <= 0.5 ? rawProg * 2 : (1 - rawProg) * 2)
                     : rawProg;
-                await renderTimelineFrameToCanvas(canvas, ctx, prog, bgFill);
+                await renderTimelineFrameToCanvas(canvas, ctx, prog, bgFill, bugPos);
                 await new Promise(r => setTimeout(r, 1000 / fps));
             }
         } catch (err) {

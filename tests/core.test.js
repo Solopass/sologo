@@ -4,6 +4,7 @@ import { encodeMessageToState } from '../core/cipher.js';
 import { lockedGroups, lockedSliders, applyLocksToState } from '../core/locks.js';
 import { generateSVGString } from '../core/geometry.js';
 import { applyEasingCurve } from '../animation/timeline.js';
+import { buildStealthMessageTimeline, buildBeaconMessageTimeline } from '../core/message-motion.js';
 
 function assert(cond, msg) {
     if (!cond) throw new Error(msg || 'Assertion failed');
@@ -166,6 +167,39 @@ export function runAllTests() {
             assert(Math.abs(applyEasingCurve(0, c)) < 1e-6, `${c} at 0`);
             assert(Math.abs(applyEasingCurve(1, c) - 1) < 1e-6, `${c} at 1`);
             assert(Number.isFinite(applyEasingCurve(0.5, c)), `${c} finite at 0.5`);
+        }
+    });
+
+    test('Message-to-Motion generates deterministic closed loops and respects locks', () => {
+        const prevColors = lockedGroups.colors;
+        try {
+            lockedGroups.colors = true;
+            const base = { ...DEFAULTS, strokeColor: '#10b981', secondaryColor: '#3b82f6' };
+            const r1 = buildStealthMessageTimeline('SUB TO SOLOPASS', base, { style: 'plasmaPulse', anchorState: base });
+            const r2 = buildStealthMessageTimeline('SUB TO SOLOPASS', base, { style: 'plasmaPulse', anchorState: base });
+
+            assert(r1.ok && r2.ok, 'Expected stealth timeline generation to succeed');
+            assert(r1.frameCount >= 4, 'Expected multiple keyframes');
+            assertEqual(r1.timeline.keyframes[0].label, 'Origin', 'Starts at Origin');
+            assertEqual(r1.timeline.keyframes[r1.frameCount - 1].label, 'Settle', 'Ends at Settle');
+            assertEqual(r1.timeline.keyframes[1].state.topWingLen, r2.timeline.keyframes[1].state.topWingLen, 'Deterministic wing length');
+            assertEqual(r1.timeline.keyframes[1].state.strokeColor, '#10b981', 'Locked strokeColor preserved');
+
+            const empty = buildStealthMessageTimeline('   ', base);
+            assert(!empty.ok, 'Empty message rejected gracefully');
+
+            const mockProto = {
+                encodePayloadToFrames: (msg) => Array.from(msg).map((ch, idx) => ({
+                    seq: idx,
+                    b0: ch.charCodeAt(0),
+                    state: { ringGapDeg: 36 + idx * 8, topWingLen: 120 }
+                }))
+            };
+            const beacon = buildBeaconMessageTimeline('HI', base, { protocol: mockProto });
+            assert(beacon.ok, 'Beacon timeline succeeds');
+            assertEqual(beacon.frameCount, 2, 'Beacon frame count matches message length');
+        } finally {
+            lockedGroups.colors = prevColors;
         }
     });
 

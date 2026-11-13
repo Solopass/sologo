@@ -712,6 +712,83 @@
             this.rxHistory = [];
             this.lastSeqReceived = -1;
         }
+
+        /**
+         * Decodes a SOLO-SYNC message from an uploaded video file (.webm / .mp4)
+         * without requiring a live webcam.
+         */
+        async decodeVideoFile(file, { onProgress, onFrame, onDecoded, onError } = {}) {
+            if (!file) {
+                onError?.('No video file selected.');
+                return { ok: false, text: '' };
+            }
+            const videoUrl = URL.createObjectURL(file);
+            const video = document.createElement('video');
+            video.muted = true;
+            video.playsInline = true;
+            video.preload = 'auto';
+            video.src = videoUrl;
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            const decoder = new TextDecoder();
+            const recoveredBytes = [];
+            let lastClockBit = -1;
+            let decodedText = '';
+
+            try {
+                await new Promise((resolve, reject) => {
+                    video.onloadedmetadata = () => resolve();
+                    video.onerror = () => reject(new Error('Unable to load video file for optical decoding.'));
+                });
+
+                const duration = Number.isFinite(video.duration) && video.duration > 0 ? video.duration : 4.0;
+                const vw = Math.max(320, video.videoWidth || 640);
+                const vh = Math.max(180, video.videoHeight || 360);
+                canvas.width = vw;
+                canvas.height = vh;
+
+                const sampleStepSec = 0.08;
+                const totalSteps = Math.min(240, Math.max(8, Math.ceil(duration / sampleStepSec)));
+
+                for (let i = 0; i < totalSteps; i++) {
+                    const t = Math.min(duration - 0.01, i * sampleStepSec);
+                    video.currentTime = Math.max(0, t);
+                    await new Promise((resolve) => {
+                        const done = () => {
+                            video.removeEventListener('seeked', done);
+                            resolve();
+                        };
+                        video.addEventListener('seeked', done, { once: true });
+                        setTimeout(done, 150);
+                    });
+
+                    ctx.clearRect(0, 0, vw, vh);
+                    ctx.drawImage(video, 0, 0, vw, vh);
+                    const res = SoloSyncCVDecoder.decodeCanvas(canvas, ctx);
+                    onProgress?.(Math.round(((i + 1) / totalSteps) * 100), res);
+
+                    if (res && res.frame && res.confidence >= 0.45) {
+                        onFrame?.(res);
+                        if (res.frame.clockBit !== lastClockBit) {
+                            lastClockBit = res.frame.clockBit;
+                            if (res.frame.b0) recoveredBytes.push(res.frame.b0);
+                            if (res.frame.b1) recoveredBytes.push(res.frame.b1);
+                            decodedText = decoder.decode(new Uint8Array(recoveredBytes));
+                        }
+                    }
+                }
+
+                onDecoded?.(decodedText, recoveredBytes.length);
+                return { ok: true, text: decodedText, byteCount: recoveredBytes.length };
+            } catch (err) {
+                console.error('[SOLO-SYNC] Video decode failed:', err);
+                onError?.(err?.message || 'Video optical decode failed.');
+                return { ok: false, text: decodedText };
+            } finally {
+                URL.revokeObjectURL(videoUrl);
+            }
+        }
     }
 
     global.SoloSyncProtocol = SoloSyncProtocol;

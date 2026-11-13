@@ -5,6 +5,7 @@
 import { state, DEFAULTS, PRESETS, SECTION_RESET_PRESETS } from '../core/state.js';
 import { decodeSeedDetailed } from '../core/seed.js';
 import { encodeMessageToState } from '../core/cipher.js';
+import { buildStealthMessageTimeline, buildBeaconMessageTimeline } from '../core/message-motion.js';
 import {
     lockedGroups,
     lockedSliders,
@@ -29,6 +30,7 @@ export function initControls({ timelineApi }) {
     const {
         getIsTimelinePlaying,
         getIsMorphLoopActive,
+        setMotionTimeline,
         stopTimelinePlayback,
         stopSmoothMorphLoop
     } = timelineApi;
@@ -466,6 +468,85 @@ export function initControls({ timelineApi }) {
         render();
         pushHistory();
         showToast('Cleared embedded cipher message');
+    });
+
+    document.getElementById('animateMessageBtn')?.addEventListener('click', () => {
+        const msg = document.getElementById('cipherMessageInput')?.value || '';
+        const styleMode = document.getElementById('messageAnimStyleSelect')?.value || 'cyberMorph';
+        const res = styleMode === 'beacon'
+            ? buildBeaconMessageTimeline(msg, state, { anchorState: state })
+            : buildStealthMessageTimeline(msg, state, { style: styleMode, anchorState: state });
+
+        if (!res.ok) {
+            showToast(res.error, 'error');
+            return;
+        }
+        if (getIsTimelinePlaying()) stopTimelinePlayback();
+        stopSmoothMorphLoop(true);
+        state.encodedMessage = res.message;
+        setMotionTimeline(res.timeline);
+        syncInputsFromState();
+        render();
+        pushHistory();
+        document.getElementById('tabBtnAnimate')?.click();
+        document.getElementById('playTimelineBtn')?.click();
+        showToast(`Animated "${res.message}" (${res.frameCount} keyframes · ${styleMode === 'beacon' ? 'CRC-8 Beacon' : styleMode})`);
+    });
+
+    document.getElementById('decodeVideoFileInput')?.addEventListener('change', async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const statusEl = document.getElementById('videoDecodeStatus');
+        const box = document.getElementById('decodedMessageBox');
+        const textEl = document.getElementById('decodedMessageText');
+        if (statusEl) statusEl.textContent = 'Scanning video...';
+
+        const ChannelCtor = window.SoloSyncChannel;
+        if (!ChannelCtor) {
+            showToast('SoloSync optical decoder is unavailable', 'error');
+            return;
+        }
+        const decoderChannel = new ChannelCtor();
+        const res = await decoderChannel.decodeVideoFile(file, {
+            onProgress: (pct) => {
+                if (statusEl) statusEl.textContent = `Scanning ${pct}%`;
+            },
+            onError: (msg) => {
+                if (statusEl) statusEl.textContent = 'Decode error';
+                showToast(msg, 'error');
+            }
+        });
+        e.target.value = '';
+
+        if (res.ok && res.text) {
+            if (statusEl) statusEl.textContent = `Decoded ${res.byteCount}B`;
+            if (box && textEl) {
+                box.classList.remove('hidden');
+                textEl.textContent = res.text;
+            }
+            showToast(`Recovered hidden message: "${res.text}"`);
+        } else if (res.ok) {
+            if (statusEl) statusEl.textContent = 'No beacon frames found';
+            showToast('No SoloSync CRC-8 beacon frames detected in clip', 'error');
+        }
+    });
+
+    // Video Corner Bug Preview Toggle
+    let isVideoBugPreview = false;
+    document.getElementById('videoBugPreviewBtn')?.addEventListener('click', () => {
+        isVideoBugPreview = !isVideoBugPreview;
+        const btn = document.getElementById('videoBugPreviewBtn');
+        const overlay = document.getElementById('videoBugMockOverlay');
+        btn?.classList.toggle('border-rose-400/50', isVideoBugPreview);
+        btn?.classList.toggle('text-rose-200', isVideoBugPreview);
+        overlay?.classList.toggle('hidden', !isVideoBugPreview);
+        if (els.svgStage) {
+            els.svgStage.classList.toggle('scale-[0.38]', isVideoBugPreview);
+            els.svgStage.classList.toggle('origin-bottom-right', isVideoBugPreview);
+            els.svgStage.classList.toggle('translate-x-[-4%]', isVideoBugPreview);
+            els.svgStage.classList.toggle('translate-y-[-6%]', isVideoBugPreview);
+        }
+        showToast(isVideoBugPreview ? '16:9 YouTube Corner Bug Preview active' : 'Returned to full stage preview');
     });
 
     document.getElementById('copySeedBtn')?.addEventListener('click', () => {

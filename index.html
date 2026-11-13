@@ -311,6 +311,7 @@
                         <span>.SPMOTION Keyframe & AI Animator</span>
                     </h2>
                     <div class="flex items-center gap-1">
+                        <button id="motionTrailBtn" type="button" class="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] text-gray-300 transition" title="Toggle kinetic motion echo trail during playback">✨ Trail</button>
                         <button id="playTimelineBtn" class="px-2.5 py-1 rounded-lg bg-sky-600 hover:bg-sky-500 text-[11px] font-semibold text-white transition flex items-center gap-1">
                             <span id="playTimelineIcon">▶</span>
                             <span id="playTimelineLabel">Play</span>
@@ -335,6 +336,8 @@
                         <select id="timelineEasingSelect" class="bg-transparent text-[11px] font-mono text-sky-200 focus:outline-none cursor-pointer">
                             <option value="easeInOutCubic" class="bg-[#11111c]">Smooth Cubic</option>
                             <option value="spring" class="bg-[#11111c]">Elastic Spring</option>
+                            <option value="easeOutBack" class="bg-[#11111c]">Overshoot Back</option>
+                            <option value="easeInOutExpo" class="bg-[#11111c]">Warp Expo</option>
                             <option value="linear" class="bg-[#11111c]">Linear</option>
                         </select>
                     </div>
@@ -365,11 +368,21 @@
                     </div>
                     <div class="flex items-center gap-1.5 overflow-x-auto pt-0.5">
                         <button type="button" id="aiRandomizeMotionBtn" class="shrink-0 px-2.5 py-0.5 rounded-md bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/30 text-[10px] font-semibold text-emerald-200 transition" title="Instantly generate a multi-keyframe animation from a random seed">🎲 Randomize</button>
+                        <button type="button" id="aiBatchVariationsBtn" class="shrink-0 px-2 py-0.5 rounded-md bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-400/30 text-[10px] font-semibold text-indigo-200 transition" title="Generate 4 quick variation seeds to audition">⚡ 4× Variations</button>
                         <input type="text" id="motionSeedInput" placeholder="Seed" value="4829" class="w-16 shrink-0 px-1.5 py-0.5 rounded-md bg-black/60 border border-white/15 text-[10px] font-mono text-sky-300 text-center focus:outline-none focus:border-sky-400" title="Motion seed (press Enter to replay this seed)">
                         <button type="button" data-ai-chip="Generate 5-frame portal surge with spin and cyan burst" class="ai-chip shrink-0 px-2 py-0.5 rounded-md bg-white/5 hover:bg-sky-500/20 border border-white/10 text-[10px] text-gray-300 transition">5-Frame Portal</button>
                         <button type="button" data-ai-chip="Generate 4-frame breathing pulse with spring bounce" class="ai-chip shrink-0 px-2 py-0.5 rounded-md bg-white/5 hover:bg-sky-500/20 border border-white/10 text-[10px] text-gray-300 transition">4-Frame Pulse</button>
                         <button type="button" data-ai-chip="Generate 6-frame hypersonic wing flare" class="ai-chip shrink-0 px-2 py-0.5 rounded-md bg-white/5 hover:bg-sky-500/20 border border-white/10 text-[10px] text-gray-300 transition">6-Frame Flare</button>
                     </div>
+                    <!-- Lock Bar: Keep selected properties unchanged during Randomize / AI creation -->
+                    <div class="flex items-center gap-1 flex-wrap pt-0.5">
+                        <span class="text-[10px] text-gray-400 mr-0.5">🔒 Keep:</span>
+                        <button type="button" data-lock-group="colors" class="lock-group-btn px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] text-gray-300 transition" title="Lock Colors & Gradient">Colors</button>
+                        <button type="button" data-lock-group="ring" class="lock-group-btn px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] text-gray-300 transition" title="Lock Center Ring">Ring</button>
+                        <button type="button" data-lock-group="wings" class="lock-group-btn px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] text-gray-300 transition" title="Lock Side Wings">Wings</button>
+                        <button type="button" data-lock-group="glow" class="lock-group-btn px-2 py-0.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] text-gray-300 transition" title="Lock Glow & Wordmark">Glow</button>
+                    </div>
+                    <div id="seedVarStrip" class="hidden flex items-center gap-1.5 overflow-x-auto pt-0.5"></div>
                 </div>
 
                 <!-- Keyframe Strip -->
@@ -416,7 +429,11 @@
             <!-- Section 1: Color, Gradient & Glow -->
             <div class="space-y-4">
                 <div class="flex items-center justify-between">
-                    <h2 class="text-xs font-semibold uppercase tracking-wider text-indigo-400">1. Color & Neon Glow</h2>
+                    <div class="flex items-center gap-1.5">
+                        <h2 class="text-xs font-semibold uppercase tracking-wider text-indigo-400">1. Color & Neon Glow</h2>
+                        <button type="button" data-lock-group="colors" class="lock-group-btn px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[9px] text-gray-400 transition" title="Lock Colors during Randomize & AI">🔓</button>
+                        <button type="button" data-lock-group="glow" class="lock-group-btn px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[9px] text-gray-400 transition" title="Lock Glow during Randomize & AI">✨🔓</button>
+                    </div>
                     <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-300">
                         <input type="checkbox" id="useGradient" class="rounded bg-black/40 border-white/20 text-indigo-500 focus:ring-0">
                         <span>Dual Gradient</span>
@@ -464,7 +481,10 @@
 
             <!-- Section 2: Center Ring Controls -->
             <div class="space-y-4">
-                <h2 class="text-xs font-semibold uppercase tracking-wider text-indigo-400">2. Center Ring</h2>
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xs font-semibold uppercase tracking-wider text-indigo-400">2. Center Ring</h2>
+                    <button type="button" data-lock-group="ring" class="lock-group-btn px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[9px] text-gray-400 transition" title="Lock Center Ring during Randomize & AI">🔓</button>
+                </div>
                 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -516,7 +536,10 @@
             <!-- Section 3: Wing Geometry & Angles -->
             <div class="space-y-4">
                 <div class="flex items-center justify-between">
-                    <h2 class="text-xs font-semibold uppercase tracking-wider text-indigo-400">3. Side Wings</h2>
+                    <div class="flex items-center gap-1.5">
+                        <h2 class="text-xs font-semibold uppercase tracking-wider text-indigo-400">3. Side Wings</h2>
+                        <button type="button" data-lock-group="wings" class="lock-group-btn px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[9px] text-gray-400 transition" title="Lock Side Wings during Randomize & AI">🔓</button>
+                    </div>
                     <div class="flex items-center gap-1.5">
                         <button id="tripleWingBtn" class="px-2 py-0.5 rounded-lg bg-white/5 border border-white/10 text-[11px] text-gray-400 transition" title="Toggle 3rd Accent Wing Tier">
                             3-Wing
@@ -922,6 +945,7 @@
             brandText: 'SOLOPASS',
             fontSize: 30,
             letterSpacing: 12,
+            gradAngle: 0,
             bgColor: '#0d0d16',
             zoom: 1,
             showGuides: false,
@@ -1152,7 +1176,7 @@
 
             const defs = `
   <defs>
-    <linearGradient id="solopassGrad" gradientUnits="userSpaceOnUse" x1="60" y1="0" x2="540" y2="0">
+    <linearGradient id="solopassGrad" gradientUnits="userSpaceOnUse" x1="60" y1="0" x2="540" y2="0" gradientTransform="rotate(${state.gradAngle || 0} ${cx} ${cy})">
       <stop offset="0%" stop-color="${state.strokeColor}" />
       <stop offset="50%" stop-color="${state.secondaryColor}" />
       <stop offset="100%" stop-color="${state.strokeColor}" />
@@ -1191,10 +1215,7 @@
                 ? SoloSyncGrid.generateGridMarkup(width, height, state.clockBit || 0, state.seq || 0)
                 : '';
 
-            return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="100%" height="100%" role="img" aria-label="${safeTitle} Vector Emblem" data-solopass-seed="${seedCode}">
-  <title>${safeTitle} Vector Emblem</title>
-  <!-- SOLOPASS Vector Emblem | Seed: ${seedCode} -->${defs}${opticalGridMarkup}${guidesMarkup}
-  <g ${filterAttr} fill="none" stroke="${strokePaint}" stroke-linecap="${state.lineCap}" stroke-linejoin="round">
+            const emblemCore = `
     <!-- Center Ring -->
     <circle cx="${cx}" cy="${cy}" r="${r}" stroke-width="${state.ringStrokeWidth}" fill="${state.strokeColor}" fill-opacity="${state.ringFillOpacity}"${ringDashAttr} />
     <!-- Left Wings -->
@@ -1206,7 +1227,16 @@
     <g transform="rotate(${effectiveAngle} ${cx} ${cy + offsetY})">
       <path d="${rightTopPath}" stroke-width="${state.wingStrokeWidth}" />
       <path d="${rightBotPath}" stroke-width="${state.wingStrokeWidth}" />${thirdTierMarkup.right}
-    </g>
+    </g>`;
+
+            const echoMarkup = (state.motionTrail && typeof isTimelinePlaying !== 'undefined' && isTimelinePlaying) ? `
+  <g opacity="0.22" fill="none" stroke="${strokePaint}" stroke-linecap="${state.lineCap}" stroke-linejoin="round" transform="translate(${cx} ${cy}) scale(0.92) translate(${-cx} ${-cy})">${emblemCore}
+  </g>` : '';
+
+            return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="100%" height="100%" role="img" aria-label="${safeTitle} Vector Emblem" data-solopass-seed="${seedCode}">
+  <title>${safeTitle} Vector Emblem</title>
+  <!-- SOLOPASS Vector Emblem | Seed: ${seedCode} -->${defs}${opticalGridMarkup}${guidesMarkup}${echoMarkup}
+  <g ${filterAttr} fill="none" stroke="${strokePaint}" stroke-linecap="${state.lineCap}" stroke-linejoin="round">${emblemCore}
   </g>${wordmarkMarkup}
 </svg>`;
         }
@@ -1782,6 +1812,7 @@
                 { primary: '#6366f1', secondary: '#f472b6' },
                 { primary: '#60a5fa', secondary: '#a78bfa' }
             ];
+            const preAnchor = { ...state };
             const pal = palettes[Math.floor(Math.random() * palettes.length)];
             const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
@@ -1798,6 +1829,7 @@
             state.wingAngle = Math.random() > 0.55 ? (randInt(-6, 6) * 0.5) : 0;
             state.wingCurve = Math.random() > 0.55 ? randInt(-10, 10) : 0;
             state.tripleWing = Math.random() > 0.72;
+            Object.assign(state, applyLocksToState(state, preAnchor));
 
             syncInputsFromState();
             render();
@@ -2280,13 +2312,88 @@
         });
 
         // =========================================================================
+        // PROPERTY & SECTION LOCKS (Colors, Ring, Wings, Glow & Text)
+        // =========================================================================
+        const LOCK_GROUP_KEYS = {
+            colors: ['strokeColor', 'secondaryColor', 'useGradient', 'bgColor', 'gradAngle'],
+            ring: ['circleRadius', 'ringStrokeWidth', 'ringFillOpacity', 'ringGapDeg', 'ringRotate'],
+            wings: ['wingStrokeWidth', 'wingGap', 'topWingLen', 'botWingLen', 'wingSpacing', 'wingOffsetY', 'botInnerInset', 'wingAngle', 'wingCurve', 'wingBalance', 'tripleWing', 'lineCap'],
+            glow: ['glowBlur', 'glowOpacity', 'showText', 'brandText', 'letterSpacing', 'fontSize']
+        };
+        const lockedGroups = (() => {
+            try {
+                const saved = JSON.parse(localStorage.getItem('solopass_locks') || '{}');
+                return { colors: !!saved.colors, ring: !!saved.ring, wings: !!saved.wings, glow: !!saved.glow };
+            } catch {
+                return { colors: false, ring: false, wings: false, glow: false };
+            }
+        })();
+
+        function applyLocksToState(targetState, anchorState) {
+            const out = { ...targetState };
+            for (const [group, isLocked] of Object.entries(lockedGroups)) {
+                if (!isLocked) continue;
+                for (const key of LOCK_GROUP_KEYS[group]) {
+                    if (anchorState[key] !== undefined) out[key] = anchorState[key];
+                }
+            }
+            return out;
+        }
+
+        function getLockedSummaryLabel() {
+            const active = Object.entries(lockedGroups).filter(([, v]) => v).map(([k]) => k);
+            return active.length ? ` (kept: ${active.join(', ')})` : '';
+        }
+
+        function updateLockUI() {
+            document.querySelectorAll('.lock-group-btn').forEach(btn => {
+                const grp = btn.dataset.lockGroup;
+                const locked = !!lockedGroups[grp];
+                const isCompact = btn.textContent.includes('🔓') || btn.textContent.includes('🔒');
+                if (isCompact) {
+                    const prefix = grp === 'glow' ? '✨' : '';
+                    btn.textContent = `${prefix}${locked ? '🔒' : '🔓'}`;
+                }
+                btn.classList.toggle('bg-amber-500/25', locked);
+                btn.classList.toggle('border-amber-400/50', locked);
+                btn.classList.toggle('text-amber-200', locked);
+                btn.classList.toggle('bg-white/5', !locked);
+                btn.classList.toggle('border-white/10', !locked);
+            });
+        }
+
+        document.querySelectorAll('.lock-group-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const grp = btn.dataset.lockGroup;
+                if (!grp || !(grp in lockedGroups)) return;
+                lockedGroups[grp] = !lockedGroups[grp];
+                localStorage.setItem('solopass_locks', JSON.stringify(lockedGroups));
+                updateLockUI();
+                showToast(`${grp.charAt(0).toUpperCase() + grp.slice(1)} ${lockedGroups[grp] ? 'locked 🔒' : 'unlocked 🔓'}`);
+            });
+        });
+        updateLockUI();
+
+        const motionTrailBtn = document.getElementById('motionTrailBtn');
+        if (motionTrailBtn) {
+            motionTrailBtn.addEventListener('click', () => {
+                state.motionTrail = !state.motionTrail;
+                motionTrailBtn.classList.toggle('bg-sky-500/25', state.motionTrail);
+                motionTrailBtn.classList.toggle('border-sky-400/50', state.motionTrail);
+                motionTrailBtn.classList.toggle('text-sky-200', state.motionTrail);
+                render();
+                showToast(`Motion Trail ${state.motionTrail ? 'enabled ✨' : 'disabled'}`);
+            });
+        }
+
+        // =========================================================================
         // .SPMOTION KEYFRAME FORMAT & AI MOTION CHOREOGRAPHER ENGINE
         // =========================================================================
         const ANIMATABLE_KEYS = [
             'circleRadius', 'ringStrokeWidth', 'ringFillOpacity', 'ringGapDeg', 'ringRotate',
             'wingStrokeWidth', 'wingGap', 'topWingLen', 'botWingLen', 'wingSpacing',
             'wingOffsetY', 'botInnerInset', 'wingAngle', 'wingCurve', 'wingBalance',
-            'glowBlur', 'glowOpacity'
+            'glowBlur', 'glowOpacity', 'gradAngle'
         ];
 
         function captureAnimatableSnapshot(label = 'Key') {
@@ -2332,6 +2439,15 @@
 
         function applyEasingCurve(t, curveName) {
             if (curveName === 'linear') return t;
+            if (curveName === 'easeOutBack') {
+                const c1 = 1.70158;
+                const c3 = c1 + 1;
+                return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+            }
+            if (curveName === 'easeInOutExpo') {
+                if (t === 0 || t === 1) return t;
+                return t < 0.5 ? Math.pow(2, 20 * t - 10) / 2 : (2 - Math.pow(2, -20 * t + 10)) / 2;
+            }
             if (curveName === 'spring') {
                 if (t === 0 || t === 1) return t;
                 const c4 = (2 * Math.PI) / 3;
@@ -2690,7 +2806,7 @@
   <title>${safeTitle} Animated Vector Emblem</title>
   <metadata id="spmotion-data">${escapeXml(JSON.stringify(motionTimeline))}</metadata>
   <defs>
-    <linearGradient id="solopassGrad" gradientUnits="userSpaceOnUse" x1="60" y1="0" x2="540" y2="0">
+    <linearGradient id="solopassGrad" gradientUnits="userSpaceOnUse" x1="60" y1="0" x2="540" y2="0" gradientTransform="rotate(${state.gradAngle || 0} ${cx} ${cy})">
       <stop id="sp-stop-0" offset="0%" stop-color="${state.strokeColor}" />
       <stop id="sp-stop-1" offset="50%" stop-color="${state.secondaryColor}" />
       <stop id="sp-stop-2" offset="100%" stop-color="${state.strokeColor}" />
@@ -2725,9 +2841,11 @@
       const kfs = tl.keyframes || [];
       if (!kfs.length) return;
       const cx = ${cx}, cy = ${cy};
-      const keys = ['circleRadius','ringStrokeWidth','ringFillOpacity','ringGapDeg','ringRotate','wingStrokeWidth','wingGap','topWingLen','botWingLen','wingSpacing','wingOffsetY','botInnerInset','wingAngle','wingCurve','wingBalance','glowBlur','glowOpacity'];
+      const keys = ['circleRadius','ringStrokeWidth','ringFillOpacity','ringGapDeg','ringRotate','wingStrokeWidth','wingGap','topWingLen','botWingLen','wingSpacing','wingOffsetY','botInnerInset','wingAngle','wingCurve','wingBalance','glowBlur','glowOpacity','gradAngle'];
       const ease = (t, curve) => {
         if (curve === 'linear') return t;
+        if (curve === 'easeOutBack') { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); }
+        if (curve === 'easeInOutExpo') { if (t === 0 || t === 1) return t; return t < 0.5 ? Math.pow(2, 20 * t - 10) / 2 : (2 - Math.pow(2, -20 * t + 10)) / 2; }
         if (curve === 'spring') {
           if (t === 0 || t === 1) return t;
           const c4 = (2 * Math.PI) / 3;
@@ -2794,6 +2912,8 @@
         document.getElementById('sp-stop-0').setAttribute('stop-color', col1);
         document.getElementById('sp-stop-1').setAttribute('stop-color', col2);
         document.getElementById('sp-stop-2').setAttribute('stop-color', col1);
+        const gradEl = document.getElementById('solopassGrad');
+        if (gradEl) gradEl.setAttribute('gradientTransform', 'rotate(' + (s.gradAngle || 0).toFixed(1) + ' ' + cx + ' ' + cy + ')');
         ['sp-lt','sp-lb','sp-rt','sp-rb'].forEach(id => document.getElementById(id).setAttribute('stroke-width', s.wingStrokeWidth.toFixed(1)));
         document.getElementById('sp-lt').setAttribute('d', quad(cx - r - gap, topY, cx - r - gap - lTop, topY, s.wingCurve));
         document.getElementById('sp-lb').setAttribute('d', quad(cx - r - gap - ins, botY, cx - r - gap - ins - lBot, botY, s.wingCurve * 0.75));
@@ -2919,6 +3039,7 @@ Do not include any explanation or markdown formatting, output raw JSON only.`;
                         }
 
                         if (Array.isArray(parsed.keyframes) && parsed.keyframes.length >= 2) {
+                            const anchor = { ...state };
                             const base = captureAnimatableSnapshot().state;
                             motionTimeline.durationSec = parsed.durationSec || 3.0;
                             motionTimeline.easing = parsed.easing || 'easeInOutCubic';
@@ -2929,7 +3050,7 @@ Do not include any explanation or markdown formatting, output raw JSON only.`;
                             motionTimeline.keyframes = parsed.keyframes.map((kf, i) => ({
                                 label: kf.label || `Pose ${i + 1}`,
                                 easing: motionTimeline.easing,
-                                state: { ...base, ...(kf.state || {}) }
+                                state: applyLocksToState({ ...base, ...(kf.state || {}) }, anchor)
                             }));
 
                             document.getElementById('timelineDuration').value = motionTimeline.durationSec;
@@ -3027,18 +3148,22 @@ Do not include any explanation or markdown formatting, output raw JSON only.`;
                 peak.glowBlur = 19;
             }
 
+            const anchor = { ...state };
+            const lockedPeak = applyLocksToState(peak, anchor);
+            const lockedBase = applyLocksToState(base, anchor);
+            Object.assign(state, lockedBase);
             syncInputsFromState();
             render();
 
             motionTimeline.keyframes = [
-                { label: 'Origin', easing: motionTimeline.easing, state: { ...base } },
-                { label: title, easing: motionTimeline.easing, state: peak },
-                { label: 'Return', easing: motionTimeline.easing, state: { ...base } }
+                { label: 'Origin', easing: motionTimeline.easing, state: lockedBase },
+                { label: title, easing: motionTimeline.easing, state: lockedPeak },
+                { label: 'Return', easing: motionTimeline.easing, state: { ...lockedBase } }
             ];
             activeKeyframeIdx = 0;
             renderKeyframeStrip();
             if (!isTimelinePlaying) document.getElementById('playTimelineBtn').click();
-            showToast(actions.length ? `AI Co-Pilot: ${actions.join(', ')} & animated "${title}"` : `AI choreographed "${title}"`);
+            showToast((actions.length ? `AI Co-Pilot: ${actions.join(', ')} & animated "${title}"` : `AI choreographed "${title}"`) + getLockedSummaryLabel());
         }
 
         document.getElementById('aiGenerateMotionBtn').addEventListener('click', () => {
@@ -3084,6 +3209,7 @@ Do not include any explanation or markdown formatting, output raw JSON only.`;
             };
         }
         function generateSeededAnimation(seedStr) {
+            const anchor = { ...state };
             const rng = createSeededRng(seedStr);
             const rRange = (min, max) => Math.round(min + rng() * (max - min));
             const pick = (arr) => arr[Math.floor(rng() * arr.length)];
@@ -3102,51 +3228,61 @@ Do not include any explanation or markdown formatting, output raw JSON only.`;
             ];
             const pal = pick(palettes);
             const archetype = pick(archetypes);
-            const easing = pick(['easeInOutCubic', 'spring', 'easeOutBack', 'linear']);
+            const easing = pick(['easeInOutCubic', 'spring', 'easeOutBack', 'easeInOutExpo']);
             const playMode = pick(['pingpong', 'loop']);
             const durationSec = Math.round((2.0 + rng() * 2.5) * 2) / 2;
-            const frameCount = rRange(4, 5);
+            const frameCount = rRange(5, 6);
 
-            const base = {
+            const base = applyLocksToState({
                 ...captureAnimatableSnapshot().state,
                 strokeColor: pal.c1,
                 secondaryColor: pal.c2,
                 useGradient: true,
+                gradAngle: 0,
                 tripleWing: rng() > 0.35
-            };
+            }, anchor);
 
             const frames = [{ label: 'Origin', easing, state: { ...base } }];
             for (let i = 1; i < frameCount - 1; i++) {
                 const phase = i / (frameCount - 1);
                 const s = { ...base };
-                if (archetype === 'Portal Surge' || archetype === 'Warp Core') {
-                    s.ringGapDeg = rRange(35, 130);
-                    s.ringRotate = rRange(-120, 120);
+                // Liquid gradient sweep across keyframes
+                s.gradAngle = Math.round(-120 + phase * 240);
+                // Anticipation dip on Pose 1
+                const isAnticipation = i === 1 && frameCount >= 5;
+                if (isAnticipation) {
+                    s.circleRadius = Math.max(26, base.circleRadius - rRange(4, 9));
+                    s.wingGap = Math.max(10, base.wingGap - rRange(4, 8));
+                    s.wingCurve = -rRange(6, 12);
+                    s.glowBlur = Math.max(4, base.glowBlur - 4);
+                } else if (archetype === 'Portal Surge' || archetype === 'Warp Core') {
+                    s.ringGapDeg = rRange(40, 135);
+                    s.ringRotate = rRange(-130, 130);
                     s.ringFillOpacity = Number((0.1 + rng() * 0.25).toFixed(2));
-                    s.glowBlur = rRange(14, 28);
-                    s.topWingLen = Math.min(185, base.topWingLen + rRange(15, 50));
+                    s.glowBlur = rRange(16, 28);
+                    s.topWingLen = Math.min(185, base.topWingLen + rRange(18, 52));
                 } else if (archetype === 'Hypersonic Flap' || archetype === 'Wing Whip') {
-                    s.wingAngle = (i % 2 === 1 ? 1 : -1) * rRange(6, 14);
-                    s.wingCurve = (i % 2 === 1 ? 1 : -1) * rRange(10, 22);
+                    s.wingAngle = (i % 2 === 1 ? 1 : -1) * rRange(6, 15);
+                    s.wingCurve = (i % 2 === 1 ? 1 : -1) * rRange(12, 24);
                     s.wingSpacing = rRange(16, 36);
-                    s.topWingLen = rRange(110, 185);
+                    s.topWingLen = rRange(115, 185);
                     s.botWingLen = Math.round(s.topWingLen * (0.6 + rng() * 0.25));
                 } else if (archetype === 'Orbital Spin') {
                     s.ringGapDeg = rRange(45, 110);
-                    s.ringRotate = Math.round(-160 + phase * 320);
-                    s.wingBalance = (i % 2 === 1 ? 1 : -1) * rRange(8, 22);
-                    s.glowBlur = rRange(12, 24);
+                    s.ringRotate = Math.round(-165 + phase * 330);
+                    s.wingBalance = (i % 2 === 1 ? 1 : -1) * rRange(8, 24);
+                    s.glowBlur = rRange(12, 26);
                 } else {
                     s.circleRadius = rRange(36, 58);
-                    s.ringGapDeg = rng() > 0.4 ? rRange(20, 100) : 0;
-                    s.ringRotate = rRange(-90, 90);
+                    s.ringGapDeg = rng() > 0.35 ? rRange(20, 105) : 0;
+                    s.ringRotate = rRange(-95, 95);
                     s.wingGap = rRange(14, 42);
                     s.topWingLen = rRange(95, 180);
                     s.botWingLen = Math.round(s.topWingLen * 0.72);
-                    s.wingCurve = rRange(-16, 18);
-                    s.glowBlur = rRange(10, 26);
+                    s.wingCurve = rRange(-18, 20);
+                    s.glowBlur = rRange(12, 28);
                 }
-                frames.push({ label: `Pose ${i}`, easing, state: s });
+                frames.push({ label: isAnticipation ? 'Windup' : `Pose ${i}`, easing, state: applyLocksToState(s, anchor) });
             }
             frames.push({ label: 'Settle', easing, state: { ...base } });
 
@@ -3167,16 +3303,38 @@ Do not include any explanation or markdown formatting, output raw JSON only.`;
             renderKeyframeStrip();
             pushHistory();
             document.getElementById('playTimelineBtn').click();
-            showToast(`Seed #${seedStr}: ${archetype} (${pal.name}, ${frames.length} frames)`);
+            showToast(`Seed #${seedStr}: ${archetype} (${pal.name}, ${frames.length} frames)${getLockedSummaryLabel()}`);
         }
 
         const aiRandomizeBtn = document.getElementById('aiRandomizeMotionBtn');
+        const aiBatchVariationsBtn = document.getElementById('aiBatchVariationsBtn');
+        const seedVarStrip = document.getElementById('seedVarStrip');
         const motionSeedInput = document.getElementById('motionSeedInput');
         if (aiRandomizeBtn) {
             aiRandomizeBtn.addEventListener('click', () => {
                 const newSeed = String(Math.floor(1000 + Math.random() * 9000));
                 if (motionSeedInput) motionSeedInput.value = newSeed;
                 generateSeededAnimation(newSeed);
+            });
+        }
+        if (aiBatchVariationsBtn && seedVarStrip) {
+            aiBatchVariationsBtn.addEventListener('click', () => {
+                seedVarStrip.innerHTML = '';
+                seedVarStrip.classList.remove('hidden');
+                const seeds = Array.from({ length: 4 }, () => String(Math.floor(1000 + Math.random() * 9000)));
+                seeds.forEach((s, idx) => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'shrink-0 px-2 py-0.5 rounded-md bg-indigo-500/15 hover:bg-indigo-500/30 border border-indigo-400/30 text-[10px] font-mono text-indigo-200 transition';
+                    btn.textContent = `Var ${idx + 1} #${s}`;
+                    btn.addEventListener('click', () => {
+                        if (motionSeedInput) motionSeedInput.value = s;
+                        generateSeededAnimation(s);
+                    });
+                    seedVarStrip.appendChild(btn);
+                });
+                if (motionSeedInput) motionSeedInput.value = seeds[0];
+                generateSeededAnimation(seeds[0]);
             });
         }
         if (motionSeedInput) {
@@ -3283,7 +3441,9 @@ Do not include any explanation or markdown formatting, output raw JSON only.`;
                 `;
                 card.addEventListener('click', () => {
                     if (isTimelinePlaying) stopTimelinePlayback();
-                    Object.assign(state, { wingBalance: 0, lineCap: 'round', showText: false }, preset.state);
+                    const anchor = { ...state };
+                    const nextState = applyLocksToState({ ...state, wingBalance: 0, lineCap: 'round', showText: false, ...preset.state }, anchor);
+                    Object.assign(state, nextState);
                     state.encodedMessage = preset.message;
                     document.getElementById('cipherMessageInput').value = preset.message;
                     if (Array.isArray(motionTimeline?.keyframes) && motionTimeline.keyframes.length > 0) {
@@ -3294,7 +3454,7 @@ Do not include any explanation or markdown formatting, output raw JSON only.`;
                     render();
                     pushHistory();
                     if (aiPresetsModal) aiPresetsModal.classList.add('hidden');
-                    showToast(`Applied "${preset.title}" with message "${preset.message}"!`);
+                    showToast(`Applied "${preset.title}" with message "${preset.message}"${getLockedSummaryLabel()}!`);
                 });
                 aiPresetsList.appendChild(card);
             });

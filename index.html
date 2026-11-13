@@ -130,15 +130,15 @@
         </div>
 
         <!-- Export & Utility Actions -->
-        <div class="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2">
+        <div class="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2 relative">
             <button id="resetAllBtn" onclick="applyPreset('reference'); showToast('Reset to original SOLOPASS reference');" class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-300 transition" title="Reset All Settings to Original Logo">
                 Reset
             </button>
-            <button id="undoBtn" disabled class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-300 transition flex items-center gap-1" title="Undo Last Change">
+            <button id="undoBtn" disabled class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-300 transition flex items-center gap-1" title="Undo Last Change (Ctrl+Z)">
                 <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
                 <span class="hidden md:inline">Undo</span>
             </button>
-            <button id="toggleGuidesBtn" class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-300 transition flex items-center gap-1.5" title="Toggle Alignment Crosshairs">
+            <button id="toggleGuidesBtn" class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-300 transition flex items-center gap-1.5" title="Toggle Alignment Crosshairs (G)">
                 <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
                 <span class="hidden md:inline">Guides</span>
             </button>
@@ -150,29 +150,48 @@
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                 <span>AI Sync Link</span>
             </button>
-            <label class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-200 transition flex items-center gap-1.5 cursor-pointer" title="Import an exported SOLOPASS file (.SVG, .SPMOTION, .JSON, .PNG) to restore sliders & read embedded messages">
+            <label class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-200 transition flex items-center gap-1.5 cursor-pointer" title="Import .SVG, .PNG, .SPMOTION, or .JSON">
                 <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                 <span class="hidden sm:inline">Import</span>
                 <input type="file" id="importSvgInput" accept=".svg,.spmotion,.json,image/svg+xml,image/png" class="hidden">
             </label>
-            <button id="inspectSvgBtn" class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-200 transition flex items-center gap-1.5" title="Inspect Live SVG XML Code">
-                <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
-                <span class="hidden md:inline">Code</span>
-            </button>
-            <button id="copySvgBtn" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-200 transition flex items-center gap-1.5">
-                <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                <span>Copy SVG</span>
-            </button>
-            <button id="downloadSvgBtn" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow-[0_0_20px_rgba(99,102,241,0.4)] transition flex items-center gap-1.5">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                <span>.SVG</span>
-            </button>
-            <button id="downloadPngBtn" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-200 transition">
-                .PNG
-            </button>
-            <button id="downloadIconBtn" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-200 transition" title="Export 512x512 Square App Icon PNG">
-                Icon
-            </button>
+            <button id="openShortcutsBtn" type="button" class="px-2 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono text-gray-300 transition" title="Keyboard Shortcuts (?)">?</button>
+
+            <!-- Unified Export Dropdown -->
+            <div class="relative">
+                <button id="exportMenuBtn" type="button" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow-[0_0_20px_rgba(99,102,241,0.4)] transition flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    <span>Export</span>
+                    <span class="text-[10px] opacity-80">▾</span>
+                </button>
+                <div id="exportMenuPopover" class="hidden absolute right-0 mt-2 w-60 bg-[#121222] border border-white/15 rounded-2xl shadow-2xl p-2 space-y-1 z-50">
+                    <button id="downloadSvgBtn" class="w-full text-left px-3 py-2 rounded-xl hover:bg-indigo-500/20 text-xs text-white font-medium flex items-center justify-between transition">
+                        <span>Download .SVG</span><span class="text-[10px] text-indigo-300 font-mono">Vector</span>
+                    </button>
+                    <button id="downloadPngBtn" class="w-full text-left px-3 py-2 rounded-xl hover:bg-indigo-500/20 text-xs text-gray-200 flex items-center justify-between transition">
+                        <span>Download .PNG</span><span class="text-[10px] text-gray-400 font-mono">1800px + Seed</span>
+                    </button>
+                    <button id="downloadIconBtn" class="w-full text-left px-3 py-2 rounded-xl hover:bg-indigo-500/20 text-xs text-gray-200 flex items-center justify-between transition">
+                        <span>Download App Icon</span><span class="text-[10px] text-gray-400 font-mono">512×512</span>
+                    </button>
+                    <hr class="border-white/10 my-1">
+                    <button id="copySvgBtn" class="w-full text-left px-3 py-1.5 rounded-xl hover:bg-white/10 text-xs text-gray-200 flex items-center justify-between transition">
+                        <span>Copy SVG XML</span><span class="text-[10px] text-gray-400 font-mono">Clipboard</span>
+                    </button>
+                    <button id="inspectSvgBtn" class="w-full text-left px-3 py-1.5 rounded-xl hover:bg-white/10 text-xs text-gray-200 flex items-center justify-between transition">
+                        <span>Inspect SVG Code</span><span class="text-[10px] text-sky-400 font-mono">&lt;/&gt;</span>
+                    </button>
+                    <hr class="border-white/10 my-1">
+                    <div class="px-2 py-1 flex items-center justify-between gap-2 text-[10px] text-gray-400">
+                        <span>.WEBM Size</span>
+                        <select id="webmResSelect" class="bg-black/60 border border-white/15 rounded px-1.5 py-0.5 text-[10px] font-mono text-sky-300 focus:outline-none">
+                            <option value="1200">1200p (Wide)</option>
+                            <option value="1920">1080p HD</option>
+                            <option value="512">512×512 Sq</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
         </div>
     </header>
 
@@ -207,9 +226,21 @@
                     </button>
 
                     <!-- Save to Favorites Vault -->
-                    <button id="quickSaveVaultBtn" class="bg-black/60 backdrop-blur-md px-2.5 py-1.5 rounded-xl border border-amber-400/20 text-[11px] text-amber-200 hover:bg-amber-500/20 transition flex items-center gap-1" title="Save current logo & timeline to My Vault">
+                    <button id="quickSaveVaultBtn" class="bg-black/60 backdrop-blur-md px-2.5 py-1.5 rounded-xl border border-amber-400/20 text-[11px] text-amber-200 hover:bg-amber-500/20 transition flex items-center gap-1" title="Save current logo & timeline to My Vault (Ctrl+S)">
                         <span>⭐</span>
                         <span class="hidden sm:inline">Save</span>
+                    </button>
+
+                    <!-- Compare Reference Peek -->
+                    <button id="comparePeekBtn" class="bg-black/60 backdrop-blur-md px-2.5 py-1.5 rounded-xl border border-white/10 text-[11px] text-gray-300 hover:text-white transition flex items-center gap-1" title="Toggle Reference Compare Peek">
+                        <span>👁</span>
+                        <span class="hidden sm:inline">Compare</span>
+                    </button>
+
+                    <!-- 3D Perspective Tilt -->
+                    <button id="tiltStageBtn" class="bg-black/60 backdrop-blur-md px-2.5 py-1.5 rounded-xl border border-white/10 text-[11px] text-gray-300 hover:text-white transition flex items-center gap-1" title="Toggle interactive 3D stage parallax">
+                        <span>🪩</span>
+                        <span class="hidden sm:inline">3D</span>
                     </button>
 
                     <!-- Harmonic Mutate / Explore Button -->
@@ -228,8 +259,14 @@
             </div>
 
             <!-- Live SVG Container -->
-            <div id="previewWrapper" class="w-full max-w-2xl flex-1 my-2 sm:my-4 rounded-2xl border border-white/10 shadow-2xl flex items-center justify-center transition-colors duration-300 overflow-hidden relative" style="background-color: #0d0d16;">
+            <div id="previewWrapper" class="w-full max-w-2xl flex-1 my-2 sm:my-4 rounded-2xl border border-white/10 shadow-2xl flex items-center justify-center transition-all duration-300 overflow-hidden relative" style="background-color: #0d0d16;">
                 <div id="svgStage" class="w-full h-full flex items-center justify-center p-4 sm:p-6 transition-transform duration-150"></div>
+                <div id="stageTelemetryHud" class="absolute bottom-2.5 left-3 text-[10px] font-mono px-2.5 py-1 rounded-lg bg-black/65 backdrop-blur-md border border-white/10 text-gray-300 pointer-events-none flex items-center gap-2">
+                    <span id="hudSeedBadge" class="text-sky-300">Seed #4829</span>
+                    <span class="text-white/20">·</span>
+                    <span id="hudLocksBadge" class="text-amber-300 hidden">🔒 0</span>
+                    <span id="hudModeBadge" class="text-emerald-300">Ready</span>
+                </div>
                 <div id="directDragHint" class="hidden absolute bottom-2.5 right-3 text-[10px] font-mono px-2 py-0.5 rounded-md bg-black/70 border border-indigo-400/30 text-indigo-300 pointer-events-none">
                     Direct Handles Active: Drag Ring or Wing Tips
                 </div>
@@ -252,9 +289,24 @@
             </div>
         </section>
 
-        <!-- Independently Scrollable Controls Sidebar -->
-        <aside class="flex-1 lg:flex-none w-full lg:w-[420px] bg-[#11111c] lg:border-l border-white/10 p-5 sm:p-6 overflow-y-auto space-y-6">
-            
+        <!-- Independently Scrollable Controls Sidebar with 3-Tab Inspector -->
+        <aside class="flex-1 lg:flex-none w-full lg:w-[430px] bg-[#11111c] lg:border-l border-white/10 flex flex-col min-h-0">
+            <!-- Pinned Tab Switcher -->
+            <div class="shrink-0 px-4 pt-3 pb-2.5 border-b border-white/10 bg-[#0d0d16]/80 backdrop-blur-md grid grid-cols-3 gap-1.5">
+                <button id="tabBtnStudio" type="button" data-sidebar-tab="studio" class="sidebar-tab-btn px-2 py-1.5 rounded-xl bg-indigo-600/30 border border-indigo-400/50 text-xs font-semibold text-white transition flex items-center justify-center gap-1">
+                    <span>🎨 Studio</span><span class="text-[9px] font-mono opacity-60">1</span>
+                </button>
+                <button id="tabBtnAnimate" type="button" data-sidebar-tab="animate" class="sidebar-tab-btn px-2 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-medium text-gray-300 hover:text-white transition flex items-center justify-center gap-1">
+                    <span>✨ Animate</span><span class="text-[9px] font-mono opacity-60">2</span>
+                </button>
+                <button id="tabBtnCipher" type="button" data-sidebar-tab="cipher" class="sidebar-tab-btn px-2 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-medium text-gray-300 hover:text-white transition flex items-center justify-center gap-1">
+                    <span>🔐 Cipher</span><span class="text-[9px] font-mono opacity-60">3</span>
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
+            <!-- TAB 3: CIPHER & SYNC -->
+            <div id="tabPanelCipher" class="hidden space-y-4">
             <!-- Section 0: Mathematical & Message Cipher Codec -->
             <div class="bg-indigo-950/25 border border-indigo-500/30 rounded-2xl p-4 space-y-3">
                 <div class="flex items-center justify-between">
@@ -314,7 +366,10 @@
                     </div>
                 </div>
             </div>
+            </div> <!-- /tabPanelCipher -->
 
+            <!-- TAB 2: ANIMATE & AI -->
+            <div id="tabPanelAnimate" class="hidden space-y-4">
             <!-- Section 0.5: .SPMOTION Keyframe Timeline & AI Motion Choreographer -->
             <div class="bg-sky-950/25 border border-sky-500/30 rounded-2xl p-4 space-y-3">
                 <div class="flex items-center justify-between">
@@ -439,7 +494,10 @@
                     </div>
                 </div>
             </div>
+            </div> <!-- /tabPanelAnimate -->
 
+            <!-- TAB 1: STUDIO -->
+            <div id="tabPanelStudio" class="space-y-6">
             <!-- Section 1: Color, Gradient & Glow -->
             <div class="space-y-4">
                 <div class="flex items-center justify-between">
@@ -703,7 +761,8 @@
                     </div>
                 </div>
             </div>
-
+            </div> <!-- /tabPanelStudio -->
+            </div> <!-- /sidebar scroll container -->
         </aside>
     </main>
 
@@ -812,6 +871,10 @@
                                     Receiver (RX)
                                 </h4>
                                 <div class="flex items-center gap-1.5">
+                                    <label class="flex items-center gap-1 text-[10px] text-sky-300 cursor-pointer px-1.5 py-0.5 rounded bg-sky-500/10 border border-sky-400/20" title="Auto-reply to incoming BroadcastChannel messages using local AI (sol-fast)">
+                                        <input type="checkbox" id="rxAiAutoReplyToggle" class="accent-sky-400 rounded">
+                                        <span>🤖 Auto-Reply</span>
+                                    </label>
                                     <span id="rxLockBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 text-gray-400 border border-white/10">NO LOCK</span>
                                     <button id="clearRxLogBtn" class="text-[10px] text-gray-500 hover:text-gray-300">Clear</button>
                                 </div>
@@ -2759,9 +2822,18 @@
             const wasPlaying = isTimelinePlaying;
             stopTimelinePlayback();
 
+            const resVal = parseInt(document.getElementById('webmResSelect')?.value || '1200', 10);
             const canvas = document.getElementById('exportCanvas');
-            canvas.width = 1200;
-            canvas.height = state.showText ? 580 : 440;
+            if (resVal === 512) {
+                canvas.width = 512;
+                canvas.height = 512;
+            } else if (resVal === 1920) {
+                canvas.width = 1920;
+                canvas.height = state.showText ? 928 : 704;
+            } else {
+                canvas.width = 1200;
+                canvas.height = state.showText ? 580 : 440;
+            }
             const ctx = canvas.getContext('2d');
             let recorder = null;
             try {
@@ -2799,6 +2871,7 @@
 
             try {
                 for (let f = 0; f <= totalFrames; f++) {
+                    btn.textContent = `${Math.round((f / totalFrames) * 100)}%`;
                     const rawProg = f / totalFrames;
                     const prog = motionTimeline.playMode === 'pingpong'
                         ? (rawProg <= 0.5 ? rawProg * 2 : (1 - rawProg) * 2)
@@ -4175,11 +4248,41 @@ Do not include any explanation or markdown formatting, output raw JSON only.`;
         }
 
         if (soloSync) {
-            soloSync.onReceiveCallback = ({ text }) => {
+            let autoReplyTimer = null;
+            soloSync.onReceiveCallback = ({ text, rawFrame, currentMessage }) => {
                 lastReceivedText = text;
                 if (rxTerminalLog) {
                     rxTerminalLog.textContent = text;
                     rxTerminalLog.scrollTop = rxTerminalLog.scrollHeight;
+                }
+                const autoReplyOn = document.getElementById('rxAiAutoReplyToggle')?.checked;
+                if (autoReplyOn && rawFrame?.isLast && currentMessage && !soloSync.isTransmitting) {
+                    clearTimeout(autoReplyTimer);
+                    autoReplyTimer = setTimeout(async () => {
+                        try {
+                            const resp = await fetch('http://127.0.0.1:11440/v1/chat/completions', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    model: 'sol-fast',
+                                    messages: [
+                                        { role: 'system', content: 'You are an AI agent communicating over SOLO-SYNC. Reply concisely in 1 short sentence (max 80 chars).' },
+                                        { role: 'user', content: currentMessage }
+                                    ],
+                                    max_tokens: 1500
+                                })
+                            });
+                            if (resp.ok) {
+                                const d = await resp.json();
+                                const reply = (d.choices?.[0]?.message?.content || 'ACK').trim().slice(0, 100);
+                                const tagged = `[${currentUserName || 'Agent'} AI]: ${reply}`;
+                                soloSync.transmit(tagged, { fps: 25, onFrameRender: (fr) => { Object.assign(state, fr.state); render(); renderTxModalStage(); } });
+                                showToast(`AI Auto-Replied: "${reply}"`);
+                            }
+                        } catch {
+                            showToast('AI Auto-Reply: Local AI offline');
+                        }
+                    }, 350);
                 }
             };
 
@@ -4280,6 +4383,150 @@ Do not include any explanation or markdown formatting, output raw JSON only.`;
         syncInputsFromState();
         render();
         pushHistory();
+
+        // =========================================================================
+        // 3-TAB SIDEBAR, EXPORT POPOVER, STAGE HUD, COMPARE PEEK, 3D TILT & SHORTCUTS
+        // =========================================================================
+        function switchSidebarTab(tabName) {
+            const tabs = {
+                studio: { btn: document.getElementById('tabBtnStudio'), panel: document.getElementById('tabPanelStudio') },
+                animate: { btn: document.getElementById('tabBtnAnimate'), panel: document.getElementById('tabPanelAnimate') },
+                cipher: { btn: document.getElementById('tabBtnCipher'), panel: document.getElementById('tabPanelCipher') }
+            };
+            Object.entries(tabs).forEach(([name, item]) => {
+                const active = name === tabName;
+                if (item.panel) item.panel.classList.toggle('hidden', !active);
+                if (item.btn) {
+                    item.btn.className = active
+                        ? 'sidebar-tab-btn px-2 py-1.5 rounded-xl bg-indigo-600/30 border border-indigo-400/50 text-xs font-semibold text-white transition flex items-center justify-center gap-1'
+                        : 'sidebar-tab-btn px-2 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-medium text-gray-300 hover:text-white transition flex items-center justify-center gap-1';
+                }
+            });
+            localStorage.setItem('solopass_sidebar_tab', tabName);
+        }
+        document.querySelectorAll('.sidebar-tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => switchSidebarTab(btn.dataset.sidebarTab));
+        });
+        switchSidebarTab(localStorage.getItem('solopass_sidebar_tab') || 'studio');
+
+        // Unified Export Popover
+        const exportMenuBtn = document.getElementById('exportMenuBtn');
+        const exportMenuPopover = document.getElementById('exportMenuPopover');
+        if (exportMenuBtn && exportMenuPopover) {
+            exportMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                exportMenuPopover.classList.toggle('hidden');
+            });
+            document.addEventListener('click', (e) => {
+                if (!exportMenuPopover.classList.contains('hidden') && !exportMenuPopover.contains(e.target) && e.target !== exportMenuBtn) {
+                    exportMenuPopover.classList.add('hidden');
+                }
+            });
+            exportMenuPopover.querySelectorAll('button').forEach(b => {
+                b.addEventListener('click', () => exportMenuPopover.classList.add('hidden'));
+            });
+        }
+
+        // Compare Reference Peek
+        const comparePeekBtn = document.getElementById('comparePeekBtn');
+        let comparePreSnapshot = null;
+        if (comparePeekBtn) {
+            comparePeekBtn.addEventListener('click', () => {
+                if (!comparePreSnapshot) {
+                    comparePreSnapshot = { ...state };
+                    applyPreset('reference');
+                    comparePeekBtn.classList.add('bg-indigo-500/30', 'border-indigo-400', 'text-white');
+                    showToast('Comparing against Exact Reference (click again to restore)');
+                } else {
+                    Object.assign(state, comparePreSnapshot);
+                    comparePreSnapshot = null;
+                    syncInputsFromState();
+                    render();
+                    comparePeekBtn.classList.remove('bg-indigo-500/30', 'border-indigo-400', 'text-white');
+                    showToast('Restored your design');
+                }
+            });
+        }
+
+        // 3D Stage Tilt Parallax
+        const tiltStageBtn = document.getElementById('tiltStageBtn');
+        const previewWrapperEl = document.getElementById('previewWrapper');
+        let isTiltEnabled = false;
+        if (tiltStageBtn && previewWrapperEl) {
+            tiltStageBtn.addEventListener('click', () => {
+                isTiltEnabled = !isTiltEnabled;
+                tiltStageBtn.classList.toggle('bg-sky-500/30', isTiltEnabled);
+                tiltStageBtn.classList.toggle('border-sky-400', isTiltEnabled);
+                tiltStageBtn.classList.toggle('text-white', isTiltEnabled);
+                if (!isTiltEnabled) previewWrapperEl.style.transform = '';
+                showToast(`3D Stage Tilt ${isTiltEnabled ? 'enabled 🪩' : 'disabled'}`);
+            });
+            previewWrapperEl.addEventListener('mousemove', (e) => {
+                if (!isTiltEnabled) return;
+                const rect = previewWrapperEl.getBoundingClientRect();
+                const nx = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+                const ny = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+                previewWrapperEl.style.transform = `perspective(900px) rotateY(${(nx * 7).toFixed(2)}deg) rotateX(${(-ny * 7).toFixed(2)}deg)`;
+            });
+            previewWrapperEl.addEventListener('mouseleave', () => {
+                if (isTiltEnabled) previewWrapperEl.style.transform = '';
+            });
+        }
+
+        // Stage Telemetry HUD sync
+        function updateStageHud() {
+            const seedEl = document.getElementById('hudSeedBadge');
+            const locksEl = document.getElementById('hudLocksBadge');
+            const modeEl = document.getElementById('hudModeBadge');
+            const seedVal = document.getElementById('motionSeedInput')?.value || '4829';
+            if (seedEl) seedEl.textContent = `Seed #${seedVal}`;
+            const activeLocks = Object.entries(lockedGroups).filter(([, v]) => v).map(([k]) => k);
+            if (locksEl) {
+                locksEl.classList.toggle('hidden', activeLocks.length === 0);
+                locksEl.textContent = `🔒 ${activeLocks.join(',')}`;
+            }
+            if (modeEl) {
+                if (typeof isMorphLoopActive !== 'undefined' && isMorphLoopActive) modeEl.textContent = 'Morphing';
+                else if (isTimelinePlaying) modeEl.textContent = 'Playing';
+                else modeEl.textContent = 'Ready';
+            }
+        }
+        setInterval(updateStageHud, 400);
+
+        // Shortcuts Help & Global Keyboard Shortcuts
+        const openShortcutsBtn = document.getElementById('openShortcutsBtn');
+        if (openShortcutsBtn) {
+            openShortcutsBtn.addEventListener('click', () => {
+                showToast('Shortcuts: [1/2/3] Tabs · [Space] Play/Pause · [R] Randomize · [M] Smooth Morph · [G] Guides · [Ctrl+S] Save');
+            });
+        }
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && exportMenuPopover && !exportMenuPopover.classList.contains('hidden')) {
+                exportMenuPopover.classList.add('hidden');
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+                e.preventDefault();
+                if (typeof saveCurrentToVault === 'function') saveCurrentToVault();
+                return;
+            }
+            if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
+            if (e.key === '1') switchSidebarTab('studio');
+            else if (e.key === '2') switchSidebarTab('animate');
+            else if (e.key === '3') switchSidebarTab('cipher');
+            else if (e.key === ' ') {
+                e.preventDefault();
+                if (typeof isMorphLoopActive !== 'undefined' && isMorphLoopActive) stopSmoothMorphLoop();
+                else document.getElementById('playTimelineBtn')?.click();
+            } else if (e.key.toLowerCase() === 'r' && !e.ctrlKey && !e.metaKey) {
+                document.getElementById('aiRandomizeMotionBtn')?.click();
+            } else if (e.key.toLowerCase() === 'm') {
+                document.getElementById('morphLoopBtn')?.click();
+            } else if (e.key.toLowerCase() === 'g') {
+                document.getElementById('toggleGuidesBtn')?.click();
+            } else if (e.key === '?') {
+                openShortcutsBtn?.click();
+            }
+        });
     </script>
 </body>
 </html>

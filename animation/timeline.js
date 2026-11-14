@@ -81,6 +81,7 @@ export function bindTimelineCallbacks({ stopPulse, pushHistory }) {
 
 export function applyEasingCurve(t, curveName) {
     const x = Math.max(0, Math.min(1, t));
+    if (curveName === 'step') return x >= 1 ? 1 : 0;
     if (curveName === 'linear') return x;
     if (curveName === 'easeInOutQuint') {
         return x < 0.5 ? 16 * x * x * x * x * x : 1 - Math.pow(-2 * x + 2, 5) / 2;
@@ -125,16 +126,28 @@ export function applyEasingCurve(t, curveName) {
     return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
 }
 
-export function applyInterpolatedTimeline(progress) {
+export function applyInterpolatedTimeline(progress, { skipDomRender = false } = {}) {
     const kfs = motionTimeline.keyframes;
     if (!kfs || kfs.length === 0) return;
     if (kfs.length === 1) {
         Object.assign(state, kfs[0].state);
-        syncInputsFromState();
-        render();
+        if (!skipDomRender) {
+            syncInputsFromState();
+            render();
+        }
         return;
     }
     const clamped = Math.max(0, Math.min(1, progress));
+    const rootCurve = motionTimeline.easing || kfs[0]?.easing || 'easeInOutCubic';
+    if (rootCurve === 'step') {
+        const stepIdx = Math.min(kfs.length - 1, Math.floor(clamped * kfs.length));
+        Object.assign(state, kfs[stepIdx].state);
+        if (!skipDomRender) {
+            syncInputsFromState();
+            render();
+        }
+        return;
+    }
     const scaled = clamped * (kfs.length - 1);
     const idx = Math.min(kfs.length - 2, Math.floor(scaled));
     const curveName = motionTimeline.easing || kfs[idx].easing || 'easeInOutCubic';
@@ -179,8 +192,10 @@ export function applyInterpolatedTimeline(progress) {
         state._flowPhase = Number((-(clamped * 160)).toFixed(1));
     }
 
-    syncInputsFromState();
-    render();
+    if (!skipDomRender) {
+        syncInputsFromState();
+        render();
+    }
 }
 
 export function renderKeyframeStrip() {

@@ -169,7 +169,7 @@ export function encodeGif89a(framesRgba, width, height, delayCs = 5, { transpare
             const by = (y & 1) << 1;
             for (let x = 0; x < width; x++) {
                 const p = (rowOff + x) << 2;
-                if (transparent && rgba[p + 3] < 48) {
+                if (transparent && rgba[p + 3] < 112) {
                     indices[rowOff + x] = 255;
                     continue;
                 }
@@ -265,7 +265,7 @@ export function initExporters({
     applyInterpolatedTimeline
 }) {
     function resolveOverlaySettings() {
-        const bgMode = document.getElementById('exportOverlayBg')?.value || 'transparent';
+        const bgMode = document.getElementById('exportOverlayBg')?.value || 'studio';
         const bugPos = document.getElementById('exportBugPosition')?.value || 'centered';
         let bgFill = state.bgColor === 'transparent' ? '#0d0d16' : state.bgColor;
         if (bgMode === 'transparent') bgFill = 'transparent';
@@ -273,9 +273,13 @@ export function initExporters({
         return { bgMode, bgFill, bugPos };
     }
 
-    async function renderTimelineFrameToCanvas(canvas, ctx, prog, bgFill, bugPos = 'centered') {
-        applyInterpolatedTimeline(prog);
-        const svgMarkup = generateSVGString(state, { forExport: true, includeGuides: false });
+    async function renderTimelineFrameToCanvas(canvas, ctx, prog, bgFill, bugPos = 'centered', timeline = null) {
+        applyInterpolatedTimeline(prog, { skipDomRender: true });
+        const isBeacon = timeline?.easing === 'step' && typeof state._clockBit === 'number';
+        const opticalGridMarkup = isBeacon && window.SoloSyncGrid?.generateGridMarkup
+            ? window.SoloSyncGrid.generateGridMarkup(600, state.showText ? 290 : 220, state._clockBit, 0)
+            : '';
+        const svgMarkup = generateSVGString(state, { forExport: true, includeGuides: false, opticalGridMarkup });
         const svgBlob = new Blob([svgMarkup], { type: 'image/svg+xml;charset=utf-8' });
         const imgUrl = URL.createObjectURL(svgBlob);
 
@@ -287,9 +291,12 @@ export function initExporters({
                     ctx.fillStyle = bgFill;
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                 }
+                const srcW = img.naturalWidth || 600;
+                const srcH = img.naturalHeight || (state.showText ? 290 : 220);
+                const aspect = srcH / srcW;
+
                 if (bugPos === 'yt-bottom-left' || bugPos === 'yt-bottom-right') {
                     const bugW = Math.round(canvas.width * 0.25);
-                    const aspect = img.naturalHeight && img.naturalWidth ? (img.naturalHeight / img.naturalWidth) : (state.showText ? 290 / 600 : 220 / 600);
                     const bugH = Math.round(bugW * aspect);
                     const padX = Math.round(canvas.width * 0.035);
                     const padY = Math.round(canvas.height * 0.045);
@@ -297,7 +304,12 @@ export function initExporters({
                     const dy = canvas.height - bugH - padY;
                     ctx.drawImage(img, dx, dy, bugW, bugH);
                 } else {
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    const scale = Math.min(canvas.width / srcW, canvas.height / srcH);
+                    const drawW = Math.round(srcW * scale);
+                    const drawH = Math.round(srcH * scale);
+                    const dx = Math.round((canvas.width - drawW) / 2);
+                    const dy = Math.round((canvas.height - drawH) / 2);
+                    ctx.drawImage(img, dx, dy, drawW, drawH);
                 }
                 URL.revokeObjectURL(imgUrl);
                 resolve();
@@ -411,7 +423,7 @@ export function initExporters({
                 const prog = timeline.playMode === 'pingpong'
                     ? (rawProg <= 0.5 ? rawProg * 2 : (1 - rawProg) * 2)
                     : rawProg;
-                await renderTimelineFrameToCanvas(canvas, ctx, prog, bgFill, bugPos);
+                await renderTimelineFrameToCanvas(canvas, ctx, prog, bgFill, bugPos, timeline);
                 framesRgba.push(ctx.getImageData(0, 0, canvas.width, canvas.height).data);
             }
             if (btn) btn.textContent = 'Encoding...';
@@ -425,6 +437,7 @@ export function initExporters({
             console.error('[SOLOPASS] GIF export failed:', err);
             showToast('GIF export failed — check console for details', 'error');
         } finally {
+            applyInterpolatedTimeline(0);
             if (btn) {
                 btn.disabled = false;
                 btn.innerHTML = origHtml;
@@ -467,12 +480,15 @@ export function initExporters({
             canvas.width = 1200;
             canvas.height = state.showText ? 580 : 440;
         }
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { alpha: true });
         let recorder = null;
+        let videoTrack = null;
+        const fps = 30;
         try {
-            const stream = canvas.captureStream(30);
+            const stream = canvas.captureStream(0);
+            videoTrack = stream.getVideoTracks()[0];
             const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
-            recorder = new MediaRecorder(stream, { mimeType });
+            recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 4500000 });
         } catch (err) {
             console.error('[SOLOPASS] MediaRecorder init failed:', err);
             btn.disabled = false;
@@ -490,15 +506,17 @@ export function initExporters({
         recorder.onstop = () => {
             const webmBlob = new Blob(chunks, { type: 'video/webm' });
             triggerDownload(webmBlob, 'solopass-animation.webm');
+            applyInterpolatedTimeline(0);
             btn.disabled = false;
             btn.innerHTML = origHtml;
-            showToast('Downloaded solopass-animation.webm');
+            showToast(`Downloaded solopass-animation.webm (${(webmBlob.size / 1024).toFixed(0)} KB)`);
             if (wasPlaying) document.getElementById('playTimelineBtn')?.click();
         };
 
-        recorder.start();
-        const fps = 30;
+        recorder.start(100);
         const totalFrames = Math.max(15, Math.round(timeline.durationSec * fps));
+        const frameIntervalMs = 1000 / fps;
+        const startPerf = performance.now();
 
         try {
             for (let f = 0; f <= totalFrames; f++) {
@@ -507,8 +525,15 @@ export function initExporters({
                 const prog = timeline.playMode === 'pingpong'
                     ? (rawProg <= 0.5 ? rawProg * 2 : (1 - rawProg) * 2)
                     : rawProg;
-                await renderTimelineFrameToCanvas(canvas, ctx, prog, bgFill, bugPos);
-                await new Promise(r => setTimeout(r, 1000 / fps));
+                await renderTimelineFrameToCanvas(canvas, ctx, prog, bgFill, bugPos, timeline);
+                if (videoTrack && typeof videoTrack.requestFrame === 'function') {
+                    videoTrack.requestFrame();
+                }
+                const targetTime = startPerf + (f + 1) * frameIntervalMs;
+                const waitMs = targetTime - performance.now();
+                if (waitMs > 1) {
+                    await new Promise(r => setTimeout(r, waitMs));
+                }
             }
         } catch (err) {
             console.error('[SOLOPASS] .WEBM frame render error:', err);

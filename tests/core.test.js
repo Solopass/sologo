@@ -198,6 +198,9 @@ export function runAllTests() {
             const beacon = buildBeaconMessageTimeline('HI', base, { protocol: mockProto });
             assert(beacon.ok, 'Beacon timeline succeeds');
             assertEqual(beacon.frameCount, 2, 'Beacon frame count matches message length');
+            assertEqual(beacon.timeline.easing, 'step', 'Beacon timeline uses step hold easing');
+            assertEqual(applyEasingCurve(0.5, 'step'), 0, 'Step easing holds before end');
+            assertEqual(applyEasingCurve(1, 'step'), 1, 'Step easing snaps at 1');
         } finally {
             lockedGroups.colors = prevColors;
         }

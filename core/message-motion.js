@@ -166,13 +166,14 @@ export function buildBeaconMessageTimeline(message, baseState, { anchorState = n
         const safeCh = /[\x20-\x7E]/.test(ch) ? ch : `#${idx + 1}`;
         return {
             label: `${idx + 1}:${safeCh}`,
-            easing: 'linear',
+            easing: 'step',
             state: applyLocksToState({
                 ...base,
                 ...f.state,
                 visualStyle: 'classic',
                 useGradient: true,
-                energyFlow: 0
+                energyFlow: 0,
+                _clockBit: f.clockBit
             }, anchor)
         };
     });
@@ -187,7 +188,7 @@ export function buildBeaconMessageTimeline(message, baseState, { anchorState = n
             format: 'solopass-motion-v1',
             durationSec,
             playMode: 'loop',
-            easing: 'linear',
+            easing: 'step',
             loop: true,
             keyframes
         }

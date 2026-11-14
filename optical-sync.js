@@ -731,9 +731,9 @@
 
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            const cvDecoder = new SoloSyncCVDecoder();
             const decoder = new TextDecoder();
             const recoveredBytes = [];
-            let lastClockBit = -1;
             let decodedText = '';
 
             try {
@@ -765,17 +765,13 @@
 
                     ctx.clearRect(0, 0, vw, vh);
                     ctx.drawImage(video, 0, 0, vw, vh);
-                    const res = SoloSyncCVDecoder.decodeCanvas(canvas, ctx);
+                    const res = cvDecoder.decodeCanvas(canvas, false);
                     onProgress?.(Math.round(((i + 1) / totalSteps) * 100), res);
 
-                    if (res && res.frame && res.confidence >= 0.45) {
+                    if (res && res.locked && res.isNewFrame && res.validCRC && res.b0) {
                         onFrame?.(res);
-                        if (res.frame.clockBit !== lastClockBit) {
-                            lastClockBit = res.frame.clockBit;
-                            if (res.frame.b0) recoveredBytes.push(res.frame.b0);
-                            if (res.frame.b1) recoveredBytes.push(res.frame.b1);
-                            decodedText = decoder.decode(new Uint8Array(recoveredBytes));
-                        }
+                        recoveredBytes.push(res.b0);
+                        decodedText = decoder.decode(new Uint8Array(recoveredBytes));
                     }
                 }
 

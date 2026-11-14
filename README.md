@@ -8,7 +8,9 @@ A zero-build, dark-themed parametric SVG logo studio, keyframe motion lab, and e
 - **Per-Slider & Section Locks**: Lock individual sliders or entire control groups (`Core`, `Wings`, `Stroke & Color`, `Text`) so Randomize, Smooth Morph, AI mutations, and Seeded Motion preserve locked attributes.
 - **Keyframe Timeline & Motion Modes**: Multi-keyframe motion lab with 9 easing curves (`Smooth Cubic`, `Strong Quint`, `Elastic Spring`, `Out Elastic`, `Out Bounce`, `Overshoot Back`, `In-Out Back`, `Warp Expo`, `Linear`), staggered wing lag, continuous Idle Behaviors (`Pulse`, `Orbit`, `Flow`), one-click Motion Modes (`Idle Pulse`, `Power Up`, `Scan`, `Spin & Expand`, `Glitch Burst`, `Morph Loop`), Seeded Motion, and Smooth Morph.
 - **Multi-Format Exporters**: Export static `.SVG`, `.PNG` (with embedded `tEXt` `solopass_seed` metadata chunk), `512px` App Icon `.PNG`, animated `.GIF` (pure-JS Gif89a encoder), `.WEBM`, Animated `.SVG`, and `.SPMOTION` timeline files.
-- **Geometric Cipher & `SP2-` Seeds**: Deterministic text-to-geometry cipher and compact shareable `SP2-` state seeds.
+- **Geometric Cipher & Message-to-Motion**: Deterministic text-to-geometry cipher, shareable `SP2-` state seeds, and a **Message-to-Motion Composer** (`Stealth Morph`, `Plasma Pulse`, `Holo Scan`, `Glitch Cipher`, or CRC-8 `Decodable Beacon`) for turning real phrases into animated corner-bug logos.
+- **YouTube Video Bug Preview & Transparent/Chroma Export**: Preview your animated logo in the bottom corner of a simulated 16:9 frame (`📺 Video Bug`) and export `.GIF` / `.WEBM` with `Studio BG`, `Transparent` (alpha), or `Chroma Green (#00FF00)` and `Centered` / `YT Bottom-Left` / `YT Bottom-Right` framing.
+- **Video Clip Optical Decoder**: Scan an exported `.WEBM` / `.MP4` clip frame-by-frame (`🎞️ Decode Video Clip`) to recover `Decodable Beacon` messages without a physical webcam.
 - **AI Theme Co-Pilot & Vault**: Generates themed visual variations via a local OpenAI-compatible LLM server with an automatic deterministic heuristic fallback, plus saved presets and local Vault snapshots.
 - **Optical Sync (`SoloSync`, Experimental)**: Screen-to-camera data transmission using modulated chromatic corners.
 
@@ -24,6 +26,7 @@ sologo/
 │   ├── geometry.js       # Pure SVG generator (generateSVGString)
 │   ├── seed.js           # SP2- seed encode/decode & strict validation
 │   ├── cipher.js         # Deterministic phrase-to-geometry encoder
+│   ├── message-motion.js # Message-to-Motion choreography (Stealth & CRC-8 Beacon)
 │   └── locks.js          # Group & per-slider lock state and enforcement
 ├── animation/
 │   └── timeline.js       # Keyframe interpolation, playback, seeded motion, smooth morph

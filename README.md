@@ -10,7 +10,7 @@ A zero-build, dark-themed parametric SVG logo studio, keyframe motion lab, and e
 - **Multi-Format Exporters**: Export static `.SVG`, `.PNG` (with embedded `tEXt` `solopass_seed` metadata chunk), `512px` App Icon `.PNG`, animated `.GIF` (pure-JS Gif89a encoder), `.WEBM`, Animated `.SVG`, and `.SPMOTION` timeline files.
 - **Geometric Cipher & Message-to-Motion**: Deterministic text-to-geometry cipher, shareable `SP2-` state seeds, and a **Message-to-Motion Composer** (`Stealth Morph`, `Plasma Pulse`, `Holo Scan`, `Glitch Cipher`, or CRC-8 `Decodable Beacon`) for turning real phrases into animated corner-bug logos.
 - **YouTube Video Bug Preview & Transparent/Chroma Export**: Preview your animated logo in the bottom corner of a simulated 16:9 frame (`📺 Video Bug`) and export `.GIF` / `.WEBM` with `Studio BG`, `Transparent` (alpha), or `Chroma Green (#00FF00)` and `Centered` / `YT Bottom-Left` / `YT Bottom-Right` framing.
-- **Video Clip Optical Decoder**: Scan an exported `.WEBM` / `.MP4` clip frame-by-frame (`🎞️ Decode Video Clip`) to recover `Decodable Beacon` messages without a physical webcam.
+- **Video Clip Optical Decoder & Beacon Verifier**: Scan an exported `.WEBM` / `.MP4` clip frame-by-frame (`🎞️ Decode Video Clip`) or run an instant offscreen CRC-8 round-trip check (`🧪 Verify Beacon`) without a physical webcam.
 - **AI Theme Co-Pilot & Vault**: Generates themed visual variations via a local OpenAI-compatible LLM server with an automatic deterministic heuristic fallback, plus saved presets and local Vault snapshots.
 - **Optical Sync (`SoloSync`, Experimental)**: Screen-to-camera data transmission using modulated chromatic corners.
 

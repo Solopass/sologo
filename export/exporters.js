@@ -173,7 +173,8 @@ export function encodeGif89a(framesRgba, width, height, delayCs = 5, { transpare
                     indices[rowOff + x] = 255;
                     continue;
                 }
-                const d = (bayer[by | (x & 1)] - 1.5) * 14;
+                const isFlatDarkBg = rgba[p] < 24 && rgba[p + 1] < 24 && rgba[p + 2] < 32;
+                const d = isFlatDarkBg ? 0 : (bayer[by | (x & 1)] - 1.5) * 14;
                 const r = Math.max(0, Math.min(255, rgba[p] + d));
                 const g = Math.max(0, Math.min(255, rgba[p + 1] + d));
                 const b = Math.max(0, Math.min(255, rgba[p + 2] + d));
@@ -553,15 +554,21 @@ export function initExporters({
         const safeTitle = escapeXml(state.brandText || 'SOLOPASS');
         const timelineJson = JSON.stringify(timeline).replace(/</g, '\\u003c');
         const hasTriple = state.tripleWing || timeline.keyframes.some(k => k.state && k.state.tripleWing);
+        const styleMode = state.visualStyle || 'classic';
+        const filterAttr = styleMode === 'minimal' ? '' : 'filter="url(#neonGlow)"';
+        const hasFlow = (state.energyFlow || 0) > 0 || timeline.keyframes.some(k => k.state && (k.state.energyFlow || 0) > 0);
+        const gradStops = styleMode === 'holographic'
+            ? `<stop id="gStop1" offset="0%" stop-color="${state.strokeColor}" /><stop offset="30%" stop-color="#38bdf8" /><stop id="gStop2" offset="55%" stop-color="#f472b6" /><stop offset="80%" stop-color="#a78bfa" /><stop id="gStop3" offset="100%" stop-color="${state.secondaryColor}" />`
+            : styleMode === 'plasma'
+                ? `<stop id="gStop1" offset="0%" stop-color="${state.strokeColor}" /><stop offset="35%" stop-color="#ffffff" stop-opacity="0.95" /><stop id="gStop2" offset="68%" stop-color="${state.secondaryColor}" /><stop id="gStop3" offset="100%" stop-color="${state.strokeColor}" />`
+                : `<stop id="gStop1" offset="0%" stop-color="${state.strokeColor}" /><stop id="gStop2" offset="50%" stop-color="${state.secondaryColor}" /><stop id="gStop3" offset="100%" stop-color="${state.strokeColor}" />`;
 
         const animatedSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="100%" height="100%" role="img" aria-label="${safeTitle} Animated Vector Emblem" data-solopass-seed="${seedCode}">
   <title>${safeTitle} Animated Vector Emblem</title>
   <metadata id="spmotion-data">${escapeXml(JSON.stringify(timeline))}</metadata>
   <defs>
     <linearGradient id="solopassGrad" gradientUnits="userSpaceOnUse" x1="60" y1="0" x2="540" y2="0" gradientTransform="rotate(${state.gradAngle || 0} ${cx} ${cy})">
-      <stop id="gStop1" offset="0%" stop-color="${state.strokeColor}" />
-      <stop id="gStop2" offset="50%" stop-color="${state.secondaryColor}" />
-      <stop id="gStop3" offset="100%" stop-color="${state.strokeColor}" />
+      ${gradStops}
     </linearGradient>
     <filter id="neonGlow" x="-35%" y="-35%" width="170%" height="170%">
       <feGaussianBlur id="glowB1" stdDeviation="${state.glowBlur}" result="blur1" />
@@ -572,22 +579,31 @@ export function initExporters({
       <feMerge><feMergeNode in="fadeBlur1" /><feMergeNode in="blur2" /><feMergeNode in="SourceGraphic" /></feMerge>
     </filter>
   </defs>
-  <g id="emblemGroup" filter="url(#neonGlow)" fill="none" stroke="${state.useGradient ? 'url(#solopassGrad)' : state.strokeColor}" stroke-linecap="${state.lineCap}" stroke-linejoin="round">
+  <g id="emblemGroup" ${filterAttr} fill="none" stroke="${(state.useGradient || styleMode === 'plasma' || styleMode === 'holographic') ? 'url(#solopassGrad)' : state.strokeColor}" stroke-linecap="${state.lineCap}" stroke-linejoin="round">
     <circle id="cRing" cx="${cx}" cy="${cy}" r="${state.circleRadius}" stroke-width="${state.ringStrokeWidth}" fill="${state.strokeColor}" fill-opacity="${state.ringFillOpacity}" />
     <g id="lWings"><path id="lTop" stroke-width="${state.wingStrokeWidth}" /><path id="lBot" stroke-width="${state.wingStrokeWidth}" />${hasTriple ? `<path id="l3" stroke-width="${Math.max(2, state.wingStrokeWidth * 0.85)}" />` : ''}</g>
     <g id="rWings"><path id="rTop" stroke-width="${state.wingStrokeWidth}" /><path id="rBot" stroke-width="${state.wingStrokeWidth}" />${hasTriple ? `<path id="r3" stroke-width="${Math.max(2, state.wingStrokeWidth * 0.85)}" />` : ''}</g>
-  </g>
+  </g>${hasFlow ? `
+  <g id="flowGroup" opacity="0.7" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-dasharray="18 32" stroke-dashoffset="0">
+    <g id="flWings"><path id="flTop" stroke-width="2" /><path id="flBot" stroke-width="1.8" /></g>
+    <g id="frWings"><path id="frTop" stroke-width="2" /><path id="frBot" stroke-width="1.8" /></g>
+  </g>` : ''}
   <script><![CDATA[
     (function(){
       var tl = ${timelineJson};
       var kfs = tl.keyframes || [];
       if (kfs.length < 2) return;
-      var keys = ['circleRadius','ringStrokeWidth','ringFillOpacity','ringGapDeg','ringRotate','wingStrokeWidth','wingGap','topWingLen','botWingLen','wingSpacing','wingOffsetY','botInnerInset','wingAngle','wingCurve','wingBalance','glowBlur','glowOpacity','gradAngle'];
+      var keys = ['circleRadius','ringStrokeWidth','ringFillOpacity','ringGapDeg','ringRotate','wingStrokeWidth','wingGap','topWingLen','botWingLen','wingSpacing','wingOffsetY','botInnerInset','wingAngle','wingCurve','wingBalance','glowBlur','glowOpacity','gradAngle','energyFlow'];
       var cx = ${cx}, cy = ${cy}, dur = (tl.durationSec || 3) * 1000;
       var svg = document.documentElement;
       function ease(t, c){
+        if(c==='step') return t>=1?1:0;
         if(c==='linear') return t;
+        if(c==='easeInOutQuint') return t<0.5?16*t*t*t*t*t:1-Math.pow(-2*t+2,5)/2;
         if(c==='easeOutBack'){var c1=1.70158,c3=c1+1;return 1+c3*Math.pow(t-1,3)+c1*Math.pow(t-1,2);}
+        if(c==='easeInOutBack'){var c1=1.70158,c2=c1*1.525;return t<0.5?(Math.pow(2*t,2)*((c2+1)*2*t-c2))/2:(Math.pow(2*t-2,2)*((c2+1)*(t*2-2)+c2)+2)/2;}
+        if(c==='easeOutElastic'){if(t===0||t===1)return t;var c4=(2*Math.PI)/3;return Math.pow(2,-10*t)*Math.sin((t*10-0.75)*c4)+1;}
+        if(c==='easeOutBounce'){var n1=7.5625,d1=2.75;if(t<1/d1)return n1*t*t;if(t<2/d1){t-=1.5/d1;return n1*t*t+0.75;}if(t<2.5/d1){t-=2.25/d1;return n1*t*t+0.9375;}t-=2.625/d1;return n1*t*t+0.984375;}
         if(c==='easeInOutExpo'){return t===0||t===1?t:(t<0.5?Math.pow(2,20*t-10)/2:(2-Math.pow(2,-20*t+10))/2);}
         if(c==='spring'){if(t===0||t===1)return t;var c4=(2*Math.PI)/3;return t<0.5?-(Math.pow(2,20*t-10)*Math.sin((20*t-11.125)*c4))/2:(Math.pow(2,-20*t+10)*Math.sin((20*t-11.125)*c4))/2+1;}
         return t<0.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
@@ -599,9 +615,15 @@ export function initExporters({
       function frame(now){
         var raw = ((now - t0) % dur) / dur;
         var prog = tl.playMode === 'pingpong' ? (raw <= 0.5 ? raw * 2 : (1 - raw) * 2) : raw;
-        var sc = prog * (kfs.length - 1), idx = Math.min(kfs.length - 2, Math.floor(sc));
-        var lt = ease(sc - idx, tl.easing || kfs[idx].easing || 'easeInOutCubic');
-        var a = kfs[idx].state, b = kfs[idx + 1].state, s = {};
+        var a, b, lt, s = {};
+        if ((tl.easing || kfs[0].easing) === 'step') {
+          var sIdx = Math.min(kfs.length - 1, Math.floor(prog * kfs.length));
+          a = kfs[sIdx].state; b = a; lt = 0;
+        } else {
+          var sc = prog * (kfs.length - 1), idx = Math.min(kfs.length - 2, Math.floor(sc));
+          lt = ease(sc - idx, tl.easing || kfs[idx].easing || 'easeInOutCubic');
+          a = kfs[idx].state; b = kfs[idx + 1].state;
+        }
         keys.forEach(function(k){var v1=typeof a[k]==='number'?a[k]:0,v2=typeof b[k]==='number'?b[k]:v1;s[k]=v1+(v2-v1)*lt;});
         var c1 = lerpC(a.strokeColor, b.strokeColor, lt), c2 = lerpC(a.secondaryColor, b.secondaryColor, lt);
         var gradEl = svg.getElementById('solopassGrad');
@@ -637,6 +659,20 @@ export function initExporters({
         svg.getElementById('glowB1').setAttribute('stdDeviation', s.glowBlur.toFixed(1));
         svg.getElementById('glowB2').setAttribute('stdDeviation', (s.glowBlur*0.45).toFixed(1));
         svg.getElementById('glowAlpha').setAttribute('slope', s.glowOpacity.toFixed(2));
+        var fg = svg.getElementById('flowGroup');
+        if (fg) {
+          var fa = s.energyFlow || 0;
+          fg.style.display = fa > 0 ? '' : 'none';
+          if (fa > 0) {
+            fg.setAttribute('stroke-dashoffset', (-prog * 160).toFixed(1));
+            svg.getElementById('flTop').setAttribute('d', svg.getElementById('lTop').getAttribute('d'));
+            svg.getElementById('flBot').setAttribute('d', svg.getElementById('lBot').getAttribute('d'));
+            svg.getElementById('frTop').setAttribute('d', svg.getElementById('rTop').getAttribute('d'));
+            svg.getElementById('frBot').setAttribute('d', svg.getElementById('rBot').getAttribute('d'));
+            svg.getElementById('flWings').setAttribute('transform', svg.getElementById('lWings').getAttribute('transform'));
+            svg.getElementById('frWings').setAttribute('transform', svg.getElementById('rWings').getAttribute('transform'));
+          }
+        }
         requestAnimationFrame(frame);
       }
       requestAnimationFrame(frame);

@@ -30,6 +30,7 @@ export function initControls({ timelineApi }) {
     const {
         getIsTimelinePlaying,
         getIsMorphLoopActive,
+        getMotionTimeline,
         setMotionTimeline,
         stopTimelinePlayback,
         stopSmoothMorphLoop
@@ -528,6 +529,65 @@ export function initControls({ timelineApi }) {
         } else if (res.ok) {
             if (statusEl) statusEl.textContent = 'No beacon frames found';
             showToast('No SoloSync CRC-8 beacon frames detected in clip', 'error');
+        }
+    });
+
+    document.getElementById('verifyBeaconBtn')?.addEventListener('click', async () => {
+        const statusEl = document.getElementById('videoDecodeStatus');
+        const box = document.getElementById('decodedMessageBox');
+        const textEl = document.getElementById('decodedMessageText');
+        const tl = getMotionTimeline();
+        const DecoderCtor = window.SoloSyncCVDecoder;
+        const GridApi = window.SoloSyncGrid;
+        if (!DecoderCtor || !GridApi || !tl?.keyframes?.length) {
+            showToast('Generate a Decodable Beacon timeline first', 'error');
+            return;
+        }
+        if (statusEl) statusEl.textContent = 'Verifying frames...';
+        const canvas = document.createElement('canvas');
+        canvas.width = 600;
+        canvas.height = 220;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const cvDecoder = new DecoderCtor();
+        const bytes = [];
+
+        for (let i = 0; i < tl.keyframes.length; i++) {
+            const kfState = { ...state, ...tl.keyframes[i].state, showText: false };
+            const grid = GridApi.generateGridMarkup(600, 220, kfState._clockBit ?? (i % 2), i);
+            const svgMarkup = generateSVGString(kfState, { forExport: true, includeGuides: false, opticalGridMarkup: grid });
+            const url = URL.createObjectURL(new Blob([svgMarkup], { type: 'image/svg+xml;charset=utf-8' }));
+            await new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    ctx.fillStyle = '#0d0d16';
+                    ctx.fillRect(0, 0, 600, 220);
+                    ctx.drawImage(img, 0, 0, 600, 220);
+                    URL.revokeObjectURL(url);
+                    resolve();
+                };
+                img.onerror = () => {
+                    URL.revokeObjectURL(url);
+                    resolve();
+                };
+                img.src = url;
+            });
+            const res = cvDecoder.decodeCanvas(canvas, true);
+            if (res && res.locked && res.bytes && res.bytes.b0) {
+                bytes.push(res.bytes.b0);
+            }
+        }
+
+        const recovered = new TextDecoder().decode(new Uint8Array(bytes));
+        if (recovered) {
+            if (statusEl) statusEl.textContent = `CRC-8 OK (${bytes.length}/${tl.keyframes.length})`;
+            if (box && textEl) {
+                box.classList.remove('hidden');
+                textEl.textContent = recovered;
+            }
+            showToast(`Beacon verified: "${recovered}" (${bytes.length}/${tl.keyframes.length} frames)`);
+        } else {
+            if (statusEl) statusEl.textContent = 'Verify failed (not a Beacon?)';
+            showToast('No CRC-8 Beacon bytes recovered — select Decodable Beacon first', 'error');
         }
     });
 

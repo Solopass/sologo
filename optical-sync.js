@@ -768,9 +768,9 @@
                     const res = cvDecoder.decodeCanvas(canvas, false);
                     onProgress?.(Math.round(((i + 1) / totalSteps) * 100), res);
 
-                    if (res && res.locked && res.isNewFrame && res.validCRC && res.b0) {
+                    if (res && res.locked && res.isNewFrame && res.bytes && res.bytes.b0) {
                         onFrame?.(res);
-                        recoveredBytes.push(res.b0);
+                        recoveredBytes.push(res.bytes.b0);
                         decodedText = decoder.decode(new Uint8Array(recoveredBytes));
                     }
                 }

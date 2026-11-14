@@ -11,9 +11,9 @@ export function generateSVGString(s, {
     opticalGridMarkup = ''
 } = {}) {
     const width = 600;
-    const height = s.showText ? 290 : 220;
+    const height = (s.showText || s.showLowerThird) ? 290 : 220;
     const cx = width / 2;
-    const cy = s.showText ? 105 : 110;
+    const cy = (s.showText || s.showLowerThird) ? 105 : 110;
 
     const r = s.circleRadius;
     const gap = s.wingGap;
@@ -151,6 +151,17 @@ ${gradStops}
     const wordmarkMarkup = s.showText ? `
   <text x="${cx}" y="${cy + r + (s.textOffsetY || 58)}" text-anchor="middle" fill="${strokePaint}" font-family="'Space Grotesk', 'Inter', sans-serif" font-weight="700" font-size="${s.fontSize}" letter-spacing="${s.letterSpacing}" ${filterAttr}>${safeTitle}</text>` : '';
 
+    const ctaRaw = (s.encodedMessage && s.encodedMessage.trim()) ? s.encodedMessage.trim() : (s.brandText || 'SOLOPASS');
+    const ctaText = escapeXml(ctaRaw.slice(0, 32));
+    const pillW = Math.max(150, Math.min(460, ctaText.length * 10 + 44));
+    const pillY = s.showText ? (cy + r + (s.textOffsetY || 58) + 18) : (cy + r + 34);
+    const lowerThirdMarkup = s.showLowerThird ? `
+  <g>
+    <rect x="${cx - pillW / 2}" y="${pillY}" width="${pillW}" height="32" rx="16" fill="#0d0d16" fill-opacity="0.86" stroke="${strokePaint}" stroke-width="1.5" />
+    <circle cx="${cx - pillW / 2 + 16}" cy="${pillY + 16}" r="4" fill="${s.secondaryColor || '#38bdf8'}" />
+    <text x="${cx + 6}" y="${pillY + 20.5}" text-anchor="middle" fill="#f8fafc" font-family="'JetBrains Mono', 'Inter', monospace" font-weight="600" font-size="12.5" letter-spacing="1.6">${ctaText}</text>
+  </g>` : '';
+
     const innerR = (s.innerRingRadius || 0) > 0 ? Math.max(4, Math.min(r - 4, s.innerRingRadius)) : 0;
     const innerRingMarkup = innerR > 0
         ? `\n    <circle cx="${cx}" cy="${cy}" r="${innerR}" stroke-width="${Math.max(1.5, s.ringStrokeWidth * 0.45).toFixed(1)}" stroke-opacity="0.75" fill="none" />`
@@ -215,6 +226,6 @@ ${gradStops}
   <title>${safeTitle} Vector Emblem</title>
   <!-- SOLOPASS Vector Emblem | Seed: ${seedCode} -->${defs}${opticalGridMarkup}${guidesMarkup}${echoMarkup}${glitchMarkup}${minimalAccentMarkup}
   <g ${filterAttr} fill="none" stroke="${strokePaint}" stroke-linecap="${s.lineCap}" stroke-linejoin="round">${emblemCore}
-  </g>${coreHighlightMarkup}${flowMarkup}${wordmarkMarkup}
+  </g>${coreHighlightMarkup}${flowMarkup}${wordmarkMarkup}${lowerThirdMarkup}
 </svg>`;
 }

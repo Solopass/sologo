@@ -205,6 +205,8 @@ export function syncInputsFromState() {
     setVal(els.secondaryColor, state.secondaryColor);
     setVal(els.secondaryColorHex, state.secondaryColor);
     if (els.useGradient) els.useGradient.checked = state.useGradient;
+    const lowerThirdEl = $('showLowerThird');
+    if (lowerThirdEl) lowerThirdEl.checked = !!state.showLowerThird;
     setVal(els.glowBlur, state.glowBlur);
     setVal(els.glowOpacity, state.glowOpacity);
     setVal(els.gradAngle, state.gradAngle || 0);

@@ -62,6 +62,7 @@ export const state = {
     lockNonStraight: false,
     lineCap: 'round',
     showText: false,
+    showLowerThird: false,
     brandText: 'SOLOPASS',
     fontSize: 30,
     letterSpacing: 12,

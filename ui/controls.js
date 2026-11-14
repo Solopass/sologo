@@ -110,6 +110,12 @@ export function initControls({ timelineApi }) {
         pushHistory();
     });
 
+    document.getElementById('showLowerThird')?.addEventListener('change', (e) => {
+        state.showLowerThird = e.target.checked;
+        render();
+        pushHistory();
+    });
+
     els.visualStyleSelect?.addEventListener('change', (e) => {
         state.visualStyle = e.target.value || 'classic';
         render();

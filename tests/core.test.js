@@ -5,6 +5,7 @@ import { lockedGroups, lockedSliders, applyLocksToState } from '../core/locks.js
 import { generateSVGString } from '../core/geometry.js';
 import { applyEasingCurve } from '../animation/timeline.js';
 import { buildStealthMessageTimeline, buildBeaconMessageTimeline } from '../core/message-motion.js';
+import { buildZipBlob } from '../export/exporters.js';
 
 function assert(cond, msg) {
     if (!cond) throw new Error(msg || 'Assertion failed');
@@ -201,6 +202,13 @@ export function runAllTests() {
             assertEqual(beacon.timeline.easing, 'step', 'Beacon timeline uses step hold easing');
             assertEqual(applyEasingCurve(0.5, 'step'), 0, 'Step easing holds before end');
             assertEqual(applyEasingCurve(1, 'step'), 1, 'Step easing snaps at 1');
+
+            const ctaSvg = generateSVGString({ ...DEFAULTS, showLowerThird: true, encodedMessage: 'SUBSCRIBE' });
+            assert(ctaSvg.includes('viewBox="0 0 600 290"'), 'CTA pill expands viewBox height to 290');
+            assert(ctaSvg.includes('SUBSCRIBE'), 'CTA pill renders encoded message');
+
+            const zip = buildZipBlob([{ name: 'frame_000.png', data: new Uint8Array([1, 2, 3, 4]) }]);
+            assert(zip.size > 40 && zip.type === 'application/zip', 'buildZipBlob creates valid ZIP blob');
         } finally {
             lockedGroups.colors = prevColors;
         }

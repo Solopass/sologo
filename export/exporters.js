@@ -134,26 +134,128 @@ function exportCanvasWithSeed(canvas, filename, toastMsg) {
     }, 'image/png');
 }
 
+function buildAdaptivePalette(framesRgba, transparent) {
+    const maxColors = transparent ? 255 : 256;
+    const hist = new Uint32Array(32768);
+    const sumR = new Uint32Array(32768);
+    const sumG = new Uint32Array(32768);
+    const sumB = new Uint32Array(32768);
+
+    const frameStep = framesRgba.length > 24 ? 2 : 1;
+    for (let f = 0; f < framesRgba.length; f += frameStep) {
+        const rgba = framesRgba[f];
+        for (let p = 0; p < rgba.length; p += 8) {
+            if (transparent && rgba[p + 3] < 112) continue;
+            const r = rgba[p];
+            const g = rgba[p + 1];
+            const b = rgba[p + 2];
+            const key = ((r >> 3) << 10) | ((g >> 3) << 5) | (b >> 3);
+            hist[key]++;
+            sumR[key] += r;
+            sumG[key] += g;
+            sumB[key] += b;
+        }
+    }
+
+    const active = [];
+    for (let k = 0; k < 32768; k++) {
+        if (hist[k] > 0) active.push(k);
+    }
+
+    if (active.length === 0) {
+        const fallback = [[13, 13, 22], [107, 102, 255], [56, 189, 248], [255, 255, 255]];
+        while (fallback.length < 256) fallback.push([0, 0, 0]);
+        return fallback;
+    }
+
+    const makeBox = (keys) => {
+        let minR = 31, maxR = 0, minG = 31, maxG = 0, minB = 31, maxB = 0, pop = 0;
+        for (let i = 0; i < keys.length; i++) {
+            const k = keys[i];
+            const r = (k >> 10) & 31, g = (k >> 5) & 31, b = k & 31;
+            if (r < minR) minR = r; if (r > maxR) maxR = r;
+            if (g < minG) minG = g; if (g > maxG) maxG = g;
+            if (b < minB) minB = b; if (b > maxB) maxB = b;
+            pop += hist[k];
+        }
+        return { keys, minR, maxR, minG, maxG, minB, maxB, pop };
+    };
+
+    const boxes = [makeBox(active)];
+    while (boxes.length < maxColors) {
+        let bestIdx = -1;
+        let bestSpan = 0;
+        for (let i = 0; i < boxes.length; i++) {
+            const bx = boxes[i];
+            if (bx.keys.length < 2) continue;
+            const span = Math.max(bx.maxR - bx.minR, bx.maxG - bx.minG, bx.maxB - bx.minB);
+            if (span > bestSpan) {
+                bestSpan = span;
+                bestIdx = i;
+            }
+        }
+        if (bestIdx === -1) break;
+        const bx = boxes[bestIdx];
+        const rSpan = bx.maxR - bx.minR;
+        const gSpan = bx.maxG - bx.minG;
+        const bSpan = bx.maxB - bx.minB;
+        const shift = rSpan >= gSpan && rSpan >= bSpan ? 10 : (gSpan >= bSpan ? 5 : 0);
+        bx.keys.sort((a, b) => ((a >> shift) & 31) - ((b >> shift) & 31));
+        const mid = Math.max(1, bx.keys.length >> 1);
+        boxes.splice(bestIdx, 1, makeBox(bx.keys.slice(0, mid)), makeBox(bx.keys.slice(mid)));
+    }
+
+    const palette = boxes.map((bx) => {
+        let tr = 0, tg = 0, tb = 0, cnt = 0;
+        for (let i = 0; i < bx.keys.length; i++) {
+            const k = bx.keys[i];
+            tr += sumR[k];
+            tg += sumG[k];
+            tb += sumB[k];
+            cnt += hist[k];
+        }
+        return cnt > 0
+            ? [Math.round(tr / cnt), Math.round(tg / cnt), Math.round(tb / cnt)]
+            : [0, 0, 0];
+    });
+    while (palette.length < 256) palette.push([0, 0, 0]);
+    return palette;
+}
+
 export function encodeGif89a(framesRgba, width, height, delayCs = 5, { transparent = false } = {}) {
     const out = [];
     const pushStr = (s) => { for (let i = 0; i < s.length; i++) out.push(s.charCodeAt(i)); };
     const pushU16 = (v) => { out.push(v & 0xff, (v >> 8) & 0xff); };
+
+    const palette = buildAdaptivePalette(framesRgba, transparent);
+    const activeCount = transparent ? 255 : 256;
+    const lut555 = new Uint16Array(32768);
+    const findClosestColor = (r, g, b) => {
+        const key = ((r >> 3) << 10) | ((g >> 3) << 5) | (b >> 3);
+        const cached = lut555[key];
+        if (cached !== 0) return cached - 1;
+        let bestIdx = 0;
+        let bestDist = Infinity;
+        for (let i = 0; i < activeCount; i++) {
+            const pr = palette[i][0], pg = palette[i][1], pb = palette[i][2];
+            const dist = (r - pr) * (r - pr) + (g - pg) * (g - pg) + (b - pb) * (b - pb);
+            if (dist < bestDist) {
+                bestDist = dist;
+                bestIdx = i;
+                if (dist === 0) break;
+            }
+        }
+        lut555[key] = bestIdx + 1;
+        return bestIdx;
+    };
 
     pushStr('GIF89a');
     pushU16(width);
     pushU16(height);
     out.push(0xf7, 0x00, 0x00);
 
-    for (let r = 0; r < 6; r++) {
-        for (let g = 0; g < 6; g++) {
-            for (let b = 0; b < 6; b++) {
-                out.push(Math.round(r * 51), Math.round(g * 51), Math.round(b * 51));
-            }
-        }
-    }
-    for (let k = 0; k < 40; k++) {
-        const v = Math.round((k * 255) / 39);
-        out.push(v, v, v);
+    for (let i = 0; i < 256; i++) {
+        out.push(palette[i][0], palette[i][1], palette[i][2]);
     }
 
     out.push(0x21, 0xff, 0x0b);
@@ -174,12 +276,11 @@ export function encodeGif89a(framesRgba, width, height, delayCs = 5, { transpare
                     continue;
                 }
                 const isFlatDarkBg = rgba[p] < 24 && rgba[p + 1] < 24 && rgba[p + 2] < 32;
-                const d = isFlatDarkBg ? 0 : (bayer[by | (x & 1)] - 1.5) * 14;
+                const d = isFlatDarkBg ? 0 : (bayer[by | (x & 1)] - 1.5) * 10;
                 const r = Math.max(0, Math.min(255, rgba[p] + d));
                 const g = Math.max(0, Math.min(255, rgba[p + 1] + d));
                 const b = Math.max(0, Math.min(255, rgba[p + 2] + d));
-                const idx = Math.round(r * 5 / 255) * 36 + Math.round(g * 5 / 255) * 6 + Math.round(b * 5 / 255);
-                indices[rowOff + x] = transparent && idx === 255 ? 254 : idx;
+                indices[rowOff + x] = findClosestColor(r, g, b);
             }
         }
 
@@ -255,6 +356,73 @@ export function encodeGif89a(framesRgba, width, height, delayCs = 5, { transpare
 
     out.push(0x3b);
     return new Uint8Array(out);
+}
+
+export function buildZipBlob(entries) {
+    const encoder = new TextEncoder();
+    const localParts = [];
+    const centralParts = [];
+    let offset = 0;
+
+    for (const entry of entries) {
+        const nameBytes = encoder.encode(entry.name);
+        const data = entry.data instanceof Uint8Array ? entry.data : new Uint8Array(entry.data);
+        const crc = crc32(data);
+
+        const local = new Uint8Array(30 + nameBytes.length);
+        const lv = new DataView(local.buffer);
+        lv.setUint32(0, 0x04034b50, true);
+        lv.setUint16(4, 20, true);
+        lv.setUint16(6, 0, true);
+        lv.setUint16(8, 0, true);
+        lv.setUint16(10, 0, true);
+        lv.setUint16(12, 0x5421, true);
+        lv.setUint32(14, crc, true);
+        lv.setUint32(18, data.length, true);
+        lv.setUint32(22, data.length, true);
+        lv.setUint16(26, nameBytes.length, true);
+        lv.setUint16(28, 0, true);
+        local.set(nameBytes, 30);
+
+        const central = new Uint8Array(46 + nameBytes.length);
+        const cv = new DataView(central.buffer);
+        cv.setUint32(0, 0x02014b50, true);
+        cv.setUint16(4, 20, true);
+        cv.setUint16(6, 20, true);
+        cv.setUint16(8, 0, true);
+        cv.setUint16(10, 0, true);
+        cv.setUint16(12, 0, true);
+        cv.setUint16(14, 0x5421, true);
+        cv.setUint32(16, crc, true);
+        cv.setUint32(20, data.length, true);
+        cv.setUint32(24, data.length, true);
+        cv.setUint16(28, nameBytes.length, true);
+        cv.setUint16(30, 0, true);
+        cv.setUint16(32, 0, true);
+        cv.setUint16(34, 0, true);
+        cv.setUint16(36, 0, true);
+        cv.setUint32(38, 0, true);
+        cv.setUint32(42, offset, true);
+        central.set(nameBytes, 46);
+
+        localParts.push(local, data);
+        centralParts.push(central);
+        offset += local.length + data.length;
+    }
+
+    const centralSize = centralParts.reduce((sum, p) => sum + p.length, 0);
+    const eocd = new Uint8Array(22);
+    const ev = new DataView(eocd.buffer);
+    ev.setUint32(0, 0x06054b50, true);
+    ev.setUint16(4, 0, true);
+    ev.setUint16(6, 0, true);
+    ev.setUint16(8, entries.length, true);
+    ev.setUint16(10, entries.length, true);
+    ev.setUint32(12, centralSize, true);
+    ev.setUint32(16, offset, true);
+    ev.setUint16(20, 0, true);
+
+    return new Blob([...localParts, ...centralParts, eocd], { type: 'application/zip' });
 }
 
 export function initExporters({
@@ -681,6 +849,68 @@ export function initExporters({
 </svg>`;
         triggerDownload(new Blob([animatedSvg], { type: 'image/svg+xml;charset=utf-8' }), 'solopass-animated.svg');
         showToast('Exported self-contained Animated .SVG!');
+    });
+
+    document.getElementById('exportPngSeqBtn')?.addEventListener('click', async () => {
+        const btn = document.getElementById('exportPngSeqBtn');
+        const canvas = document.getElementById('exportCanvas');
+        if (!canvas) return;
+        const origHtml = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'PNG 0%';
+        }
+        showToast('Rendering lossless RGBA PNG sequence (.ZIP)...');
+
+        const wasPlaying = isTimelinePlaying();
+        stopTimelinePlayback();
+        const timeline = getMotionTimeline();
+        const { bugPos } = resolveOverlaySettings();
+        const resVal = parseInt(document.getElementById('webmResSelect')?.value || '1200', 10);
+        if (bugPos !== 'centered') {
+            canvas.width = resVal === 1920 ? 1920 : 1280;
+            canvas.height = resVal === 1920 ? 1080 : 720;
+        } else if (resVal === 512) {
+            canvas.width = 512;
+            canvas.height = 512;
+        } else {
+            canvas.width = 900;
+            canvas.height = state.showText ? 435 : 330;
+        }
+        const ctx = canvas.getContext('2d', { alpha: true });
+        const fps = 24;
+        const totalFrames = Math.max(12, Math.min(96, Math.round(timeline.durationSec * fps)));
+        const zipEntries = [];
+
+        try {
+            for (let f = 0; f < totalFrames; f++) {
+                if (btn) btn.textContent = `PNG ${Math.round(((f + 1) / totalFrames) * 100)}%`;
+                const rawProg = f / totalFrames;
+                const prog = timeline.playMode === 'pingpong'
+                    ? (rawProg <= 0.5 ? rawProg * 2 : (1 - rawProg) * 2)
+                    : rawProg;
+                await renderTimelineFrameToCanvas(canvas, ctx, prog, 'transparent', bugPos, timeline);
+                const pngBlob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+                const buf = new Uint8Array(await pngBlob.arrayBuffer());
+                zipEntries.push({
+                    name: `frame_${String(f).padStart(3, '0')}.png`,
+                    data: buf
+                });
+            }
+            const zipBlob = buildZipBlob(zipEntries);
+            triggerDownload(zipBlob, 'solopass-png-sequence.zip');
+            showToast(`Downloaded solopass-png-sequence.zip (${totalFrames} RGBA frames)`);
+        } catch (err) {
+            console.error('[SOLOPASS] PNG sequence export failed:', err);
+            showToast('PNG sequence export failed — check console', 'error');
+        } finally {
+            applyInterpolatedTimeline(0);
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
+            if (wasPlaying) document.getElementById('playTimelineBtn')?.click();
+        }
     });
 
     document.getElementById('exportSpmotionBtn')?.addEventListener('click', () => {

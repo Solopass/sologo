@@ -412,6 +412,10 @@
                         <button id="verifyBeaconBtn" type="button" class="px-2.5 py-1 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 text-[10px] text-sky-200 font-medium transition" title="Render current Beacon timeline offscreen and verify CRC-8 visual decode">
                             🧪 Verify Beacon
                         </button>
+                        <label class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] text-gray-200 cursor-pointer" title="Render a sleek lower-third CTA pill displaying your message or brand name">
+                            <input type="checkbox" id="showLowerThird" class="rounded bg-black/40 border-white/20 text-indigo-500 focus:ring-0">
+                            <span>CTA Pill</span>
+                        </label>
                         <span id="videoDecodeStatus" class="text-[10px] font-mono text-gray-400 truncate"></span>
                     </div>
                 </div>
@@ -598,14 +602,17 @@
                             </select>
                         </div>
                     </div>
-                    <div class="grid grid-cols-3 gap-1.5">
-                        <button id="exportGifBtn" class="px-2.5 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/35 text-[11px] font-semibold text-emerald-200 transition flex items-center justify-center gap-1" title="Render timeline to universal Animated .GIF">
+                    <div class="grid grid-cols-4 gap-1.5">
+                        <button id="exportGifBtn" class="px-2 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/35 text-[11px] font-semibold text-emerald-200 transition flex items-center justify-center gap-1" title="Render timeline to universal Animated .GIF">
                             <span>🎞️</span><span>.GIF</span>
                         </button>
-                        <button id="exportWebmBtn" class="px-2.5 py-2 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-400/30 text-[11px] font-semibold text-indigo-200 transition flex items-center justify-center gap-1" title="Render timeline to .WEBM video">
+                        <button id="exportWebmBtn" class="px-2 py-2 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-400/30 text-[11px] font-semibold text-indigo-200 transition flex items-center justify-center gap-1" title="Render timeline to .WEBM video">
                             <span>🎬</span><span>.WEBM</span>
                         </button>
-                        <button id="exportAnimatedSvgBtn" class="px-2.5 py-2 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 text-[11px] font-semibold text-sky-200 transition flex items-center justify-center gap-1" title="Export self-contained Animated .SVG">
+                        <button id="exportPngSeqBtn" class="px-2 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/30 text-[11px] font-semibold text-amber-200 transition flex items-center justify-center gap-1" title="Export lossless RGBA PNG frame sequence (.ZIP) for Premiere/DaVinci/CapCut">
+                            <span>📦</span><span>.ZIP</span>
+                        </button>
+                        <button id="exportAnimatedSvgBtn" class="px-2 py-2 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 text-[11px] font-semibold text-sky-200 transition flex items-center justify-center gap-1" title="Export self-contained Animated .SVG">
                             <span>✨</span><span>.SVG</span>
                         </button>
                     </div>

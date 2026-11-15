@@ -998,7 +998,11 @@ export function initControls({ timelineApi }) {
                 state.useGradient = Boolean(kit.useGradient);
                 state.visualStyle = kit.visualStyle || 'classic';
                 if (typeof kit.brandText === 'string') state.brandText = kit.brandText;
-                if (typeof kit.encodedMessage === 'string') state.encodedMessage = kit.encodedMessage;
+                if (typeof kit.encodedMessage === 'string') {
+                    state.encodedMessage = kit.encodedMessage;
+                    if (cipherInputEl) cipherInputEl.value = kit.encodedMessage;
+                    if (motionPhraseEl) motionPhraseEl.value = kit.encodedMessage;
+                }
                 state.showLowerThird = Boolean(kit.showLowerThird);
                 if (kit.bgColor) state.bgColor = kit.bgColor;
                 syncInputsFromState();

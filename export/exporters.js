@@ -433,6 +433,27 @@ export function initExporters({
     stopTimelinePlayback,
     applyInterpolatedTimeline
 }) {
+    let exportPreviewMode = 'static';
+    let exportPreviewRaf = null;
+
+    function stopExportPreviewLoop() {
+        if (exportPreviewRaf) {
+            cancelAnimationFrame(exportPreviewRaf);
+            exportPreviewRaf = null;
+        }
+    }
+
+    function pausePlaybackForExport() {
+        const wasPlaying = isTimelinePlaying();
+        const wasPreviewLoop = exportPreviewRaf !== null;
+        stopTimelinePlayback();
+        stopExportPreviewLoop();
+        return () => {
+            if (wasPlaying) document.getElementById('playTimelineBtn')?.click();
+            if (wasPreviewLoop && exportPreviewMode === 'animated') startExportPreviewLoop();
+        };
+    }
+
     function resolveOverlaySettings() {
         const bgMode = document.getElementById('exportOverlayBg')?.value || 'studio';
         const bugPos = document.getElementById('exportBugPosition')?.value || 'centered';
@@ -582,8 +603,7 @@ export function initExporters({
         }
         showToast('Rendering Animated .GIF...');
 
-        const wasPlaying = isTimelinePlaying();
-        stopTimelinePlayback();
+        const resumePlayback = pausePlaybackForExport();
         const timeline = getMotionTimeline();
         const { bgFill, bugPos } = resolveOverlaySettings();
         const resVal = parseInt(document.getElementById('webmResSelect')?.value || '1200', 10);
@@ -618,7 +638,7 @@ export function initExporters({
                 btn.disabled = false;
                 btn.innerHTML = origHtml;
             }
-            if (wasPlaying) document.getElementById('playTimelineBtn')?.click();
+            resumePlayback();
         }
     }
 
@@ -638,8 +658,7 @@ export function initExporters({
         btn.textContent = 'Rec...';
         showToast('Rendering .WEBM video loop...');
 
-        const wasPlaying = isTimelinePlaying();
-        stopTimelinePlayback();
+        const resumePlayback = pausePlaybackForExport();
         const timeline = getMotionTimeline();
         const { bgFill, bugPos } = resolveOverlaySettings();
         const resVal = parseInt(document.getElementById('webmResSelect')?.value || '1200', 10);
@@ -686,7 +705,7 @@ export function initExporters({
             btn.disabled = false;
             btn.innerHTML = origHtml;
             showToast(`Downloaded solopass-animation.webm (${(webmBlob.size / 1024).toFixed(0)} KB)`);
-            if (wasPlaying) document.getElementById('playTimelineBtn')?.click();
+            resumePlayback();
         };
 
         recorder.start(100);
@@ -869,8 +888,7 @@ export function initExporters({
         }
         showToast('Rendering lossless RGBA PNG sequence (.ZIP)...');
 
-        const wasPlaying = isTimelinePlaying();
-        stopTimelinePlayback();
+        const resumePlayback = pausePlaybackForExport();
         const timeline = getMotionTimeline();
         const { bugPos } = resolveOverlaySettings();
         const resVal = parseInt(document.getElementById('webmResSelect')?.value || '1200', 10);
@@ -916,7 +934,7 @@ export function initExporters({
                 btn.disabled = false;
                 btn.innerHTML = origHtml;
             }
-            if (wasPlaying) document.getElementById('playTimelineBtn')?.click();
+            resumePlayback();
         }
     });
 
@@ -1035,8 +1053,6 @@ export function initExporters({
     document.getElementById('importSpmotionInput')?.addEventListener('change', (e) => handleFileImport(e.target.files?.[0], e.target));
 
     // Export Page Live Preview, Scene Mockup, Codec Clarity & Brand Pack
-    let exportPreviewMode = 'static';
-    let exportPreviewRaf = null;
     let exportPreviewStart = 0;
     let sceneMockupEnabled = false;
     let customSceneUrl = null;
@@ -1095,13 +1111,6 @@ export function initExporters({
         showToast('Loaded custom 16:9 scene backdrop');
         e.target.value = '';
     });
-
-    function stopExportPreviewLoop() {
-        if (exportPreviewRaf) {
-            cancelAnimationFrame(exportPreviewRaf);
-            exportPreviewRaf = null;
-        }
-    }
 
     function updateExportPreviewFrame(prog = null) {
         const stage = document.getElementById('exportPreviewStage');
@@ -1251,8 +1260,7 @@ export function initExporters({
         btn.textContent = 'Building Brand Pack...';
         showToast('Bundling SVG, PNG, Icon, GIF & .SPMOTION into .ZIP...');
 
-        const wasPlaying = isTimelinePlaying();
-        stopTimelinePlayback();
+        const resumePlayback = pausePlaybackForExport();
         const timeline = getMotionTimeline();
         const { bgFill, bugPos } = resolveOverlaySettings();
 
@@ -1309,7 +1317,7 @@ export function initExporters({
             applyInterpolatedTimeline(0);
             btn.disabled = false;
             btn.innerHTML = origHtml;
-            if (wasPlaying) document.getElementById('playTimelineBtn')?.click();
+            resumePlayback();
         }
     });
 

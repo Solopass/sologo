@@ -1,11 +1,8 @@
 /**
  * Studio controls, Undo history, Lock UI, Direct Canvas Drag Handles,
- * 3-Tab Inspector (with keyboard Arrow navigation), Export Popover, and Modals.
+ * 4-Workspace Mode Switcher, and Modals.
  */
 import { state, DEFAULTS, PRESETS, SECTION_RESET_PRESETS } from '../core/state.js';
-import { decodeSeedDetailed } from '../core/seed.js';
-import { encodeMessageToState } from '../core/cipher.js';
-import { buildStealthMessageTimeline, buildBeaconMessageTimeline } from '../core/message-motion.js';
 import {
     lockedGroups,
     lockedSliders,
@@ -25,14 +22,13 @@ import {
     updateSliderLockUI
 } from './render.js';
 import { copyTextToClipboard } from '../export/exporters.js';
+import { initBrandKit } from './brandKit.js';
+import { initLabControls } from './lab.js';
 
 export function initControls({ timelineApi }) {
     const {
         getIsTimelinePlaying,
         getIsMorphLoopActive,
-        getMotionTimeline,
-        setMotionTimeline,
-        stopTimelinePlayback,
         stopSmoothMorphLoop
     } = timelineApi;
 
@@ -450,170 +446,7 @@ export function initControls({ timelineApi }) {
         }
     });
 
-    // Cipher & Seed Codec UI
-    document.getElementById('encodeMessageBtn')?.addEventListener('click', () => {
-        const val = document.getElementById('cipherMessageInput')?.value || '';
-        const res = encodeMessageToState(val, state);
-        if (!res.ok) {
-            showToast(res.error, 'error');
-            return;
-        }
-        syncInputsFromState();
-        render();
-        pushHistory();
-        showToast(`Encoded "${res.message}" into geometry & SP2 code!`);
-    });
-
-    document.getElementById('cipherMessageInput')?.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') document.getElementById('encodeMessageBtn')?.click();
-    });
-
-    const cipherInputEl = document.getElementById('cipherMessageInput');
-    const motionPhraseEl = document.getElementById('motionPhraseInput');
-    cipherInputEl?.addEventListener('input', () => {
-        if (motionPhraseEl && motionPhraseEl.value !== cipherInputEl.value) {
-            motionPhraseEl.value = cipherInputEl.value;
-        }
-    });
-    motionPhraseEl?.addEventListener('input', () => {
-        if (cipherInputEl && cipherInputEl.value !== motionPhraseEl.value) {
-            cipherInputEl.value = motionPhraseEl.value;
-        }
-    });
-    motionPhraseEl?.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') document.getElementById('animateMessageBtn')?.click();
-    });
-
-    document.getElementById('clearCipherBtn')?.addEventListener('click', () => {
-        state.encodedMessage = '';
-        if (cipherInputEl) cipherInputEl.value = '';
-        if (motionPhraseEl) motionPhraseEl.value = '';
-        render();
-        pushHistory();
-        showToast('Cleared embedded cipher message');
-    });
-
-    document.getElementById('animateMessageBtn')?.addEventListener('click', () => {
-        const msg = motionPhraseEl?.value || cipherInputEl?.value || '';
-        const styleMode = document.getElementById('messageAnimStyleSelect')?.value || 'cyberMorph';
-        const res = styleMode === 'beacon'
-            ? buildBeaconMessageTimeline(msg, state, { anchorState: state })
-            : buildStealthMessageTimeline(msg, state, { style: styleMode, anchorState: state });
-
-        if (!res.ok) {
-            showToast(res.error, 'error');
-            return;
-        }
-        if (getIsTimelinePlaying()) stopTimelinePlayback();
-        stopSmoothMorphLoop(true);
-        state.encodedMessage = res.message;
-        if (cipherInputEl) cipherInputEl.value = res.message;
-        if (motionPhraseEl) motionPhraseEl.value = res.message;
-        setMotionTimeline(res.timeline);
-        syncInputsFromState();
-        render();
-        pushHistory();
-        document.getElementById('modeBtnMotion')?.click();
-        document.getElementById('playTimelineBtn')?.click();
-        showToast(`Animated "${res.message}" (${res.frameCount} keyframes · ${styleMode === 'beacon' ? 'CRC-8 Beacon' : styleMode})`);
-    });
-
-    document.getElementById('decodeVideoFileInput')?.addEventListener('change', async (e) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        const statusEl = document.getElementById('videoDecodeStatus');
-        const box = document.getElementById('decodedMessageBox');
-        const textEl = document.getElementById('decodedMessageText');
-        if (statusEl) statusEl.textContent = 'Scanning video...';
-
-        const ChannelCtor = window.SoloSyncChannel;
-        if (!ChannelCtor) {
-            showToast('SoloSync optical decoder is unavailable', 'error');
-            return;
-        }
-        const decoderChannel = new ChannelCtor();
-        const res = await decoderChannel.decodeVideoFile(file, {
-            onProgress: (pct) => {
-                if (statusEl) statusEl.textContent = `Scanning ${pct}%`;
-            },
-            onError: (msg) => {
-                if (statusEl) statusEl.textContent = 'Decode error';
-                showToast(msg, 'error');
-            }
-        });
-        e.target.value = '';
-
-        if (res.ok && res.text) {
-            if (statusEl) statusEl.textContent = `Decoded ${res.byteCount}B`;
-            if (box && textEl) {
-                box.classList.remove('hidden');
-                textEl.textContent = res.text;
-            }
-            showToast(`Recovered hidden message: "${res.text}"`);
-        } else if (res.ok) {
-            if (statusEl) statusEl.textContent = 'No beacon frames found';
-            showToast('No SoloSync CRC-8 beacon frames detected in clip', 'error');
-        }
-    });
-
-    document.getElementById('verifyBeaconBtn')?.addEventListener('click', async () => {
-        const statusEl = document.getElementById('videoDecodeStatus');
-        const box = document.getElementById('decodedMessageBox');
-        const textEl = document.getElementById('decodedMessageText');
-        const tl = getMotionTimeline();
-        const DecoderCtor = window.SoloSyncCVDecoder;
-        const GridApi = window.SoloSyncGrid;
-        if (!DecoderCtor || !GridApi || !tl?.keyframes?.length) {
-            showToast('Generate a Decodable Beacon timeline first', 'error');
-            return;
-        }
-        if (statusEl) statusEl.textContent = 'Verifying frames...';
-        const canvas = document.createElement('canvas');
-        canvas.width = 600;
-        canvas.height = 220;
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        const cvDecoder = new DecoderCtor();
-        const bytes = [];
-
-        for (let i = 0; i < tl.keyframes.length; i++) {
-            const kfState = { ...state, ...tl.keyframes[i].state, showText: false };
-            const grid = GridApi.generateGridMarkup(600, 220, kfState._clockBit ?? (i % 2), i);
-            const svgMarkup = generateSVGString(kfState, { forExport: true, includeGuides: false, opticalGridMarkup: grid });
-            const url = URL.createObjectURL(new Blob([svgMarkup], { type: 'image/svg+xml;charset=utf-8' }));
-            await new Promise((resolve) => {
-                const img = new Image();
-                img.onload = () => {
-                    ctx.fillStyle = '#0d0d16';
-                    ctx.fillRect(0, 0, 600, 220);
-                    ctx.drawImage(img, 0, 0, 600, 220);
-                    URL.revokeObjectURL(url);
-                    resolve();
-                };
-                img.onerror = () => {
-                    URL.revokeObjectURL(url);
-                    resolve();
-                };
-                img.src = url;
-            });
-            const res = cvDecoder.decodeCanvas(canvas, true);
-            if (res && res.locked && res.bytes && res.bytes.b0) {
-                bytes.push(res.bytes.b0);
-            }
-        }
-
-        const recovered = new TextDecoder().decode(new Uint8Array(bytes));
-        if (recovered) {
-            if (statusEl) statusEl.textContent = `CRC-8 OK (${bytes.length}/${tl.keyframes.length})`;
-            if (box && textEl) {
-                box.classList.remove('hidden');
-                textEl.textContent = recovered;
-            }
-            showToast(`Beacon verified: "${recovered}" (${bytes.length}/${tl.keyframes.length} frames)`);
-        } else {
-            if (statusEl) statusEl.textContent = 'Verify failed (not a Beacon?)';
-            showToast('No CRC-8 Beacon bytes recovered — select Decodable Beacon first', 'error');
-        }
-    });
+    initLabControls({ pushHistory, timelineApi });
 
     // Video Corner Bug Preview Toggle
     let isVideoBugPreview = false;
@@ -631,32 +464,6 @@ export function initControls({ timelineApi }) {
             els.svgStage.classList.toggle('translate-y-[-6%]', isVideoBugPreview);
         }
         showToast(isVideoBugPreview ? '16:9 YouTube Corner Bug Preview active' : 'Returned to full stage preview');
-    });
-
-    document.getElementById('copySeedBtn')?.addEventListener('click', () => {
-        const code = document.getElementById('vectorSeedCode')?.value;
-        if (code) copyTextToClipboard(code, 'Copied live SP2 Vector Seed!');
-    });
-
-    document.getElementById('decodeSeedBtn')?.addEventListener('click', () => {
-        const input = document.getElementById('vectorSeedCode')?.value || '';
-        const res = decodeSeedDetailed(input, state);
-        if (res.ok) {
-            const cipherInput = document.getElementById('cipherMessageInput');
-            if (cipherInput) cipherInput.value = state.encodedMessage || '';
-            syncInputsFromState();
-            render();
-            pushHistory();
-            showToast(state.encodedMessage
-                ? `Decoded Seed & Secret Message: "${state.encodedMessage}"`
-                : 'Loaded design from SP2 Vector Seed!');
-        } else {
-            showToast(res.error || 'Invalid SP2 seed format.', 'error');
-        }
-    });
-
-    document.getElementById('vectorSeedCode')?.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') document.getElementById('decodeSeedBtn')?.click();
     });
 
     // Live SVG Inspector Modal
@@ -954,98 +761,7 @@ export function initControls({ timelineApi }) {
         }
     });
 
-    // Channel Brand Kit (localStorage)
-    const BRAND_KIT_KEY = 'solopass_brand_kits_v1';
-    function loadBrandKits() {
-        try {
-            const raw = localStorage.getItem(BRAND_KIT_KEY);
-            const parsed = raw ? JSON.parse(raw) : [];
-            return Array.isArray(parsed) ? parsed : [];
-        } catch {
-            return [];
-        }
-    }
-    function saveBrandKits(kits) {
-        try { localStorage.setItem(BRAND_KIT_KEY, JSON.stringify(kits.slice(0, 4))); } catch {}
-    }
-    function renderBrandKitStrip() {
-        const strip = document.getElementById('brandKitStrip');
-        if (!strip) return;
-        const kits = loadBrandKits();
-        strip.innerHTML = '';
-        if (kits.length === 0) {
-            strip.innerHTML = '<span class="text-[10px] text-gray-400">Save colors, style &amp; wordmark for 1-click recall.</span>';
-            return;
-        }
-        kits.forEach((kit, idx) => {
-            const wrap = document.createElement('div');
-            wrap.className = 'shrink-0 inline-flex items-center gap-1 bg-black/45 border border-white/15 rounded-lg px-2 py-1';
-            const applyBtn = document.createElement('button');
-            applyBtn.type = 'button';
-            applyBtn.className = 'inline-flex items-center gap-1.5 text-[10px] font-medium text-gray-100 hover:text-white';
-            applyBtn.title = `Apply Brand Kit "${kit.name}"`;
-            const swatch = document.createElement('span');
-            swatch.className = 'w-2.5 h-2.5 rounded-full border border-white/30';
-            swatch.style.backgroundColor = kit.strokeColor || '#6b66ff';
-            const labelSpan = document.createElement('span');
-            labelSpan.className = 'max-w-[76px] truncate';
-            labelSpan.textContent = String(kit.name || 'Brand');
-            applyBtn.appendChild(swatch);
-            applyBtn.appendChild(labelSpan);
-            applyBtn.addEventListener('click', () => {
-                state.strokeColor = kit.strokeColor || state.strokeColor;
-                state.secondaryColor = kit.secondaryColor || state.secondaryColor;
-                state.useGradient = Boolean(kit.useGradient);
-                state.visualStyle = kit.visualStyle || 'classic';
-                if (typeof kit.brandText === 'string') state.brandText = kit.brandText;
-                if (typeof kit.encodedMessage === 'string') {
-                    state.encodedMessage = kit.encodedMessage;
-                    if (cipherInputEl) cipherInputEl.value = kit.encodedMessage;
-                    if (motionPhraseEl) motionPhraseEl.value = kit.encodedMessage;
-                }
-                state.showLowerThird = Boolean(kit.showLowerThird);
-                if (kit.bgColor) state.bgColor = kit.bgColor;
-                syncInputsFromState();
-                render();
-                pushHistory();
-                showToast(`Applied Brand Kit "${kit.name}"`);
-            });
-            const delBtn = document.createElement('button');
-            delBtn.type = 'button';
-            delBtn.className = 'text-[10px] text-gray-500 hover:text-rose-300 ml-0.5';
-            delBtn.textContent = '×';
-            delBtn.title = 'Remove Brand Kit';
-            delBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const next = loadBrandKits();
-                next.splice(idx, 1);
-                saveBrandKits(next);
-                renderBrandKitStrip();
-            });
-            wrap.appendChild(applyBtn);
-            wrap.appendChild(delBtn);
-            strip.appendChild(wrap);
-        });
-    }
-    document.getElementById('saveBrandKitBtn')?.addEventListener('click', () => {
-        const label = (state.encodedMessage || state.brandText || 'Brand').trim().slice(0, 14) || 'Brand';
-        const kits = loadBrandKits();
-        kits.unshift({
-            name: label,
-            strokeColor: state.strokeColor,
-            secondaryColor: state.secondaryColor,
-            useGradient: state.useGradient,
-            visualStyle: state.visualStyle,
-            brandText: state.brandText,
-            encodedMessage: state.encodedMessage,
-            showLowerThird: state.showLowerThird,
-            bgColor: state.bgColor
-        });
-        saveBrandKits(kits);
-        renderBrandKitStrip();
-        showToast(`Saved "${label}" to Channel Brand Kit`);
-    });
-    renderBrandKitStrip();
+    initBrandKit({ pushHistory });
 
     return {
         pushHistory,

@@ -984,7 +984,14 @@ export function initControls({ timelineApi }) {
             applyBtn.type = 'button';
             applyBtn.className = 'inline-flex items-center gap-1.5 text-[10px] font-medium text-gray-100 hover:text-white';
             applyBtn.title = `Apply Brand Kit "${kit.name}"`;
-            applyBtn.innerHTML = `<span class="w-2.5 h-2.5 rounded-full border border-white/30" style="background:${kit.strokeColor}"></span><span class="max-w-[76px] truncate">${kit.name}</span>`;
+            const swatch = document.createElement('span');
+            swatch.className = 'w-2.5 h-2.5 rounded-full border border-white/30';
+            swatch.style.backgroundColor = kit.strokeColor || '#6b66ff';
+            const labelSpan = document.createElement('span');
+            labelSpan.className = 'max-w-[76px] truncate';
+            labelSpan.textContent = String(kit.name || 'Brand');
+            applyBtn.appendChild(swatch);
+            applyBtn.appendChild(labelSpan);
             applyBtn.addEventListener('click', () => {
                 state.strokeColor = kit.strokeColor || state.strokeColor;
                 state.secondaryColor = kit.secondaryColor || state.secondaryColor;

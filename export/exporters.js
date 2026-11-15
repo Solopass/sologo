@@ -554,6 +554,23 @@ export function initExporters({
         img.src = url;
     });
 
+    async function renderTimelineToGifBytes(canvas, timeline, bgFill, bugPos, { fps = 18, maxFrames = 90, onProgress = null } = {}) {
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const totalFrames = Math.max(12, Math.min(maxFrames, Math.round((timeline?.durationSec || 3) * fps)));
+        const framesRgba = [];
+        for (let f = 0; f < totalFrames; f++) {
+            if (onProgress) onProgress(Math.round(((f + 1) / totalFrames) * 100));
+            const rawProg = f / totalFrames;
+            const prog = timeline.playMode === 'pingpong'
+                ? (rawProg <= 0.5 ? rawProg * 2 : (1 - rawProg) * 2)
+                : rawProg;
+            await renderTimelineFrameToCanvas(canvas, ctx, prog, bgFill, bugPos, timeline);
+            framesRgba.push(ctx.getImageData(0, 0, canvas.width, canvas.height).data);
+        }
+        const delayCs = Math.max(2, Math.round(100 / fps));
+        return encodeGif89a(framesRgba, canvas.width, canvas.height, delayCs, { transparent: bgFill === 'transparent' });
+    }
+
     async function exportTimelineToGif() {
         const btn = document.getElementById('exportGifBtn');
         const canvas = document.getElementById('exportCanvas');
@@ -580,25 +597,15 @@ export function initExporters({
             canvas.width = 600;
             canvas.height = state.showText ? 290 : 220;
         }
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        const fps = 18;
-        const totalFrames = Math.max(12, Math.min(90, Math.round(timeline.durationSec * fps)));
-        const framesRgba = [];
 
         try {
-            for (let f = 0; f < totalFrames; f++) {
-                if (btn) btn.textContent = `GIF ${Math.round(((f + 1) / totalFrames) * 100)}%`;
-                const rawProg = f / totalFrames;
-                const prog = timeline.playMode === 'pingpong'
-                    ? (rawProg <= 0.5 ? rawProg * 2 : (1 - rawProg) * 2)
-                    : rawProg;
-                await renderTimelineFrameToCanvas(canvas, ctx, prog, bgFill, bugPos, timeline);
-                framesRgba.push(ctx.getImageData(0, 0, canvas.width, canvas.height).data);
-            }
+            const gifBytes = await renderTimelineToGifBytes(canvas, timeline, bgFill, bugPos, {
+                fps: 18,
+                maxFrames: 90,
+                onProgress: (pct) => { if (btn) btn.textContent = `GIF ${pct}%`; }
+            });
             if (btn) btn.textContent = 'Encoding...';
             await new Promise(r => setTimeout(r, 10));
-            const delayCs = Math.max(2, Math.round(100 / fps));
-            const gifBytes = encodeGif89a(framesRgba, canvas.width, canvas.height, delayCs, { transparent: bgFill === 'transparent' });
             const gifBlob = new Blob([gifBytes], { type: 'image/gif' });
             triggerDownload(gifBlob, 'solopass-animation.gif');
             showToast(`Downloaded solopass-animation.gif (${(gifBlob.size / 1024).toFixed(0)} KB)`);
@@ -1262,18 +1269,11 @@ export function initExporters({
             // Render compact animated GIF for pack
             canvas.width = bugPos !== 'centered' ? 640 : 600;
             canvas.height = bugPos !== 'centered' ? 360 : (state.showText ? 290 : 220);
-            const ctx = canvas.getContext('2d', { willReadFrequently: true });
-            const fps = 16;
-            const totalFrames = Math.max(12, Math.min(64, Math.round((timeline?.durationSec || 3) * fps)));
-            const framesRgba = [];
-            for (let f = 0; f < totalFrames; f++) {
-                btn.textContent = `Packing GIF ${Math.round(((f + 1) / totalFrames) * 100)}%`;
-                const rawProg = f / totalFrames;
-                const prog = timeline.playMode === 'pingpong' ? (rawProg <= 0.5 ? rawProg * 2 : (1 - rawProg) * 2) : rawProg;
-                await renderTimelineFrameToCanvas(canvas, ctx, prog, bgFill, bugPos, timeline);
-                framesRgba.push(ctx.getImageData(0, 0, canvas.width, canvas.height).data);
-            }
-            const gifBytes = encodeGif89a(framesRgba, canvas.width, canvas.height, Math.max(2, Math.round(100 / fps)), { transparent: bgFill === 'transparent' });
+            const gifBytes = await renderTimelineToGifBytes(canvas, timeline, bgFill, bugPos, {
+                fps: 16,
+                maxFrames: 64,
+                onProgress: (pct) => { btn.textContent = `Packing GIF ${pct}%`; }
+            });
             const spmotionBytes = encoder.encode(JSON.stringify(timeline, null, 2));
             const seedCode = encodeStateToCode(state);
             const readme = [
@@ -1321,7 +1321,9 @@ export function initExporters({
             if (exportPreviewMode === 'animated') startExportPreviewLoop();
             else updateExportPreviewFrame(null);
         } else {
+            const wasRunning = exportPreviewRaf !== null;
             stopExportPreviewLoop();
+            if (wasRunning) applyInterpolatedTimeline(0);
         }
     });
 }

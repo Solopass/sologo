@@ -1026,4 +1026,131 @@ export function initExporters({
 
     document.getElementById('importSvgInput')?.addEventListener('change', (e) => handleFileImport(e.target.files?.[0], e.target));
     document.getElementById('importSpmotionInput')?.addEventListener('change', (e) => handleFileImport(e.target.files?.[0], e.target));
+
+    // Export Page Live Preview & Metadata Sync
+    let exportPreviewMode = 'static';
+    let exportPreviewRaf = null;
+    let exportPreviewStart = 0;
+
+    function stopExportPreviewLoop() {
+        if (exportPreviewRaf) {
+            cancelAnimationFrame(exportPreviewRaf);
+            exportPreviewRaf = null;
+        }
+    }
+
+    function updateExportPreviewFrame(prog = null) {
+        const stage = document.getElementById('exportPreviewStage');
+        const inner = document.getElementById('exportPreviewInner');
+        if (!stage || !inner) return;
+
+        const timeline = getMotionTimeline();
+        const { bgMode, bgFill, bugPos } = resolveOverlaySettings();
+        const resVal = parseInt(document.getElementById('webmResSelect')?.value || '1200', 10);
+
+        stage.style.backgroundColor = bgMode === 'transparent' ? 'transparent' : bgFill;
+        stage.classList.toggle('canvas-grid', bgMode === 'transparent');
+
+        const bugHint = document.getElementById('exportPreviewBugHint');
+        if (bugHint) bugHint.classList.toggle('hidden', bugPos === 'centered');
+
+        if (bugPos === 'yt-bottom-left') {
+            inner.className = 'w-[34%] max-w-[220px] absolute left-4 bottom-4 transition-all';
+        } else if (bugPos === 'yt-bottom-right') {
+            inner.className = 'w-[34%] max-w-[220px] absolute right-4 bottom-4 transition-all';
+        } else {
+            inner.className = 'w-full max-w-[440px] h-full flex items-center justify-center transition-all';
+        }
+
+        if (prog !== null) {
+            applyInterpolatedTimeline(prog, { skipDomRender: true });
+        }
+        const isBeacon = timeline?.easing === 'step' && typeof state._clockBit === 'number';
+        const opticalGridMarkup = isBeacon && window.SoloSyncGrid?.generateGridMarkup
+            ? window.SoloSyncGrid.generateGridMarkup(600, state.showText ? 290 : 220, state._clockBit, 0)
+            : '';
+        inner.innerHTML = generateSVGString(state, { forExport: false, includeGuides: false, opticalGridMarkup });
+
+        // Metadata pills
+        const dimsEl = document.getElementById('exportMetaDims');
+        const durEl = document.getElementById('exportMetaDuration');
+        const ctaEl = document.getElementById('exportMetaCta');
+        const seedEl = document.getElementById('exportMetaSeed');
+        if (dimsEl) {
+            if (bugPos !== 'centered') dimsEl.textContent = '1280×720 16:9';
+            else if (resVal === 1920) dimsEl.textContent = '1920×1080 HD';
+            else if (resVal === 512) dimsEl.textContent = '512×512 Sq';
+            else dimsEl.textContent = `1800×${state.showText ? 870 : 660}`;
+        }
+        if (durEl) durEl.textContent = `${Number(timeline?.durationSec || 3).toFixed(1)}s · ${timeline?.keyframes?.length || 0} KF`;
+        if (ctaEl) ctaEl.textContent = state.showLowerThird ? (state.encodedMessage || state.brandText || 'On') : 'Off';
+        if (seedEl) seedEl.textContent = encodeStateToCode(state).slice(0, 14) + '…';
+    }
+
+    function syncExportPreviewButtons() {
+        const staticBtn = document.getElementById('exportPreviewStaticBtn');
+        const animBtn = document.getElementById('exportPreviewAnimBtn');
+        const badge = document.getElementById('exportPreviewStatusBadge');
+        const isAnim = exportPreviewMode === 'animated';
+        if (staticBtn) {
+            staticBtn.className = !isAnim
+                ? 'px-3 py-1 rounded-lg bg-white/10 text-xs font-semibold text-white transition'
+                : 'px-3 py-1 rounded-lg text-xs font-medium text-gray-400 hover:text-white transition';
+        }
+        if (animBtn) {
+            animBtn.className = isAnim
+                ? 'px-3 py-1 rounded-lg bg-sky-500/25 border border-sky-400/40 text-xs font-semibold text-sky-200 transition'
+                : 'px-3 py-1 rounded-lg text-xs font-medium text-gray-400 hover:text-white transition';
+        }
+        if (badge) badge.textContent = isAnim ? 'Loop Preview' : 'Vector Ready';
+    }
+
+    function startExportPreviewLoop() {
+        stopExportPreviewLoop();
+        exportPreviewStart = performance.now();
+        const step = (now) => {
+            const page = document.getElementById('exportPageView');
+            if (!page || page.classList.contains('hidden') || exportPreviewMode !== 'animated') {
+                stopExportPreviewLoop();
+                return;
+            }
+            const timeline = getMotionTimeline();
+            const durMs = Math.max(500, (timeline?.durationSec || 3) * 1000);
+            const raw = ((now - exportPreviewStart) % durMs) / durMs;
+            const prog = timeline?.playMode === 'pingpong' ? (raw <= 0.5 ? raw * 2 : (1 - raw) * 2) : raw;
+            updateExportPreviewFrame(prog);
+            exportPreviewRaf = requestAnimationFrame(step);
+        };
+        exportPreviewRaf = requestAnimationFrame(step);
+    }
+
+    document.getElementById('exportPreviewStaticBtn')?.addEventListener('click', () => {
+        exportPreviewMode = 'static';
+        stopExportPreviewLoop();
+        applyInterpolatedTimeline(0, { skipDomRender: true });
+        syncExportPreviewButtons();
+        updateExportPreviewFrame(null);
+    });
+    document.getElementById('exportPreviewAnimBtn')?.addEventListener('click', () => {
+        exportPreviewMode = 'animated';
+        syncExportPreviewButtons();
+        startExportPreviewLoop();
+    });
+
+    ['exportOverlayBg', 'exportBugPosition', 'webmResSelect'].forEach(id => {
+        document.getElementById(id)?.addEventListener('change', () => {
+            if (exportPreviewMode === 'static') updateExportPreviewFrame(null);
+        });
+    });
+
+    window.addEventListener('solopass:modechange', (e) => {
+        if (e.detail?.mode === 'export') {
+            if (isTimelinePlaying()) stopTimelinePlayback();
+            syncExportPreviewButtons();
+            if (exportPreviewMode === 'animated') startExportPreviewLoop();
+            else updateExportPreviewFrame(null);
+        } else {
+            stopExportPreviewLoop();
+        }
+    });
 }

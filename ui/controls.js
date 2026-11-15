@@ -468,17 +468,33 @@ export function initControls({ timelineApi }) {
         if (e.key === 'Enter') document.getElementById('encodeMessageBtn')?.click();
     });
 
+    const cipherInputEl = document.getElementById('cipherMessageInput');
+    const motionPhraseEl = document.getElementById('motionPhraseInput');
+    cipherInputEl?.addEventListener('input', () => {
+        if (motionPhraseEl && motionPhraseEl.value !== cipherInputEl.value) {
+            motionPhraseEl.value = cipherInputEl.value;
+        }
+    });
+    motionPhraseEl?.addEventListener('input', () => {
+        if (cipherInputEl && cipherInputEl.value !== motionPhraseEl.value) {
+            cipherInputEl.value = motionPhraseEl.value;
+        }
+    });
+    motionPhraseEl?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') document.getElementById('animateMessageBtn')?.click();
+    });
+
     document.getElementById('clearCipherBtn')?.addEventListener('click', () => {
         state.encodedMessage = '';
-        const cipherInput = document.getElementById('cipherMessageInput');
-        if (cipherInput) cipherInput.value = '';
+        if (cipherInputEl) cipherInputEl.value = '';
+        if (motionPhraseEl) motionPhraseEl.value = '';
         render();
         pushHistory();
         showToast('Cleared embedded cipher message');
     });
 
     document.getElementById('animateMessageBtn')?.addEventListener('click', () => {
-        const msg = document.getElementById('cipherMessageInput')?.value || '';
+        const msg = motionPhraseEl?.value || cipherInputEl?.value || '';
         const styleMode = document.getElementById('messageAnimStyleSelect')?.value || 'cyberMorph';
         const res = styleMode === 'beacon'
             ? buildBeaconMessageTimeline(msg, state, { anchorState: state })
@@ -491,11 +507,13 @@ export function initControls({ timelineApi }) {
         if (getIsTimelinePlaying()) stopTimelinePlayback();
         stopSmoothMorphLoop(true);
         state.encodedMessage = res.message;
+        if (cipherInputEl) cipherInputEl.value = res.message;
+        if (motionPhraseEl) motionPhraseEl.value = res.message;
         setMotionTimeline(res.timeline);
         syncInputsFromState();
         render();
         pushHistory();
-        document.getElementById('tabBtnAnimate')?.click();
+        document.getElementById('modeBtnMotion')?.click();
         document.getElementById('playTimelineBtn')?.click();
         showToast(`Animated "${res.message}" (${res.frameCount} keyframes · ${styleMode === 'beacon' ? 'CRC-8 Beacon' : styleMode})`);
     });
@@ -738,90 +756,94 @@ export function initControls({ timelineApi }) {
         showToast('Cleared session snapshots');
     });
 
-    // 3-Tab Sidebar + Keyboard Arrow Navigation
-    const tabOrder = ['studio', 'animate', 'cipher'];
-    function switchSidebarTab(tabName) {
-        const tabs = {
-            studio: { btn: document.getElementById('tabBtnStudio'), panel: document.getElementById('tabPanelStudio') },
-            animate: { btn: document.getElementById('tabBtnAnimate'), panel: document.getElementById('tabPanelAnimate') },
-            cipher: { btn: document.getElementById('tabBtnCipher'), panel: document.getElementById('tabPanelCipher') }
-        };
-        Object.entries(tabs).forEach(([name, item]) => {
-            const active = name === tabName;
-            if (item.panel) item.panel.classList.toggle('hidden', !active);
-            if (item.btn) {
-                item.btn.setAttribute('aria-selected', String(active));
-                item.btn.setAttribute('tabindex', active ? '0' : '-1');
-                item.btn.className = active
-                    ? 'sidebar-tab-btn px-2 py-2 sm:py-1.5 rounded-xl bg-indigo-600/30 border border-indigo-400/50 text-xs font-semibold text-white transition flex items-center justify-center gap-1'
-                    : 'sidebar-tab-btn px-2 py-2 sm:py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-medium text-gray-300 hover:text-white transition flex items-center justify-center gap-1';
+    // 4-Workspace Mode Switcher (Design | Motion | Lab | Export)
+    const modeOrder = ['design', 'motion', 'lab', 'export'];
+    const modeMeta = {
+        design: { title: '🎨 Design Studio', subtitle: 'Emblem geometry, colors & wordmark', panel: 'tabPanelStudio' },
+        motion: { title: '🎬 Motion & Video Bug', subtitle: 'Phrase motion, keyframes & AI choreographer', panel: 'tabPanelAnimate' },
+        lab: { title: '🧪 Cipher & Optical Lab', subtitle: 'SP2 seeds, video beacon decode & SoloSync', panel: 'tabPanelCipher' }
+    };
+    let currentWorkspaceMode = 'design';
+    let lastEditorMode = 'design';
+
+    function setWorkspaceMode(mode) {
+        if (!modeOrder.includes(mode)) mode = 'design';
+        currentWorkspaceMode = mode;
+        if (mode !== 'export') lastEditorMode = mode;
+
+        const editorWorkspace = document.getElementById('editorWorkspace');
+        const exportPageView = document.getElementById('exportPageView');
+        const isExport = mode === 'export';
+        if (editorWorkspace) editorWorkspace.classList.toggle('hidden', isExport);
+        if (exportPageView) exportPageView.classList.toggle('hidden', !isExport);
+
+        document.querySelectorAll('.workspace-mode-btn').forEach(btn => {
+            const btnMode = btn.dataset.workspaceMode;
+            const active = btnMode === mode;
+            btn.setAttribute('aria-selected', String(active));
+            btn.setAttribute('tabindex', active ? '0' : '-1');
+            if (btnMode === 'export') {
+                btn.className = active
+                    ? 'workspace-mode-btn flex-1 lg:flex-none px-3.5 py-1.5 rounded-xl bg-indigo-500 border border-indigo-300/70 text-xs font-semibold text-white shadow-[0_0_20px_rgba(99,102,241,0.55)] transition flex items-center justify-center gap-1.5'
+                    : 'workspace-mode-btn flex-1 lg:flex-none px-3.5 py-1.5 rounded-xl bg-indigo-600/80 hover:bg-indigo-500 border border-indigo-400/40 text-xs font-semibold text-white shadow-[0_0_14px_rgba(99,102,241,0.3)] transition flex items-center justify-center gap-1.5';
+            } else {
+                btn.className = active
+                    ? 'workspace-mode-btn flex-1 lg:flex-none px-3 py-1.5 rounded-xl bg-indigo-600/30 border border-indigo-400/50 text-xs font-semibold text-white transition flex items-center justify-center gap-1.5'
+                    : 'workspace-mode-btn flex-1 lg:flex-none px-3 py-1.5 rounded-xl bg-transparent border border-transparent text-xs font-medium text-gray-300 hover:text-white hover:bg-white/5 transition flex items-center justify-center gap-1.5';
             }
         });
-        try { localStorage.setItem('solopass_sidebar_tab', tabName); } catch {}
+
+        if (!isExport) {
+            const meta = modeMeta[mode];
+            const titleEl = document.getElementById('sidebarModeTitle');
+            const subEl = document.getElementById('sidebarModeSubtitle');
+            if (titleEl && meta) titleEl.textContent = meta.title;
+            if (subEl && meta) subEl.textContent = meta.subtitle;
+
+            Object.entries(modeMeta).forEach(([key, info]) => {
+                document.getElementById(info.panel)?.classList.toggle('hidden', key !== mode);
+            });
+            // Keep motion phrase input synced with cipher input
+            const cEl = document.getElementById('cipherMessageInput');
+            const mEl = document.getElementById('motionPhraseInput');
+            if (cEl && mEl && mEl.value !== cEl.value) mEl.value = cEl.value;
+        }
+
+        window.dispatchEvent(new CustomEvent('solopass:modechange', { detail: { mode, lastEditorMode } }));
+        try { localStorage.setItem('solopass_workspace_mode', mode); } catch {}
     }
 
-    document.querySelectorAll('.sidebar-tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => switchSidebarTab(btn.dataset.sidebarTab));
+    document.querySelectorAll('.workspace-mode-btn').forEach(btn => {
+        btn.addEventListener('click', () => setWorkspaceMode(btn.dataset.workspaceMode));
         btn.addEventListener('keydown', (e) => {
-            const idx = tabOrder.indexOf(btn.dataset.sidebarTab);
+            const idx = modeOrder.indexOf(btn.dataset.workspaceMode);
             if (idx === -1) return;
             if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
                 e.preventDefault();
-                const nextIdx = (idx + (e.key === 'ArrowRight' ? 1 : -1) + tabOrder.length) % tabOrder.length;
-                const nextTab = tabOrder[nextIdx];
-                switchSidebarTab(nextTab);
-                document.querySelector(`[data-sidebar-tab="${nextTab}"]`)?.focus();
+                const nextIdx = (idx + (e.key === 'ArrowRight' ? 1 : -1) + modeOrder.length) % modeOrder.length;
+                const nextMode = modeOrder[nextIdx];
+                setWorkspaceMode(nextMode);
+                document.querySelector(`[data-workspace-mode="${nextMode}"]`)?.focus();
             }
         });
     });
-    let initialTab = 'studio';
-    try { initialTab = localStorage.getItem('solopass_sidebar_tab') || 'studio'; } catch {}
-    switchSidebarTab(initialTab);
 
-    // Native Export Popover
-    const exportMenuBtn = document.getElementById('exportMenuBtn');
-    const exportMenuPopover = document.getElementById('exportMenuPopover');
-    if (exportMenuBtn && exportMenuPopover) {
-        const positionExportPopover = () => {
-            const rect = exportMenuBtn.getBoundingClientRect();
-            exportMenuPopover.style.position = 'fixed';
-            exportMenuPopover.style.top = `${Math.round(rect.bottom + 8)}px`;
-            exportMenuPopover.style.right = `${Math.round(Math.max(8, window.innerWidth - rect.right))}px`;
-            exportMenuPopover.style.left = 'auto';
-        };
-        if ('popover' in HTMLElement.prototype) {
-            exportMenuPopover.addEventListener('beforetoggle', (e) => {
-                const isOpen = e.newState === 'open';
-                exportMenuBtn.setAttribute('aria-expanded', String(isOpen));
-                if (isOpen) positionExportPopover();
-            });
-            exportMenuPopover.querySelectorAll('button').forEach(b => {
-                b.addEventListener('click', () => {
-                    if (exportMenuPopover.matches(':popover-open')) exportMenuPopover.hidePopover();
-                });
-            });
-        } else {
-            exportMenuPopover.classList.add('hidden');
-            exportMenuBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                positionExportPopover();
-                const open = exportMenuPopover.classList.toggle('hidden') === false;
-                exportMenuBtn.setAttribute('aria-expanded', String(open));
-            });
-            document.addEventListener('click', (e) => {
-                if (!exportMenuPopover.classList.contains('hidden') && !exportMenuPopover.contains(e.target) && e.target !== exportMenuBtn) {
-                    exportMenuPopover.classList.add('hidden');
-                    exportMenuBtn.setAttribute('aria-expanded', 'false');
-                }
-            });
-            exportMenuPopover.querySelectorAll('button').forEach(b => {
-                b.addEventListener('click', () => {
-                    exportMenuPopover.classList.add('hidden');
-                    exportMenuBtn.setAttribute('aria-expanded', 'false');
-                });
-            });
-        }
-    }
+    document.querySelectorAll('[data-jump-export="true"]').forEach(btn => {
+        btn.addEventListener('click', () => setWorkspaceMode('export'));
+    });
+    document.querySelectorAll('[data-jump-motion="true"]').forEach(btn => {
+        btn.addEventListener('click', () => setWorkspaceMode('motion'));
+    });
+    document.getElementById('backToEditorBtn')?.addEventListener('click', () => {
+        setWorkspaceMode(lastEditorMode || 'design');
+    });
+
+    let initialMode = 'design';
+    try {
+        const savedMode = localStorage.getItem('solopass_workspace_mode');
+        if (savedMode && modeOrder.includes(savedMode) && savedMode !== 'export') initialMode = savedMode;
+    } catch {}
+    setWorkspaceMode(initialMode);
 
     // Compare Peek
     const comparePeekBtn = document.getElementById('comparePeekBtn');
@@ -892,7 +914,7 @@ export function initControls({ timelineApi }) {
     // Shortcuts & Global Keyboard Navigation
     const openShortcutsBtn = document.getElementById('openShortcutsBtn');
     openShortcutsBtn?.addEventListener('click', () => {
-        showToast('Shortcuts: [1/2/3] Tabs · [Space] Play/Pause · [R] Randomize · [M] Smooth Morph · [G] Guides · [Ctrl+S] Save');
+        showToast('Shortcuts: [1-4] Modes · [Space] Play/Pause · [R] Randomize · [M] Smooth Morph · [G] Guides · [Ctrl+S] Save');
     });
 
     document.addEventListener('keydown', (e) => {
@@ -900,9 +922,7 @@ export function initControls({ timelineApi }) {
             closeSvgInspectorModal();
             document.getElementById('aiPresetsModal')?.classList.add('hidden');
             document.getElementById('userProfileModal')?.classList.add('hidden');
-            if (exportMenuPopover && !exportMenuPopover.classList.contains('hidden') && !('popover' in HTMLElement.prototype)) {
-                exportMenuPopover.classList.add('hidden');
-            }
+            if (currentWorkspaceMode === 'export') setWorkspaceMode(lastEditorMode || 'design');
         }
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
             e.preventDefault();
@@ -915,9 +935,10 @@ export function initControls({ timelineApi }) {
             return;
         }
         if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
-        if (e.key === '1') switchSidebarTab('studio');
-        else if (e.key === '2') switchSidebarTab('animate');
-        else if (e.key === '3') switchSidebarTab('cipher');
+        if (e.key === '1') setWorkspaceMode('design');
+        else if (e.key === '2') setWorkspaceMode('motion');
+        else if (e.key === '3') setWorkspaceMode('lab');
+        else if (e.key === '4') setWorkspaceMode('export');
         else if (e.key === ' ') {
             e.preventDefault();
             if (getIsMorphLoopActive()) stopSmoothMorphLoop();

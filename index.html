@@ -139,37 +139,49 @@
 <body class="h-[100dvh] overflow-hidden flex flex-col selection:bg-indigo-500 selection:text-white">
 
     <!-- Header -->
-    <header class="shrink-0 border-b border-white/10 bg-[#0d0d16]/95 backdrop-blur-md px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3 z-20">
-        <div class="flex items-center gap-3">
+    <header class="shrink-0 border-b border-white/10 bg-[#0d0d16]/95 backdrop-blur-md px-3 sm:px-5 py-2.5 flex flex-wrap items-center justify-between gap-2.5 z-20">
+        <div class="flex items-center gap-2.5 shrink-0">
             <div class="w-8 h-8 rounded-lg bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center">
                 <div class="w-3.5 h-3.5 rounded-full border-2 border-indigo-400 shadow-[0_0_8px_#6c63ff]"></div>
             </div>
             <div>
-                <h1 class="font-display font-bold text-base sm:text-lg tracking-wide text-white leading-tight">SOLOPASS <span class="text-indigo-400 font-normal text-xs sm:text-sm ml-1">Vector Studio</span></h1>
-                <p class="text-[11px] text-gray-400 hidden sm:block">Precision SVG Generator & Customizer</p>
+                <h1 class="font-display font-bold text-sm sm:text-base tracking-wide text-white leading-tight">SOLOPASS <span class="text-indigo-400 font-normal text-xs ml-1 hidden sm:inline">Studio</span></h1>
+                <p class="text-[10px] text-gray-400 hidden xl:block">Parametric Emblem &amp; Motion Creator</p>
             </div>
         </div>
 
-        <!-- Export & Utility Actions -->
-        <div class="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2 relative">
+        <!-- 4-Workspace Mode Bar -->
+        <nav role="tablist" aria-label="Workspace Modes" class="order-3 lg:order-2 w-full lg:w-auto flex items-center justify-center gap-1 bg-black/45 p-1 rounded-2xl border border-white/10">
+            <button id="modeBtnDesign" type="button" role="tab" aria-selected="true" data-workspace-mode="design" class="workspace-mode-btn flex-1 lg:flex-none px-3 py-1.5 rounded-xl bg-indigo-600/30 border border-indigo-400/50 text-xs font-semibold text-white transition flex items-center justify-center gap-1.5">
+                <span>🎨</span><span>Design</span><span class="text-[9px] font-mono opacity-60 hidden sm:inline">1</span>
+            </button>
+            <button id="modeBtnMotion" type="button" role="tab" aria-selected="false" data-workspace-mode="motion" class="workspace-mode-btn flex-1 lg:flex-none px-3 py-1.5 rounded-xl bg-transparent border border-transparent text-xs font-medium text-gray-300 hover:text-white hover:bg-white/5 transition flex items-center justify-center gap-1.5">
+                <span>🎬</span><span>Motion</span><span class="text-[9px] font-mono opacity-60 hidden sm:inline">2</span>
+            </button>
+            <button id="modeBtnLab" type="button" role="tab" aria-selected="false" data-workspace-mode="lab" class="workspace-mode-btn flex-1 lg:flex-none px-3 py-1.5 rounded-xl bg-transparent border border-transparent text-xs font-medium text-gray-300 hover:text-white hover:bg-white/5 transition flex items-center justify-center gap-1.5">
+                <span>🧪</span><span>Lab</span><span class="text-[9px] font-mono opacity-60 hidden sm:inline">3</span>
+            </button>
+            <button id="modeBtnExport" type="button" role="tab" aria-selected="false" data-workspace-mode="export" class="workspace-mode-btn flex-1 lg:flex-none px-3.5 py-1.5 rounded-xl bg-indigo-600/80 hover:bg-indigo-500 border border-indigo-400/40 text-xs font-semibold text-white shadow-[0_0_14px_rgba(99,102,241,0.3)] transition flex items-center justify-center gap-1.5">
+                <span>📦</span><span>Export</span><span class="text-[9px] font-mono opacity-75 hidden sm:inline">4</span>
+            </button>
+        </nav>
+
+        <!-- Compact Utility Actions -->
+        <div class="order-2 lg:order-3 flex items-center justify-end gap-1.5 relative shrink-0">
             <button id="resetAllBtn" onclick="applyPreset('reference'); showToast('Reset to original SOLOPASS reference');" class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-300 transition" title="Reset All Settings to Original Logo">
                 Reset
             </button>
             <button id="undoBtn" disabled class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-300 transition flex items-center gap-1" title="Undo Last Change (Ctrl+Z)">
                 <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
-                <span class="hidden md:inline">Undo</span>
+                <span class="hidden xl:inline">Undo</span>
             </button>
             <button id="toggleGuidesBtn" class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-300 transition flex items-center gap-1.5" title="Toggle Alignment Crosshairs (G)">
                 <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
-                <span class="hidden md:inline">Guides</span>
+                <span class="hidden xl:inline">Guides</span>
             </button>
             <button id="userProfileBtn" class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-200 transition flex items-center gap-1.5" title="User Profile: Set sender identity for messages">
                 <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
-                <span id="headerUserName">Solopass</span>
-            </button>
-            <button id="soloSyncModalBtn" class="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600/30 to-sky-600/30 hover:from-emerald-500/40 hover:to-sky-500/40 border border-emerald-400/40 text-xs font-semibold text-emerald-200 transition flex items-center gap-1.5 shadow-[0_0_12px_rgba(52,211,153,0.2)]" title="Open SOLO-SYNC: High-Speed AI-to-AI Optical & Digital Link">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>AI Sync Link</span>
+                <span id="headerUserName" class="hidden sm:inline">Solopass</span>
             </button>
             <label class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-200 transition flex items-center gap-1.5 cursor-pointer" title="Import .SVG, .PNG, .SPMOTION, or .JSON">
                 <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
@@ -177,53 +189,15 @@
                 <input type="file" id="importSvgInput" accept=".svg,.spmotion,.json,image/svg+xml,image/png" class="hidden">
             </label>
             <button id="openShortcutsBtn" type="button" class="px-2 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono text-gray-300 transition" title="Keyboard Shortcuts (?)">?</button>
-
-            <!-- Unified Export Dropdown -->
-            <div class="relative">
-                <button id="exportMenuBtn" type="button" popovertarget="exportMenuPopover" aria-haspopup="menu" aria-expanded="false" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow-[0_0_20px_rgba(99,102,241,0.4)] transition flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                    <span>Export</span>
-                    <span class="text-[10px] opacity-80">▾</span>
-                </button>
-                <div id="exportMenuPopover" popover="auto" role="menu" class="m-0 w-60 bg-[#121222]/95 backdrop-blur-xl border border-white/15 rounded-2xl shadow-2xl p-2 space-y-1">
-                    <button id="downloadSvgBtn" class="w-full text-left px-3 py-2 rounded-xl hover:bg-indigo-500/20 text-xs text-white font-medium flex items-center justify-between transition">
-                        <span>Download .SVG</span><span class="text-[10px] text-indigo-300 font-mono">Vector</span>
-                    </button>
-                    <button id="exportGifMenuBtn" class="w-full text-left px-3 py-2 rounded-xl hover:bg-emerald-500/20 text-xs text-emerald-200 font-medium flex items-center justify-between transition">
-                        <span>Download Animated .GIF</span><span class="text-[10px] text-emerald-300 font-mono">Loop</span>
-                    </button>
-                    <button id="downloadPngBtn" class="w-full text-left px-3 py-2 rounded-xl hover:bg-indigo-500/20 text-xs text-gray-200 flex items-center justify-between transition">
-                        <span>Download .PNG</span><span class="text-[10px] text-gray-400 font-mono">1800px + Seed</span>
-                    </button>
-                    <button id="downloadIconBtn" class="w-full text-left px-3 py-2 rounded-xl hover:bg-indigo-500/20 text-xs text-gray-200 flex items-center justify-between transition">
-                        <span>Download App Icon</span><span class="text-[10px] text-gray-400 font-mono">512×512</span>
-                    </button>
-                    <hr class="border-white/10 my-1">
-                    <button id="copySvgBtn" class="w-full text-left px-3 py-1.5 rounded-xl hover:bg-white/10 text-xs text-gray-200 flex items-center justify-between transition">
-                        <span>Copy SVG XML</span><span class="text-[10px] text-gray-400 font-mono">Clipboard</span>
-                    </button>
-                    <button id="inspectSvgBtn" class="w-full text-left px-3 py-1.5 rounded-xl hover:bg-white/10 text-xs text-gray-200 flex items-center justify-between transition">
-                        <span>Inspect SVG Code</span><span class="text-[10px] text-sky-400 font-mono">&lt;/&gt;</span>
-                    </button>
-                    <hr class="border-white/10 my-1">
-                    <div class="px-2 py-1 flex items-center justify-between gap-2 text-[10px] text-gray-400">
-                        <span>.WEBM Size</span>
-                        <select id="webmResSelect" class="bg-black/60 border border-white/15 rounded px-1.5 py-0.5 text-[10px] font-mono text-sky-300 focus:outline-none">
-                            <option value="1200">1200p (Wide)</option>
-                            <option value="1920">1080p HD</option>
-                            <option value="512">512×512 Sq</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
         </div>
     </header>
 
-    <!-- Main Workspace: Locked Viewport Split -->
-    <main class="flex-1 flex flex-col lg:flex-row min-h-0 min-w-0 overflow-hidden">
+    <!-- Main Workspace -->
+    <main class="flex-1 flex flex-col min-h-0 min-w-0 overflow-hidden">
+      <div id="editorWorkspace" class="flex-1 flex flex-col lg:flex-row min-h-0 min-w-0 overflow-hidden">
         
-        <!-- Pinned Live Vector Preview Stage (Always Visible) -->
-        <section class="shrink-0 lg:shrink lg:flex-1 min-w-0 h-[40vh] sm:h-[44vh] lg:h-auto canvas-grid relative flex flex-col items-center justify-between p-3 sm:p-5 border-b lg:border-b-0 border-white/10 select-none overflow-hidden">
+        <!-- Pinned Live Vector Preview Stage (Visible in Design, Motion, Lab) -->
+        <section class="shrink-0 lg:shrink lg:flex-1 min-w-0 h-[38vh] sm:h-[42vh] lg:h-auto canvas-grid relative flex flex-col items-center justify-between p-3 sm:p-5 border-b lg:border-b-0 border-white/10 select-none overflow-hidden">
             
             <!-- Top Bar inside Stage: Backgrounds & Zoom -->
             <div class="w-full min-w-0 flex flex-wrap items-center justify-between gap-2 z-10">
@@ -241,12 +215,6 @@
                     <button id="pulseToggleBtn" class="bg-black/60 backdrop-blur-md px-2.5 py-1.5 rounded-xl border border-white/10 text-[11px] text-gray-300 hover:text-white transition flex items-center gap-1.5" title="Preview Subtle Neon Breathing Animation">
                         <span id="pulseDot" class="w-2 h-2 rounded-full bg-gray-500"></span>
                         <span class="hidden sm:inline">Pulse</span>
-                    </button>
-
-                    <!-- Mic Audio-Reactive Mode -->
-                    <button id="micReactiveBtn" class="bg-black/60 backdrop-blur-md px-2.5 py-1.5 rounded-xl border border-white/10 text-[11px] text-gray-300 hover:text-white transition flex items-center gap-1" title="Pulse emblem to live microphone audio">
-                        <span>🎵</span>
-                        <span class="hidden sm:inline">Mic</span>
                     </button>
 
                     <!-- Save to Favorites Vault -->
@@ -336,117 +304,152 @@
             </div>
         </section>
 
-        <!-- Independently Scrollable Controls Sidebar with 3-Tab Inspector -->
+        <!-- Independently Scrollable Controls Sidebar -->
         <aside class="flex-1 lg:flex-none w-full lg:w-[clamp(330px,36vw,430px)] min-w-0 bg-[#11111c] lg:border-l border-white/10 flex flex-col min-h-0">
-            <!-- Pinned Tab Switcher -->
-            <div role="tablist" aria-label="Inspector Tabs" class="shrink-0 px-3 sm:px-4 pt-3 pb-2.5 border-b border-white/10 bg-[#0d0d16]/80 backdrop-blur-md grid grid-cols-3 gap-1.5">
-                <button id="tabBtnStudio" type="button" role="tab" aria-selected="true" aria-controls="tabPanelStudio" data-sidebar-tab="studio" class="sidebar-tab-btn px-2 py-1.5 rounded-xl bg-indigo-600/30 border border-indigo-400/50 text-xs font-semibold text-white transition flex items-center justify-center gap-1">
-                    <span>🎨 Studio</span><span class="text-[9px] font-mono opacity-60">1</span>
-                </button>
-                <button id="tabBtnAnimate" type="button" role="tab" aria-selected="false" aria-controls="tabPanelAnimate" data-sidebar-tab="animate" class="sidebar-tab-btn px-2 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-medium text-gray-300 hover:text-white transition flex items-center justify-center gap-1">
-                    <span>✨ Animate</span><span class="text-[9px] font-mono opacity-60">2</span>
-                </button>
-                <button id="tabBtnCipher" type="button" role="tab" aria-selected="false" aria-controls="tabPanelCipher" data-sidebar-tab="cipher" class="sidebar-tab-btn px-2 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs font-medium text-gray-300 hover:text-white transition flex items-center justify-center gap-1">
-                    <span>🔐 Cipher</span><span class="text-[9px] font-mono opacity-60">3</span>
+            <!-- Contextual Mode Header -->
+            <div class="shrink-0 px-4 pt-3 pb-2.5 border-b border-white/10 bg-[#0d0d16]/80 backdrop-blur-md flex items-center justify-between gap-2">
+                <div class="min-w-0">
+                    <h2 id="sidebarModeTitle" class="text-xs font-semibold uppercase tracking-wider text-indigo-300 truncate">🎨 Design Studio</h2>
+                    <p id="sidebarModeSubtitle" class="text-[10px] text-gray-400 truncate">Emblem geometry, colors &amp; wordmark</p>
+                </div>
+                <button type="button" data-jump-export="true" class="shrink-0 px-2.5 py-1 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-400/30 text-[10px] font-semibold text-indigo-200 transition">
+                    Export →
                 </button>
             </div>
 
             <div class="flex-1 overflow-y-auto overflow-x-hidden p-3.5 sm:p-5 space-y-4 sm:space-y-5">
-            <!-- TAB 3: CIPHER & SYNC -->
-            <div id="tabPanelCipher" role="tabpanel" aria-labelledby="tabBtnCipher" class="hidden space-y-4">
-            <!-- Section 0: Mathematical & Message Cipher Codec -->
-            <div class="bg-indigo-950/25 border border-indigo-500/30 rounded-2xl p-4 space-y-3">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-xs font-semibold uppercase tracking-wider text-indigo-300 flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5 text-indigo-400" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                        Geometric Cipher & Seed
-                    </h2>
-                    <div class="flex items-center gap-1.5">
-                        <span id="mathRatioBadge" aria-live="polite" class="text-[10px] font-mono px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-400/20">Ratio: 1.353</span>
-                        <button id="saveSnapshotBtn" type="button" class="text-[10px] font-medium px-2 py-0.5 rounded-md bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-200 border border-emerald-400/30 transition" title="Save current logo variation to Vault">+ Snapshot</button>
-                    </div>
-                </div>
-                <details class="text-[10px] text-gray-400 bg-black/30 rounded-xl px-2.5 py-1.5 border border-white/5">
-                    <summary class="cursor-pointer text-indigo-300 font-medium select-none">How Cipher & SP2 Seeds work</summary>
-                    <p class="mt-1 leading-relaxed text-gray-400">Encoding a phrase deterministically hashes your text into ring and wing geometry while embedding the message inside the <code class="text-indigo-200">SP2-</code> seed, SVG metadata, and exported PNG <code class="text-indigo-200">tEXt</code> chunks.</p>
-                </details>
-
-                <!-- Saved Variations Vault Strip -->
-                <div id="snapshotVault" class="hidden pt-1 border-t border-indigo-500/20 space-y-1.5">
+            <!-- LAB MODE PANEL -->
+            <div id="tabPanelCipher" role="tabpanel" aria-labelledby="modeBtnLab" class="hidden space-y-4">
+                <!-- Lab Card 1: Geometric Cipher & SP2- Seed -->
+                <div class="bg-indigo-950/25 border border-indigo-500/30 rounded-2xl p-4 space-y-3">
                     <div class="flex items-center justify-between">
-                        <span class="text-[10px] uppercase tracking-wider text-gray-400">Session Snapshots</span>
-                        <button id="clearVaultBtn" class="text-[10px] text-gray-500 hover:text-gray-300">Clear</button>
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-indigo-300 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-indigo-400" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                            Geometric Cipher &amp; Seed
+                        </h3>
+                        <div class="flex items-center gap-1.5">
+                            <span id="mathRatioBadge" aria-live="polite" class="text-[10px] font-mono px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-400/20">Ratio: 1.353</span>
+                            <button id="saveSnapshotBtn" type="button" class="text-[10px] font-medium px-2 py-0.5 rounded-md bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-200 border border-emerald-400/30 transition" title="Save current logo variation to Vault">+ Snapshot</button>
+                        </div>
                     </div>
-                    <div id="snapshotList" class="flex items-center gap-1.5 overflow-x-auto pb-1"></div>
+                    <details class="text-[10px] text-gray-400 bg-black/30 rounded-xl px-2.5 py-1.5 border border-white/5">
+                        <summary class="cursor-pointer text-indigo-300 font-medium select-none">How Cipher &amp; SP2 Seeds work</summary>
+                        <p class="mt-1 leading-relaxed text-gray-400">Encoding a phrase deterministically hashes your text into ring and wing geometry while embedding the message inside the <code class="text-indigo-200">SP2-</code> seed, SVG metadata, and exported PNG <code class="text-indigo-200">tEXt</code> chunks.</p>
+                    </details>
+
+                    <!-- Saved Variations Vault Strip -->
+                    <div id="snapshotVault" class="hidden pt-1 border-t border-indigo-500/20 space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] uppercase tracking-wider text-gray-400">Session Snapshots</span>
+                            <button id="clearVaultBtn" class="text-[10px] text-gray-500 hover:text-gray-300">Clear</button>
+                        </div>
+                        <div id="snapshotList" class="flex items-center gap-1.5 overflow-x-auto pb-1"></div>
+                    </div>
+
+                    <!-- Static Cipher Encoder -->
+                    <div class="space-y-2">
+                        <label class="text-[11px] text-gray-400 block">Hash Secret Message into Static Geometry</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="cipherMessageInput" placeholder="e.g. SUBSCRIBE, COUPON: NEON20..." class="flex-1 px-3 py-1.5 text-xs bg-black/50 border border-white/15 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-indigo-400">
+                            <button id="encodeMessageBtn" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-medium text-white transition shrink-0" title="Hash phrase into static slider geometry">
+                                Encode
+                            </button>
+                            <button id="clearCipherBtn" class="hidden px-2 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-gray-400 hover:text-white transition shrink-0" title="Clear Embedded Message">
+                                ✕
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Decoded Secret Message Readout -->
+                    <div id="decodedMessageBox" class="hidden bg-black/50 border border-emerald-500/30 rounded-xl px-3 py-2 flex items-center justify-between gap-2">
+                        <div class="min-w-0">
+                            <span class="text-[10px] uppercase tracking-wider text-emerald-400 block">Decoded Hidden Message</span>
+                            <p id="decodedMessageText" class="text-xs font-mono text-white truncate"></p>
+                        </div>
+                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 shrink-0">VERIFIED</span>
+                    </div>
+
+                    <!-- Two-Way Shareable Vector Seed Code (SP2-) -->
+                    <div class="pt-1 border-t border-indigo-500/20 space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <label class="text-[11px] text-gray-400">Live Vector Seed Code (<span class="font-mono text-indigo-300">SP2-</span>)</label>
+                            <button id="copySeedBtn" class="text-[10px] text-indigo-300 hover:text-white transition">Copy Seed</button>
+                        </div>
+                        <div class="flex gap-2">
+                            <input type="text" id="vectorSeedCode" placeholder="Paste SP2- code here to decode..." class="flex-1 px-2.5 py-1.5 text-[11px] font-mono bg-black/50 border border-white/15 rounded-xl text-indigo-200 focus:outline-none focus:border-indigo-400">
+                            <button id="decodeSeedBtn" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-xs font-medium text-white transition shrink-0">
+                                Decode
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Secret Message to Geometry Encoder & Motion Composer -->
-                <div class="space-y-2">
-                    <label class="text-[11px] text-gray-400 block">Encode Message into Geometry or Animation</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="cipherMessageInput" placeholder="e.g. SUBSCRIBE, COUPON: NEON20..." class="flex-1 px-3 py-1.5 text-xs bg-black/50 border border-white/15 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-indigo-400">
-                        <button id="encodeMessageBtn" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-medium text-white transition shrink-0" title="Hash phrase into static slider geometry">
-                            Encode
-                        </button>
-                        <button id="clearCipherBtn" class="hidden px-2 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-gray-400 hover:text-white transition shrink-0" title="Clear Embedded Message">
-                            ✕
-                        </button>
-                    </div>
-                    <div class="flex gap-2 items-center">
-                        <select id="messageAnimStyleSelect" class="flex-1 px-2.5 py-1.5 text-[11px] font-mono bg-black/50 border border-white/15 rounded-xl text-sky-200 focus:outline-none cursor-pointer">
-                            <option value="cyberMorph" class="bg-[#11111c]">Stealth Morph (Video Bug)</option>
-                            <option value="plasmaPulse" class="bg-[#11111c]">Plasma Pulse (Energy)</option>
-                            <option value="holoScan" class="bg-[#11111c]">Holo Scan (Iridescent)</option>
-                            <option value="glitchCipher" class="bg-[#11111c]">Glitch Cipher (Sharp)</option>
-                            <option value="beacon" class="bg-[#11111c]">Decodable Beacon (CRC-8)</option>
-                        </select>
-                        <button id="animateMessageBtn" type="button" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-xs font-semibold text-white transition shrink-0 flex items-center gap-1" title="Turn message into a smooth animated logo loop">
-                            <span>🎬</span><span>Animate Message</span>
-                        </button>
-                    </div>
-                    <div class="flex items-center justify-between gap-1.5 pt-0.5 flex-wrap">
-                        <label class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] text-emerald-300 font-medium cursor-pointer transition flex items-center gap-1" title="Decode a SoloSync Beacon message from an exported .WEBM or .MP4 video file">
+                <!-- Lab Card 2: Optical Beacon & Video Decoder -->
+                <div class="bg-sky-950/20 border border-sky-500/25 rounded-2xl p-4 space-y-3">
+                    <h3 class="text-xs font-semibold uppercase tracking-wider text-sky-300 flex items-center gap-1.5">
+                        <span>📡</span><span>Optical Beacon &amp; Video Decoder</span>
+                    </h3>
+                    <p class="text-[11px] text-gray-400 leading-relaxed">Verify CRC-8 visual beacon loops offscreen or extract hidden SoloSync beacon messages from an exported <code class="text-sky-200">.WEBM</code> / <code class="text-sky-200">.MP4</code> clip.</p>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <label class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-xs text-emerald-300 font-medium cursor-pointer transition flex items-center gap-1.5" title="Decode a SoloSync Beacon message from an exported .WEBM or .MP4 video file">
                             <span>🎞️ Decode Video Clip</span>
                             <input type="file" id="decodeVideoFileInput" accept="video/*" class="hidden">
                         </label>
-                        <button id="verifyBeaconBtn" type="button" class="px-2.5 py-1 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 text-[10px] text-sky-200 font-medium transition" title="Render current Beacon timeline offscreen and verify CRC-8 visual decode">
+                        <button id="verifyBeaconBtn" type="button" class="px-3 py-1.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 text-xs text-sky-200 font-medium transition" title="Render current Beacon timeline offscreen and verify CRC-8 visual decode">
                             🧪 Verify Beacon
                         </button>
-                        <label class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] text-gray-200 cursor-pointer" title="Render a sleek lower-third CTA pill displaying your message or brand name">
-                            <input type="checkbox" id="showLowerThird" class="rounded bg-black/40 border-white/20 text-indigo-500 focus:ring-0">
-                            <span>CTA Pill</span>
-                        </label>
-                        <span id="videoDecodeStatus" class="text-[10px] font-mono text-gray-400 truncate"></span>
                     </div>
+                    <span id="videoDecodeStatus" class="block text-[10px] font-mono text-gray-400 truncate"></span>
                 </div>
 
-                <!-- Decoded Secret Message Readout -->
-                <div id="decodedMessageBox" class="hidden bg-black/50 border border-emerald-500/30 rounded-xl px-3 py-2 flex items-center justify-between gap-2">
-                    <div class="min-w-0">
-                        <span class="text-[10px] uppercase tracking-wider text-emerald-400 block">Decoded Hidden Message</span>
-                        <p id="decodedMessageText" class="text-xs font-mono text-white truncate"></p>
-                    </div>
-                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 shrink-0">VERIFIED</span>
-                </div>
-
-                <!-- Two-Way Shareable Vector Seed Code (SP2-) -->
-                <div class="pt-1 border-t border-indigo-500/20 space-y-1.5">
-                    <div class="flex items-center justify-between">
-                        <label class="text-[11px] text-gray-400">Live Vector Seed Code (<span class="font-mono text-indigo-300">SP2-</span>)</label>
-                        <button id="copySeedBtn" class="text-[10px] text-indigo-300 hover:text-white transition">Copy Seed</button>
-                    </div>
-                    <div class="flex gap-2">
-                        <input type="text" id="vectorSeedCode" placeholder="Paste SP2- code here to decode..." class="flex-1 px-2.5 py-1.5 text-[11px] font-mono bg-black/50 border border-white/15 rounded-xl text-indigo-200 focus:outline-none focus:border-indigo-400">
-                        <button id="decodeSeedBtn" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-xs font-medium text-white transition shrink-0">
-                            Decode
+                <!-- Lab Card 3: SoloSync Optical Link & Audio Reactive -->
+                <div class="bg-emerald-950/20 border border-emerald-500/25 rounded-2xl p-4 space-y-3">
+                    <h3 class="text-xs font-semibold uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span>SoloSync Link &amp; Audio Reactive</span>
+                    </h3>
+                    <p class="text-[11px] text-gray-400 leading-relaxed">Transmit payloads optically via webcam/canvas or drive emblem geometry with live microphone audio.</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="soloSyncModalBtn" class="px-3 py-2 rounded-xl bg-gradient-to-r from-emerald-600/30 to-sky-600/30 hover:from-emerald-500/40 hover:to-sky-500/40 border border-emerald-400/40 text-xs font-semibold text-emerald-200 transition flex items-center justify-center gap-1.5" title="Open SOLO-SYNC: High-Speed AI-to-AI Optical & Digital Link">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                            <span>AI Sync Link</span>
+                        </button>
+                        <button id="micReactiveBtn" class="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-xs font-medium text-gray-200 transition flex items-center justify-center gap-1.5" title="Pulse emblem to live microphone audio">
+                            <span>🎵</span>
+                            <span>Mic Reactive</span>
                         </button>
                     </div>
                 </div>
-            </div>
             </div> <!-- /tabPanelCipher -->
 
-            <!-- TAB 2: ANIMATE & AI -->
-            <div id="tabPanelAnimate" role="tabpanel" aria-labelledby="tabBtnAnimate" class="hidden space-y-4">
+            <!-- MOTION MODE PANEL -->
+            <div id="tabPanelAnimate" role="tabpanel" aria-labelledby="modeBtnMotion" class="hidden space-y-4">
+            <!-- Motion Card 1: Message-to-Motion & Video Bug Composer -->
+            <div class="bg-indigo-950/25 border border-indigo-500/30 rounded-2xl p-4 space-y-2.5">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xs font-semibold uppercase tracking-wider text-indigo-300 flex items-center gap-1.5">
+                        <span>🎬</span><span>Message-to-Motion &amp; Video Bug</span>
+                    </h3>
+                    <label class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-white/5 border border-white/10 text-[10px] text-gray-200 cursor-pointer" title="Render a sleek lower-third CTA pill displaying your message or brand name">
+                        <input type="checkbox" id="showLowerThird" class="rounded bg-black/40 border-white/20 text-indigo-500 focus:ring-0">
+                        <span>CTA Pill</span>
+                    </label>
+                </div>
+                <input type="text" id="motionPhraseInput" placeholder="Phrase or CTA (e.g. SUBSCRIBE, NEW DROP)..." class="w-full px-3 py-1.5 text-xs bg-black/50 border border-white/15 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-sky-400">
+                <div class="flex gap-2 items-center">
+                    <select id="messageAnimStyleSelect" class="flex-1 px-2.5 py-1.5 text-[11px] font-mono bg-black/50 border border-white/15 rounded-xl text-sky-200 focus:outline-none cursor-pointer">
+                        <option value="cyberMorph" class="bg-[#11111c]">Stealth Morph (Video Bug)</option>
+                        <option value="plasmaPulse" class="bg-[#11111c]">Plasma Pulse (Energy)</option>
+                        <option value="holoScan" class="bg-[#11111c]">Holo Scan (Iridescent)</option>
+                        <option value="glitchCipher" class="bg-[#11111c]">Glitch Cipher (Sharp)</option>
+                        <option value="beacon" class="bg-[#11111c]">Decodable Beacon (CRC-8)</option>
+                    </select>
+                    <button id="animateMessageBtn" type="button" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-xs font-semibold text-white transition shrink-0 flex items-center gap-1" title="Turn message into a smooth animated logo loop">
+                        <span>✨ Animate</span>
+                    </button>
+                </div>
+            </div>
+
             <!-- Section 0.5: .SPMOTION Keyframe Timeline & AI Motion Choreographer -->
             <div class="bg-sky-950/25 border border-sky-500/30 rounded-2xl p-4 space-y-3">
                 <div class="flex items-center justify-between">
@@ -582,55 +585,18 @@
                     </div>
                 </div>
 
-                <!-- Export Animated .GIF, .WEBM Video, Animated .SVG & .SPMOTION File -->
-                <div class="space-y-2 pt-2 border-t border-sky-500/20">
-                    <div class="grid grid-cols-2 gap-1.5">
-                        <div class="flex items-center justify-between bg-black/40 px-2 py-1 rounded-lg border border-white/10">
-                            <span class="text-[9px] text-gray-400">Overlay BG</span>
-                            <select id="exportOverlayBg" class="bg-transparent text-[10px] font-mono text-emerald-200 focus:outline-none cursor-pointer">
-                                <option value="studio" class="bg-[#11111c]">Studio BG</option>
-                                <option value="transparent" class="bg-[#11111c]">Transparent</option>
-                                <option value="chroma" class="bg-[#11111c]">Chroma Green</option>
-                            </select>
-                        </div>
-                        <div class="flex items-center justify-between bg-black/40 px-2 py-1 rounded-lg border border-white/10">
-                            <span class="text-[9px] text-gray-400">Framing</span>
-                            <select id="exportBugPosition" class="bg-transparent text-[10px] font-mono text-sky-200 focus:outline-none cursor-pointer">
-                                <option value="centered" class="bg-[#11111c]">Centered</option>
-                                <option value="yt-bottom-left" class="bg-[#11111c]">YT Bottom-Left</option>
-                                <option value="yt-bottom-right" class="bg-[#11111c]">YT Bottom-Right</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-4 gap-1.5">
-                        <button id="exportGifBtn" class="px-2 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/35 text-[11px] font-semibold text-emerald-200 transition flex items-center justify-center gap-1" title="Render timeline to universal Animated .GIF">
-                            <span>🎞️</span><span>.GIF</span>
-                        </button>
-                        <button id="exportWebmBtn" class="px-2 py-2 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-400/30 text-[11px] font-semibold text-indigo-200 transition flex items-center justify-center gap-1" title="Render timeline to .WEBM video">
-                            <span>🎬</span><span>.WEBM</span>
-                        </button>
-                        <button id="exportPngSeqBtn" class="px-2 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/30 text-[11px] font-semibold text-amber-200 transition flex items-center justify-center gap-1" title="Export lossless RGBA PNG frame sequence (.ZIP) for Premiere/DaVinci/CapCut">
-                            <span>📦</span><span>.ZIP</span>
-                        </button>
-                        <button id="exportAnimatedSvgBtn" class="px-2 py-2 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 text-[11px] font-semibold text-sky-200 transition flex items-center justify-center gap-1" title="Export self-contained Animated .SVG">
-                            <span>✨</span><span>.SVG</span>
-                        </button>
-                    </div>
-                    <div class="grid grid-cols-2 gap-1.5">
-                        <button id="exportSpmotionBtn" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-medium text-gray-300 transition text-center" title="Export .spmotion JSON">
-                            Export .SPMOTION
-                        </button>
-                        <label class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-medium text-gray-300 transition cursor-pointer text-center" title="Load .spmotion file">
-                            Load .SPMOTION
-                            <input type="file" id="importSpmotionInput" accept=".spmotion,.json" class="hidden">
-                        </label>
-                    </div>
+                <!-- Motion Export CTA -->
+                <div class="pt-2 border-t border-sky-500/20 flex items-center justify-between gap-2">
+                    <span class="text-[11px] text-gray-400">Ready to render .GIF, .WEBM, .ZIP, or .SVG?</span>
+                    <button type="button" data-jump-export="true" class="shrink-0 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow-[0_0_14px_rgba(99,102,241,0.35)] transition">
+                        Open Export Page →
+                    </button>
                 </div>
             </div>
             </div> <!-- /tabPanelAnimate -->
 
-            <!-- TAB 1: STUDIO -->
-            <div id="tabPanelStudio" role="tabpanel" aria-labelledby="tabBtnStudio" class="space-y-4 pb-4">
+            <!-- DESIGN MODE PANEL -->
+            <div id="tabPanelStudio" role="tabpanel" aria-labelledby="modeBtnDesign" class="space-y-4 pb-4">
             <!-- Section 1: Color, Gradient & Glow -->
             <div class="bg-white/[0.025] border border-white/10 rounded-2xl p-4 space-y-4">
                 <div class="flex items-center justify-between">
@@ -945,9 +911,171 @@
                     </div>
                 </div>
             </div>
+            <div class="pt-1 flex items-center justify-between gap-2">
+                <button type="button" data-jump-motion="true" class="flex-1 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-sky-200 transition">
+                    🎬 Animate in Motion →
+                </button>
+                <button type="button" data-jump-export="true" class="flex-1 px-3 py-2 rounded-xl bg-indigo-600/80 hover:bg-indigo-500 text-xs font-semibold text-white transition">
+                    📦 Export Page →
+                </button>
+            </div>
             </div> <!-- /tabPanelStudio -->
             </div> <!-- /sidebar scroll container -->
         </aside>
+      </div> <!-- /#editorWorkspace -->
+
+      <!-- Dedicated Full-Workspace Export Page (Mode 4) -->
+      <section id="exportPageView" role="tabpanel" aria-labelledby="modeBtnExport" class="hidden flex-1 min-h-0 min-w-0 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#0b0b12]">
+        <div class="max-w-6xl mx-auto space-y-6">
+            <!-- Export Page Header -->
+            <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/10">
+                <div>
+                    <h2 class="font-display font-bold text-lg sm:text-xl text-white flex items-center gap-2">
+                        <span>📦</span><span>Export Studio</span>
+                    </h2>
+                    <p class="text-xs text-gray-400">Preview your static vector or animated video bug and download production assets.</p>
+                </div>
+                <button id="backToEditorBtn" type="button" class="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-xs font-semibold text-gray-200 transition flex items-center gap-1.5">
+                    <span>← Back to Editor</span>
+                </button>
+            </div>
+
+            <!-- Two-Column Export Layout -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <!-- Left Column: Live Export Preview Card -->
+                <div class="lg:col-span-6 bg-[#11111c] border border-white/10 rounded-2xl p-4 sm:p-5 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex items-center gap-1 bg-black/50 p-1 rounded-xl border border-white/10">
+                            <button id="exportPreviewStaticBtn" type="button" class="px-3 py-1 rounded-lg bg-white/10 text-xs font-semibold text-white transition">Static</button>
+                            <button id="exportPreviewAnimBtn" type="button" class="px-3 py-1 rounded-lg text-xs font-medium text-gray-400 hover:text-white transition">Animated</button>
+                        </div>
+                        <span id="exportPreviewStatusBadge" class="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-indigo-500/15 border border-indigo-400/25 text-indigo-200">Vector Ready</span>
+                    </div>
+
+                    <!-- Live Preview Canvas Container -->
+                    <div id="exportPreviewStage" class="w-full aspect-video rounded-2xl border border-white/15 relative overflow-hidden flex items-center justify-center p-4 transition-colors canvas-grid">
+                        <div id="exportPreviewInner" class="w-full h-full flex items-center justify-center transition-all"></div>
+                        <div id="exportPreviewBugHint" class="hidden absolute top-3 left-3 px-2 py-0.5 rounded bg-black/65 border border-white/10 text-[10px] font-mono text-gray-300">16:9 Corner Bug Framing</div>
+                    </div>
+
+                    <!-- Metadata Readout Pills -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                        <div class="bg-black/40 border border-white/10 rounded-xl px-2.5 py-2">
+                            <span class="block text-[10px] text-gray-400">Output</span>
+                            <span id="exportMetaDims" class="text-xs font-mono text-white">1800×...</span>
+                        </div>
+                        <div class="bg-black/40 border border-white/10 rounded-xl px-2.5 py-2">
+                            <span class="block text-[10px] text-gray-400">Timeline</span>
+                            <span id="exportMetaDuration" class="text-xs font-mono text-sky-300">3.0s · 2 KF</span>
+                        </div>
+                        <div class="bg-black/40 border border-white/10 rounded-xl px-2.5 py-2">
+                            <span class="block text-[10px] text-gray-400">CTA Pill</span>
+                            <span id="exportMetaCta" class="text-xs font-mono text-emerald-300">Off</span>
+                        </div>
+                        <div class="bg-black/40 border border-white/10 rounded-xl px-2.5 py-2">
+                            <span class="block text-[10px] text-gray-400">Seed</span>
+                            <span id="exportMetaSeed" class="text-xs font-mono text-indigo-300 truncate block">SP2-...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Output Settings & Download Cards -->
+                <div class="lg:col-span-6 space-y-4">
+                    <!-- Output Settings -->
+                    <div class="bg-[#11111c] border border-white/10 rounded-2xl p-4 sm:p-5 space-y-3">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-300">Output Settings</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                            <div class="bg-black/40 border border-white/10 rounded-xl p-2.5 space-y-1">
+                                <label for="exportOverlayBg" class="block text-[10px] text-gray-400">Overlay BG</label>
+                                <select id="exportOverlayBg" class="w-full bg-transparent text-xs font-mono text-emerald-200 focus:outline-none cursor-pointer">
+                                    <option value="studio" class="bg-[#11111c]">Studio BG</option>
+                                    <option value="transparent" class="bg-[#11111c]">Transparent</option>
+                                    <option value="chroma" class="bg-[#11111c]">Chroma Green</option>
+                                </select>
+                            </div>
+                            <div class="bg-black/40 border border-white/10 rounded-xl p-2.5 space-y-1">
+                                <label for="exportBugPosition" class="block text-[10px] text-gray-400">Framing</label>
+                                <select id="exportBugPosition" class="w-full bg-transparent text-xs font-mono text-sky-200 focus:outline-none cursor-pointer">
+                                    <option value="centered" class="bg-[#11111c]">Centered</option>
+                                    <option value="yt-bottom-left" class="bg-[#11111c]">YT Bottom-Left</option>
+                                    <option value="yt-bottom-right" class="bg-[#11111c]">YT Bottom-Right</option>
+                                </select>
+                            </div>
+                            <div class="bg-black/40 border border-white/10 rounded-xl p-2.5 space-y-1">
+                                <label for="webmResSelect" class="block text-[10px] text-gray-400">Video Resolution</label>
+                                <select id="webmResSelect" class="w-full bg-transparent text-xs font-mono text-indigo-200 focus:outline-none cursor-pointer">
+                                    <option value="1200" class="bg-[#11111c]">1200p (Wide)</option>
+                                    <option value="1920" class="bg-[#11111c]">1080p HD</option>
+                                    <option value="512" class="bg-[#11111c]">512×512 Sq</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vector & Static Image Card -->
+                    <div class="bg-[#11111c] border border-white/10 rounded-2xl p-4 sm:p-5 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xs font-semibold uppercase tracking-wider text-indigo-300">Vector &amp; Static Image</h3>
+                            <span class="text-[10px] text-gray-400 font-mono">Embedded SP2- Seed</span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                            <button id="downloadSvgBtn" type="button" class="px-3 py-2.5 rounded-xl bg-indigo-600/25 hover:bg-indigo-600/35 border border-indigo-400/40 text-xs font-semibold text-white transition text-left">
+                                <span class="block">Download .SVG</span>
+                                <span class="text-[10px] text-indigo-300 font-mono">Scalable Vector</span>
+                            </button>
+                            <button id="downloadPngBtn" type="button" class="px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-xs font-semibold text-gray-100 transition text-left">
+                                <span class="block">Download .PNG</span>
+                                <span class="text-[10px] text-gray-400 font-mono">1800px + Seed</span>
+                            </button>
+                            <button id="downloadIconBtn" type="button" class="px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-xs font-semibold text-gray-100 transition text-left">
+                                <span class="block">App Icon</span>
+                                <span class="text-[10px] text-gray-400 font-mono">512×512 PNG</span>
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 pt-1">
+                            <button id="copySvgBtn" type="button" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-gray-200 transition">Copy SVG XML</button>
+                            <button id="inspectSvgBtn" type="button" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-sky-300 transition">Inspect SVG Code &lt;/&gt;</button>
+                        </div>
+                    </div>
+
+                    <!-- Video & Motion Card -->
+                    <div class="bg-[#11111c] border border-sky-500/25 rounded-2xl p-4 sm:p-5 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xs font-semibold uppercase tracking-wider text-sky-300">Video &amp; Motion Loops</h3>
+                            <span class="text-[10px] text-gray-400 font-mono">Alpha &amp; 16:9 Ready</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="exportGifBtn" type="button" class="px-3 py-2.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/35 text-xs font-semibold text-emerald-200 transition text-left">
+                                <span class="block">🎞️ Animated .GIF</span>
+                                <span class="text-[10px] text-emerald-300/80 font-mono">Adaptive Palette</span>
+                            </button>
+                            <button id="exportWebmBtn" type="button" class="px-3 py-2.5 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-400/35 text-xs font-semibold text-indigo-200 transition text-left">
+                                <span class="block">🎬 .WEBM Video</span>
+                                <span class="text-[10px] text-indigo-300/80 font-mono">VP9 / Alpha</span>
+                            </button>
+                            <button id="exportPngSeqBtn" type="button" class="px-3 py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/35 text-xs font-semibold text-amber-200 transition text-left">
+                                <span class="block">📦 Lossless .ZIP</span>
+                                <span class="text-[10px] text-amber-300/80 font-mono">RGBA PNG Sequence</span>
+                            </button>
+                            <button id="exportAnimatedSvgBtn" type="button" class="px-3 py-2.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/35 text-xs font-semibold text-sky-200 transition text-left">
+                                <span class="block">✨ Animated .SVG</span>
+                                <span class="text-[10px] text-sky-300/80 font-mono">Self-Contained</span>
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 pt-1">
+                            <button id="exportSpmotionBtn" type="button" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-300 transition text-center">
+                                Export .SPMOTION
+                            </button>
+                            <label class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-300 transition cursor-pointer text-center">
+                                Load .SPMOTION
+                                <input type="file" id="importSpmotionInput" accept=".spmotion,.json" class="hidden">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </section>
     </main>
 
     <!-- Live SVG Code Inspector Modal -->

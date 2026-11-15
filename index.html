@@ -515,6 +515,14 @@
                         <button type="button" data-motion-preset="glitchBurst" class="px-2 py-1 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 border border-rose-400/30 text-[10px] text-rose-200 transition">👾 Glitch Burst</button>
                         <button type="button" data-motion-preset="smoothMorphLoop" class="px-2 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-400/30 text-[10px] text-emerald-200 transition">🌊 Morph Loop</button>
                     </div>
+                    <div class="pt-1">
+                        <span class="block text-[9px] uppercase tracking-wider text-amber-300/80 font-semibold mb-1">Stingers (In → Hold → Out)</span>
+                        <div class="grid grid-cols-3 gap-1.5">
+                            <button type="button" data-motion-preset="stingerPopIn" class="px-2 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/30 text-[10px] text-amber-200 transition" title="Compact pop-in, steady CTA hold, snap-out">🚀 Pop-In CTA</button>
+                            <button type="button" data-motion-preset="stingerSlideOut" class="px-2 py-1 rounded-lg bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/30 text-[10px] text-sky-200 transition" title="Tucked intro, clean hold, slide retract">↔️ Slide-Out</button>
+                            <button type="button" data-motion-preset="stingerBugPulse" class="px-2 py-1 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-400/30 text-[10px] text-indigo-200 transition" title="Energy pulse then clean corner-bug hold">✨ Bug Pulse</button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Unified AI Studio Co-Pilot (Controls Sliders, Ciphers, & Keyframes) -->
@@ -597,6 +605,17 @@
 
             <!-- DESIGN MODE PANEL -->
             <div id="tabPanelStudio" role="tabpanel" aria-labelledby="modeBtnDesign" class="space-y-4 pb-4">
+            <!-- Channel Brand Kit -->
+            <div class="bg-indigo-950/20 border border-indigo-500/25 rounded-2xl p-3.5 space-y-2.5">
+                <div class="flex items-center justify-between gap-2">
+                    <span class="text-[11px] font-semibold uppercase tracking-wider text-indigo-300">Channel Brand Kit</span>
+                    <button id="saveBrandKitBtn" type="button" class="px-2.5 py-1 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/45 border border-indigo-400/40 text-[10px] font-semibold text-indigo-100 transition">+ Save Kit</button>
+                </div>
+                <div id="brandKitStrip" class="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-[10px] text-gray-400">
+                    <span>Save colors, style &amp; wordmark for 1-click recall.</span>
+                </div>
+            </div>
+
             <!-- Section 1: Color, Gradient & Glow -->
             <div class="bg-white/[0.025] border border-white/10 rounded-2xl p-4 space-y-4">
                 <div class="flex items-center justify-between">
@@ -949,13 +968,33 @@
                             <button id="exportPreviewStaticBtn" type="button" class="px-3 py-1 rounded-lg bg-white/10 text-xs font-semibold text-white transition">Static</button>
                             <button id="exportPreviewAnimBtn" type="button" class="px-3 py-1 rounded-lg text-xs font-medium text-gray-400 hover:text-white transition">Animated</button>
                         </div>
-                        <span id="exportPreviewStatusBadge" class="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-indigo-500/15 border border-indigo-400/25 text-indigo-200">Vector Ready</span>
+                        <div class="flex items-center gap-1.5">
+                            <button id="exportSceneMockupBtn" type="button" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-medium text-gray-300 transition" title="Preview over a simulated 16:9 YouTube/stream video scene">
+                                📺 Scene Mockup
+                            </button>
+                            <label class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-medium text-sky-300 cursor-pointer transition" title="Upload your own video frame screenshot to test corner-bug contrast">
+                                🖼 Drop Frame
+                                <input type="file" id="exportSceneUpload" accept="image/*" class="hidden">
+                            </label>
+                            <span id="exportPreviewStatusBadge" class="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-indigo-500/15 border border-indigo-400/25 text-indigo-200">Vector Ready</span>
+                        </div>
                     </div>
 
                     <!-- Live Preview Canvas Container -->
                     <div id="exportPreviewStage" class="w-full aspect-video rounded-2xl border border-white/15 relative overflow-hidden flex items-center justify-center p-4 transition-colors canvas-grid">
-                        <div id="exportPreviewInner" class="w-full h-full flex items-center justify-center transition-all"></div>
-                        <div id="exportPreviewBugHint" class="hidden absolute top-3 left-3 px-2 py-0.5 rounded bg-black/65 border border-white/10 text-[10px] font-mono text-gray-300">16:9 Corner Bug Framing</div>
+                        <!-- Optional 16:9 Video Scene Backdrop (preview-only) -->
+                        <div id="exportSceneBackdrop" class="hidden absolute inset-0 pointer-events-none">
+                            <img id="exportSceneImg" alt="Uploaded scene frame" class="hidden w-full h-full object-cover">
+                            <div id="exportSceneDefault" class="w-full h-full bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#090d16] relative">
+                                <div class="absolute inset-0 opacity-30" style="background-image: radial-gradient(circle at 28% 35%, rgba(56,189,248,0.45), transparent 45%), radial-gradient(circle at 75% 65%, rgba(168,85,247,0.35), transparent 48%);"></div>
+                                <div class="absolute bottom-3 left-4 right-4 h-1 rounded-full bg-white/15 overflow-hidden">
+                                    <div class="w-2/5 h-full bg-red-500 rounded-full"></div>
+                                </div>
+                                <div class="absolute top-3 right-3 px-2 py-0.5 rounded bg-black/50 border border-white/10 text-[9px] font-mono text-gray-300">16:9 SAFE ZONE</div>
+                            </div>
+                        </div>
+                        <div id="exportPreviewInner" class="w-full h-full flex items-center justify-center transition-all relative z-10"></div>
+                        <div id="exportPreviewBugHint" class="hidden absolute top-3 left-3 z-10 px-2 py-0.5 rounded bg-black/65 border border-white/10 text-[10px] font-mono text-gray-300">16:9 Corner Bug Framing</div>
                     </div>
 
                     <!-- Metadata Readout Pills -->
@@ -1040,9 +1079,9 @@
 
                     <!-- Video & Motion Card -->
                     <div class="bg-[#11111c] border border-sky-500/25 rounded-2xl p-4 sm:p-5 space-y-3">
-                        <div class="flex items-center justify-between">
+                        <div class="flex items-center justify-between gap-2">
                             <h3 class="text-xs font-semibold uppercase tracking-wider text-sky-300">Video &amp; Motion Loops</h3>
-                            <span class="text-[10px] text-gray-400 font-mono">Alpha &amp; 16:9 Ready</span>
+                            <span id="webmAlphaBadge" class="text-[10px] px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-gray-300 font-mono">Checking codec…</span>
                         </div>
                         <div class="grid grid-cols-2 gap-2">
                             <button id="exportGifBtn" type="button" class="px-3 py-2.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/35 text-xs font-semibold text-emerald-200 transition text-left">
@@ -1051,7 +1090,7 @@
                             </button>
                             <button id="exportWebmBtn" type="button" class="px-3 py-2.5 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-400/35 text-xs font-semibold text-indigo-200 transition text-left">
                                 <span class="block">🎬 .WEBM Video</span>
-                                <span class="text-[10px] text-indigo-300/80 font-mono">VP9 / Alpha</span>
+                                <span class="text-[10px] text-indigo-300/80 font-mono">VP9 / VP8 Stream</span>
                             </button>
                             <button id="exportPngSeqBtn" type="button" class="px-3 py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/35 text-xs font-semibold text-amber-200 transition text-left">
                                 <span class="block">📦 Lossless .ZIP</span>
@@ -1062,6 +1101,10 @@
                                 <span class="text-[10px] text-sky-300/80 font-mono">Self-Contained</span>
                             </button>
                         </div>
+                        <button id="exportBrandPackBtn" type="button" class="w-full px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600/85 to-emerald-600/75 hover:from-indigo-500 hover:to-emerald-500 border border-indigo-300/40 text-xs font-semibold text-white shadow-[0_0_16px_rgba(99,102,241,0.3)] transition flex items-center justify-between">
+                            <span>📦 Export Full Brand Pack (.ZIP)</span>
+                            <span class="text-[10px] font-mono text-indigo-100 opacity-90">SVG + PNG + Icon + GIF + SPMOTION</span>
+                        </button>
                         <div class="grid grid-cols-2 gap-2 pt-1">
                             <button id="exportSpmotionBtn" type="button" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-300 transition text-center">
                                 Export .SPMOTION

@@ -1027,10 +1027,67 @@ export function initExporters({
     document.getElementById('importSvgInput')?.addEventListener('change', (e) => handleFileImport(e.target.files?.[0], e.target));
     document.getElementById('importSpmotionInput')?.addEventListener('change', (e) => handleFileImport(e.target.files?.[0], e.target));
 
-    // Export Page Live Preview & Metadata Sync
+    // Export Page Live Preview, Scene Mockup, Codec Clarity & Brand Pack
     let exportPreviewMode = 'static';
     let exportPreviewRaf = null;
     let exportPreviewStart = 0;
+    let sceneMockupEnabled = false;
+    let customSceneUrl = null;
+
+    function updateWebmAlphaBadge() {
+        const badge = document.getElementById('webmAlphaBadge');
+        if (!badge) return;
+        const bgMode = document.getElementById('exportOverlayBg')?.value || 'studio';
+        const hasRecorder = typeof MediaRecorder !== 'undefined';
+        const supportsVp9 = hasRecorder && typeof MediaRecorder.isTypeSupported === 'function' && MediaRecorder.isTypeSupported('video/webm;codecs=vp9');
+        if (!hasRecorder) {
+            badge.textContent = 'Use .GIF / .ZIP';
+            badge.className = 'text-[10px] px-2 py-0.5 rounded-md bg-amber-500/15 border border-amber-400/30 text-amber-200 font-mono';
+        } else if (bgMode === 'transparent') {
+            badge.textContent = supportsVp9 ? 'VP9 Alpha · NLEs: .ZIP safest' : 'Use .ZIP PNG Seq for Alpha';
+            badge.className = 'text-[10px] px-2 py-0.5 rounded-md bg-amber-500/15 border border-amber-400/30 text-amber-200 font-mono';
+        } else {
+            badge.textContent = supportsVp9 ? 'VP9 HD Ready' : 'VP8 Stream Ready';
+            badge.className = 'text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-400/30 text-emerald-200 font-mono';
+        }
+    }
+    updateWebmAlphaBadge();
+
+    function syncSceneBackdrop() {
+        const backdrop = document.getElementById('exportSceneBackdrop');
+        const btn = document.getElementById('exportSceneMockupBtn');
+        if (backdrop) backdrop.classList.toggle('hidden', !sceneMockupEnabled);
+        if (btn) {
+            btn.className = sceneMockupEnabled
+                ? 'px-2.5 py-1 rounded-lg bg-sky-500/25 border border-sky-400/50 text-[11px] font-semibold text-sky-100 transition'
+                : 'px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-medium text-gray-300 transition';
+        }
+    }
+
+    document.getElementById('exportSceneMockupBtn')?.addEventListener('click', () => {
+        sceneMockupEnabled = !sceneMockupEnabled;
+        syncSceneBackdrop();
+        if (exportPreviewMode === 'static') updateExportPreviewFrame(null);
+    });
+
+    document.getElementById('exportSceneUpload')?.addEventListener('change', (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (customSceneUrl) URL.revokeObjectURL(customSceneUrl);
+        customSceneUrl = URL.createObjectURL(file);
+        const imgEl = document.getElementById('exportSceneImg');
+        const defEl = document.getElementById('exportSceneDefault');
+        if (imgEl) {
+            imgEl.src = customSceneUrl;
+            imgEl.classList.remove('hidden');
+        }
+        if (defEl) defEl.classList.add('hidden');
+        sceneMockupEnabled = true;
+        syncSceneBackdrop();
+        if (exportPreviewMode === 'static') updateExportPreviewFrame(null);
+        showToast('Loaded custom 16:9 scene backdrop');
+        e.target.value = '';
+    });
 
     function stopExportPreviewLoop() {
         if (exportPreviewRaf) {
@@ -1048,8 +1105,13 @@ export function initExporters({
         const { bgMode, bgFill, bugPos } = resolveOverlaySettings();
         const resVal = parseInt(document.getElementById('webmResSelect')?.value || '1200', 10);
 
-        stage.style.backgroundColor = bgMode === 'transparent' ? 'transparent' : bgFill;
-        stage.classList.toggle('canvas-grid', bgMode === 'transparent');
+        if (sceneMockupEnabled) {
+            stage.style.backgroundColor = '#090d16';
+            stage.classList.remove('canvas-grid');
+        } else {
+            stage.style.backgroundColor = bgMode === 'transparent' ? 'transparent' : bgFill;
+            stage.classList.toggle('canvas-grid', bgMode === 'transparent');
+        }
 
         const bugHint = document.getElementById('exportPreviewBugHint');
         if (bugHint) bugHint.classList.toggle('hidden', bugPos === 'centered');
@@ -1139,13 +1201,122 @@ export function initExporters({
 
     ['exportOverlayBg', 'exportBugPosition', 'webmResSelect'].forEach(id => {
         document.getElementById(id)?.addEventListener('change', () => {
+            updateWebmAlphaBadge();
             if (exportPreviewMode === 'static') updateExportPreviewFrame(null);
         });
+    });
+
+    async function renderSvgToPngUint8(svgMarkup, width, height, bgFill = 'transparent', embedSeed = false) {
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        const url = URL.createObjectURL(new Blob([svgMarkup], { type: 'image/svg+xml;charset=utf-8' }));
+        try {
+            await new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => {
+                    ctx.clearRect(0, 0, width, height);
+                    if (bgFill !== 'transparent') {
+                        ctx.fillStyle = bgFill;
+                        ctx.fillRect(0, 0, width, height);
+                    }
+                    ctx.drawImage(img, 0, 0, width, height);
+                    resolve();
+                };
+                img.onerror = () => reject(new Error('SVG rasterization failed'));
+                img.src = url;
+            });
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+            const buf = await blob.arrayBuffer();
+            return embedSeed ? injectPngTextChunk(buf, 'solopass', encodeStateToCode(state)) : new Uint8Array(buf);
+        } finally {
+            URL.revokeObjectURL(url);
+        }
+    }
+
+    document.getElementById('exportBrandPackBtn')?.addEventListener('click', async () => {
+        const btn = document.getElementById('exportBrandPackBtn');
+        const canvas = document.getElementById('exportCanvas');
+        if (!btn || !canvas) return;
+        const origHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.textContent = 'Building Brand Pack...';
+        showToast('Bundling SVG, PNG, Icon, GIF & .SPMOTION into .ZIP...');
+
+        const wasPlaying = isTimelinePlaying();
+        stopTimelinePlayback();
+        const timeline = getMotionTimeline();
+        const { bgFill, bugPos } = resolveOverlaySettings();
+
+        try {
+            const encoder = new TextEncoder();
+            const svgCode = generateSVGString(state, { forExport: false, includeGuides: false });
+            const exportSvg = generateSVGString(state, { forExport: true, includeGuides: false });
+            const iconSvg = generateSVGString({ ...state, showText: false }, { forExport: true, includeGuides: false });
+
+            const pngBytes = await renderSvgToPngUint8(exportSvg, 1800, state.showText ? 870 : 660, 'transparent', true);
+            const iconBg = state.bgColor !== 'transparent' ? state.bgColor : '#0d0d16';
+            const iconBytes = await renderSvgToPngUint8(iconSvg, 512, 512, iconBg, true);
+
+            // Render compact animated GIF for pack
+            canvas.width = bugPos !== 'centered' ? 640 : 600;
+            canvas.height = bugPos !== 'centered' ? 360 : (state.showText ? 290 : 220);
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            const fps = 16;
+            const totalFrames = Math.max(12, Math.min(64, Math.round((timeline?.durationSec || 3) * fps)));
+            const framesRgba = [];
+            for (let f = 0; f < totalFrames; f++) {
+                btn.textContent = `Packing GIF ${Math.round(((f + 1) / totalFrames) * 100)}%`;
+                const rawProg = f / totalFrames;
+                const prog = timeline.playMode === 'pingpong' ? (rawProg <= 0.5 ? rawProg * 2 : (1 - rawProg) * 2) : rawProg;
+                await renderTimelineFrameToCanvas(canvas, ctx, prog, bgFill, bugPos, timeline);
+                framesRgba.push(ctx.getImageData(0, 0, canvas.width, canvas.height).data);
+            }
+            const gifBytes = encodeGif89a(framesRgba, canvas.width, canvas.height, Math.max(2, Math.round(100 / fps)), { transparent: bgFill === 'transparent' });
+            const spmotionBytes = encoder.encode(JSON.stringify(timeline, null, 2));
+            const seedCode = encodeStateToCode(state);
+            const readme = [
+                'SOLOPASS Brand Pack',
+                '===================',
+                `Brand: ${state.brandText || 'SOLOPASS'}`,
+                `Seed: ${seedCode}`,
+                state.encodedMessage ? `Message: ${state.encodedMessage}` : '',
+                `Framing: ${bugPos} | Overlay BG: ${bgFill}`,
+                '',
+                'Files included:',
+                '- solopass-vector.svg (Scalable vector with embedded seed)',
+                '- solopass-1800px.png (High-res transparent PNG + SP2 tEXt chunk)',
+                '- solopass-icon-512.png (512x512 app icon)',
+                '- solopass-animation.gif (Adaptive-palette animated loop)',
+                '- solopass-timeline.spmotion (Re-editable timeline project)'
+            ].filter(Boolean).join('\n');
+
+            const zipBlob = buildZipBlob([
+                { name: 'solopass-vector.svg', data: encoder.encode(svgCode) },
+                { name: 'solopass-1800px.png', data: pngBytes },
+                { name: 'solopass-icon-512.png', data: iconBytes },
+                { name: 'solopass-animation.gif', data: gifBytes },
+                { name: 'solopass-timeline.spmotion', data: spmotionBytes },
+                { name: 'README.txt', data: encoder.encode(readme) }
+            ]);
+            triggerDownload(zipBlob, 'solopass-brand-pack.zip');
+            showToast(`Downloaded solopass-brand-pack.zip (${(zipBlob.size / 1024).toFixed(0)} KB)`);
+        } catch (err) {
+            console.error('[SOLOPASS] Brand pack export failed:', err);
+            showToast('Brand pack export failed', 'error');
+        } finally {
+            applyInterpolatedTimeline(0);
+            btn.disabled = false;
+            btn.innerHTML = origHtml;
+            if (wasPlaying) document.getElementById('playTimelineBtn')?.click();
+        }
     });
 
     window.addEventListener('solopass:modechange', (e) => {
         if (e.detail?.mode === 'export') {
             if (isTimelinePlaying()) stopTimelinePlayback();
+            updateWebmAlphaBadge();
             syncExportPreviewButtons();
             if (exportPreviewMode === 'animated') startExportPreviewLoop();
             else updateExportPreviewFrame(null);

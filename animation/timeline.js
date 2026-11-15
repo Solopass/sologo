@@ -802,6 +802,36 @@ export function initTimeline() {
                 { label: 'Spike R', easing, state: makeState({ visualStyle: 'glitch', useGradient: true, wingBalance: 26, wingAngle: 12, ringGapDeg: 45, energyFlow: 95 }) },
                 { label: 'Settle', easing, state: makeState({ visualStyle: 'classic', wingBalance: 0, wingAngle: 0 }) }
             ];
+        } else if (presetName === 'stingerPopIn') {
+            title = 'Pop-In CTA Stinger';
+            durationSec = 3.2;
+            easing = 'easeOutBack';
+            frames = [
+                { label: 'Compact In', easing, state: makeState({ circleRadius: Math.max(20, base.circleRadius - 14), topWingLen: 16, botWingLen: 12, wingGap: 8, glowBlur: 2, glowOpacity: 0.2 }) },
+                { label: 'Hold Start', easing: 'linear', state: makeState({}) },
+                { label: 'Hold End', easing: 'easeInOutExpo', state: makeState({}) },
+                { label: 'Snap Out', easing: 'easeInOutExpo', state: makeState({ circleRadius: Math.max(20, base.circleRadius - 14), topWingLen: 16, botWingLen: 12, wingGap: 8, glowBlur: 2, glowOpacity: 0.2 }) }
+            ];
+        } else if (presetName === 'stingerSlideOut') {
+            title = 'Slide-Out Stinger';
+            durationSec = 3.5;
+            easing = 'easeInOutExpo';
+            frames = [
+                { label: 'Tucked', easing, state: makeState({ wingGap: 6, topWingLen: 20, botWingLen: 14, wingOffsetY: -10, ringGapDeg: 110, glowOpacity: 0.15 }) },
+                { label: 'Hold Start', easing: 'linear', state: makeState({}) },
+                { label: 'Hold End', easing: 'easeInOutExpo', state: makeState({}) },
+                { label: 'Retract', easing: 'easeInOutExpo', state: makeState({ wingGap: 6, topWingLen: 20, botWingLen: 14, wingOffsetY: 10, ringGapDeg: 110, glowOpacity: 0.15 }) }
+            ];
+        } else if (presetName === 'stingerBugPulse') {
+            title = 'Bug Pulse Stinger';
+            durationSec = 2.6;
+            easing = 'easeInOutCubic';
+            frames = [
+                { label: 'Rest', easing, state: makeState({}) },
+                { label: 'Energy Peak', easing, state: makeState({ glowBlur: Math.min(30, base.glowBlur + 12), energyFlow: 85, wingCurve: base.wingCurve + 8, topWingLen: Math.min(200, base.topWingLen + 14) }) },
+                { label: 'Hold', easing: 'linear', state: makeState({}) },
+                { label: 'Rest', easing, state: makeState({}) }
+            ];
         }
 
         if (!frames.length) return;
